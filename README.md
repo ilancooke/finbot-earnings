@@ -1,5 +1,20 @@
 # finbot-earnings
 
+The agreed target for repurposing this package is recorded in
+[`docs/FUNCTIONAL_SCOPE.md`](docs/FUNCTIONAL_SCOPE.md): consume complete stored
+filing snapshots from `finbot-filings`, classify and extract earnings, validate
+evidence, persist canonical events, and publish validated event revisions.
+[`docs/V0_DECISIONS.md`](docs/V0_DECISIONS.md) defines the initial single-call EPS
+schema, validation criteria and event identity/revisions.
+[`docs/CONTRACTS.md`](docs/CONTRACTS.md) records the expected `FilingReady` input,
+with the authoritative contract and producer design owned by `finbot-filings`.
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) records the working cloud architecture
+and agreed duplicate handling, retries, publication recovery, evaluation isolation
+and input bounds, plus GitHub Actions/CDK deployment and release ownership.
+These describe the target; implementation and concrete deployment settings remain
+open.
+The remainder of this README describes the existing POC.
+
 `finbot-earnings` is a low-latency, provenance-first Python pipeline for official public-company earnings artifacts. The MVP watches NVIDIA investor news and SEC submissions, saves every new source before analysis, extracts a compact earnings flash with OpenAI, and continuously records a UTC latency timeline.
 
 The current implementation is intentionally optimized for the first NVDA live event. It does not try to discover every investor-relations site.
