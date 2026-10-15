@@ -302,7 +302,8 @@ environment protection still require cloud/repository setup.
 ## Remaining design and implementation work
 
 - Verify the initial cloud deployment and production environment/OIDC setup.
-- Evaluate the configured Nova Lite baseline on reviewed filing snapshots.
+- Use the [local evaluation runner](LOCAL_EVALUATION.md) to establish the Nova Lite
+  baseline on independently reviewed real filing snapshots; the starter corpus is synthetic.
 - Broader reconciliation beyond economic duplicates, enrichment and conflicts.
 - Expand and evaluate the initial explicit-prose evidence policy on reviewed filings.
 - Tune input/output limits and timeouts against the chosen model and real filings.

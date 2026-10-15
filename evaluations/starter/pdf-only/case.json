@@ -1,0 +1,65 @@
+{
+  "case_id": "pdf-only",
+  "tags": [
+    "pdf",
+    "validator_gap"
+  ],
+  "filing": {
+    "event_type": "filing.ready",
+    "schema_version": "1.0",
+    "filing_id": "0000000001-26-000003",
+    "cik": "0000000001",
+    "ticker": "FIXTURE",
+    "company_name": "Fixture Example Corporation",
+    "form_type": "8-K",
+    "filed_at": "2026-10-14T00:00:00.000000Z",
+    "ready_at": "2026-10-14T00:00:01.000000Z",
+    "primary_artifact_id": "0000000001-26-000003/release.pdf",
+    "artifacts": [
+      {
+        "artifact_id": "0000000001-26-000003/release.pdf",
+        "filename": "release.pdf",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000003/release.pdf",
+        "size_bytes": 925,
+        "content_type": "application/pdf"
+      }
+    ],
+    "snapshot_id": "4ebd8cf571d8ef0b97506b501f9f027437fc1723fc0860c98431c2af60ee2650"
+  },
+  "documents": {
+    "0000000001-26-000003/release.pdf": {
+      "path": "pdf-only/release.pdf",
+      "sha256": "526c16aaa1c2f00b06a28877232490b1c608552301953fdff77cf13d62e8cf79"
+    }
+  },
+  "expected": {
+    "classification": "reports_earnings",
+    "facts": [
+      {
+        "metric": "gaap_diluted_eps",
+        "value": "1.23",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000003/release.pdf",
+        "evidence": "For the three months ended september 30, 2026, GAAP diluted earnings per share were US$1.23."
+      },
+      {
+        "metric": "adjusted_diluted_eps",
+        "value": "1.45",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000003/release.pdf",
+        "evidence": "For the three months ended september 30, 2026, adjusted diluted earnings per share were US$1.45."
+      }
+    ]
+  },
+  "fixture_response": "pdf-only/fixture-response.json"
+}

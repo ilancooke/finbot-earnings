@@ -1,0 +1,66 @@
+{
+  "case_id": "text-loss",
+  "tags": [
+    "txt",
+    "loss",
+    "historical_comparison"
+  ],
+  "filing": {
+    "event_type": "filing.ready",
+    "schema_version": "1.0",
+    "filing_id": "0000000001-26-000002",
+    "cik": "0000000001",
+    "ticker": "FIXTURE",
+    "company_name": "Fixture Example Corporation",
+    "form_type": "8-K",
+    "filed_at": "2026-10-14T00:00:00.000000Z",
+    "ready_at": "2026-10-14T00:00:01.000000Z",
+    "primary_artifact_id": "0000000001-26-000002/release.txt",
+    "artifacts": [
+      {
+        "artifact_id": "0000000001-26-000002/release.txt",
+        "filename": "release.txt",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000002/release.txt",
+        "size_bytes": 362,
+        "content_type": "text/plain"
+      }
+    ],
+    "snapshot_id": "a200e1d3e7d68821771f1ae9c3666d054d50c5dfabe021c09751112de0866eb8"
+  },
+  "documents": {
+    "0000000001-26-000002/release.txt": {
+      "path": "text-loss/release.txt",
+      "sha256": "676149a40aa42d0eb26d88f570843e1a0a0b590e302dc9114fc34a6143626106"
+    }
+  },
+  "expected": {
+    "classification": "reports_earnings",
+    "facts": [
+      {
+        "metric": "gaap_diluted_eps",
+        "value": "-0.25",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000002/release.txt",
+        "evidence": "For the three months ended september 30, 2026, GAAP diluted loss per share was US$0.25."
+      },
+      {
+        "metric": "adjusted_diluted_eps",
+        "value": "-0.10",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000002/release.txt",
+        "evidence": "For the three months ended september 30, 2026, adjusted diluted loss per share was US$0.10."
+      }
+    ]
+  },
+  "fixture_response": "text-loss/fixture-response.json"
+}

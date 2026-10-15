@@ -41,6 +41,33 @@ successfully acknowledged duplicate. Inspect `processing-record.json`,
 [OFFLINE_PROCESSING.md](docs/OFFLINE_PROCESSING.md) for the implemented policy,
 limits and recovery behavior.
 
+For local filing evaluation, see [LOCAL_EVALUATION.md](docs/LOCAL_EVALUATION.md).
+The starter corpus contains eight fictional cases covering HTML, TXT, PDF,
+multiple attachments, losses, guidance, conflicting evidence and tables. Check the
+runner offline:
+
+```bash
+.venv/bin/python -m finbot_earnings.evaluation run \
+  --corpus evaluations/starter/corpus.json --offline \
+  --output-dir /tmp/finbot-earnings-eval-starter
+```
+
+Omit `--offline` to make paid Nova Lite calls using local files and your normal AWS
+credentials (`--profile` is optional). Results, raw responses and processing records
+stay in the new output directory; no queue, S3, DynamoDB or SNS is accessed. The
+command does not load `.env`. It reports extraction and validator acceptance
+separately, token usage and latency; optional token prices produce USD estimates.
+The synthetic corpus tests the harness; meaningful baseline scores require reviewed
+real filings. Real draft labels use `agent_draft` until reviewed. Older filings can
+use evaluator metadata reconstructed from existing records; original SNS events
+and an extra freezing step are not required. `earnings-eval` is an equivalent
+command after installation.
+
+The active real corpus uses only finbot-filings output from the production S3
+bucket; older local collections with different filters are excluded. It is stored
+under the shared data root; see
+[GOLDEN_DATASET.md](docs/GOLDEN_DATASET.md) for its location, coverage and review step.
+
 The remainder of this README describes the preserved artifact-based POC; its
 `earnings` commands do not invoke the new filing-processing core.
 

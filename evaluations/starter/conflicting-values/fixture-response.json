@@ -1,0 +1,10 @@
+{
+  "response": {
+    "classification": "uncertain",
+    "facts": []
+  },
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 50
+  }
+}

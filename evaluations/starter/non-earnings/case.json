@@ -1,0 +1,40 @@
+{
+  "case_id": "non-earnings",
+  "tags": [
+    "html",
+    "non_earnings"
+  ],
+  "filing": {
+    "event_type": "filing.ready",
+    "schema_version": "1.0",
+    "filing_id": "0000000001-26-000005",
+    "cik": "0000000001",
+    "ticker": "FIXTURE",
+    "company_name": "Fixture Example Corporation",
+    "form_type": "8-K",
+    "filed_at": "2026-10-14T00:00:00.000000Z",
+    "ready_at": "2026-10-14T00:00:01.000000Z",
+    "primary_artifact_id": "0000000001-26-000005/appointment.htm",
+    "artifacts": [
+      {
+        "artifact_id": "0000000001-26-000005/appointment.htm",
+        "filename": "appointment.htm",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000005/appointment.htm",
+        "size_bytes": 170,
+        "content_type": "text/html"
+      }
+    ],
+    "snapshot_id": "08f26e5e9b4d11f46b3473a69a64bd98709ed4bf9955caf76e56e411be94e07f"
+  },
+  "documents": {
+    "0000000001-26-000005/appointment.htm": {
+      "path": "non-earnings/appointment.htm",
+      "sha256": "6ac6a2a14e7c7df94328ae96a641e808e0d982cf63cdb5e13c7833615aaecfc1"
+    }
+  },
+  "expected": {
+    "classification": "does_not_report_earnings",
+    "facts": []
+  },
+  "fixture_response": "non-earnings/fixture-response.json"
+}

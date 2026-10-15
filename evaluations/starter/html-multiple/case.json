@@ -1,0 +1,87 @@
+{
+  "case_id": "html-multiple",
+  "tags": [
+    "html",
+    "multiple_attachments"
+  ],
+  "filing": {
+    "event_type": "filing.ready",
+    "schema_version": "1.0",
+    "filing_id": "0000000001-26-000001",
+    "cik": "0000000001",
+    "ticker": "FIXTURE",
+    "company_name": "Fixture Example Corporation",
+    "form_type": "8-K",
+    "filed_at": "2026-10-14T00:00:00.000000Z",
+    "ready_at": "2026-10-14T00:00:01.000000Z",
+    "primary_artifact_id": "0000000001-26-000001/primary.htm",
+    "artifacts": [
+      {
+        "artifact_id": "0000000001-26-000001/primary.htm",
+        "filename": "primary.htm",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000001/primary.htm",
+        "size_bytes": 85,
+        "content_type": "text/html"
+      },
+      {
+        "artifact_id": "0000000001-26-000001/release.html",
+        "filename": "release.html",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000001/release.html",
+        "size_bytes": 219,
+        "content_type": "text/html"
+      },
+      {
+        "artifact_id": "0000000001-26-000001/supplement.htm",
+        "filename": "supplement.htm",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000001/supplement.htm",
+        "size_bytes": 223,
+        "content_type": "text/html"
+      }
+    ],
+    "snapshot_id": "039b10f8def7ec6d66ffb82bf37f7c1fc5115f04ad8cb54795f1b9be7a435226"
+  },
+  "documents": {
+    "0000000001-26-000001/primary.htm": {
+      "path": "html-multiple/primary.htm",
+      "sha256": "7bb253e047e2d18e5294f3d7cbeb7000beead9cb4344dbd456585746c72a44ad"
+    },
+    "0000000001-26-000001/release.html": {
+      "path": "html-multiple/release.html",
+      "sha256": "32c0e728206f4f901dda8c0a775683898af788f7b073f2fc288ad47b12eac207"
+    },
+    "0000000001-26-000001/supplement.htm": {
+      "path": "html-multiple/supplement.htm",
+      "sha256": "5b33a5eaf756535b3d915011e4566d815e666318d0a1efa5602f1aefdcc28959"
+    }
+  },
+  "expected": {
+    "classification": "reports_earnings",
+    "facts": [
+      {
+        "metric": "gaap_diluted_eps",
+        "value": "1.23",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000001/release.html",
+        "evidence": "For the three months ended september 30, 2026, GAAP diluted earnings per share were US$1.23."
+      },
+      {
+        "metric": "adjusted_diluted_eps",
+        "value": "1.45",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000001/supplement.htm",
+        "evidence": "For the three months ended september 30, 2026, adjusted diluted earnings per share were US$1.45."
+      }
+    ]
+  },
+  "fixture_response": "html-multiple/fixture-response.json"
+}

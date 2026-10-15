@@ -1,0 +1,35 @@
+{
+  "response": {
+    "classification": "reports_earnings",
+    "facts": [
+      {
+        "metric": "gaap_diluted_eps",
+        "value": "1.23",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000003/release.pdf",
+        "evidence": "For the three months ended september 30, 2026, GAAP diluted earnings per share were US$1.23."
+      },
+      {
+        "metric": "adjusted_diluted_eps",
+        "value": "1.45",
+        "currency": "USD",
+        "period": {
+          "kind": "quarter",
+          "end_date": "2026-09-30",
+          "label": "Three months ended September 30, 2026"
+        },
+        "source_artifact_id": "0000000001-26-000003/release.pdf",
+        "evidence": "For the three months ended september 30, 2026, adjusted diluted earnings per share were US$1.45."
+      }
+    ]
+  },
+  "usage": {
+    "input_tokens": 100,
+    "output_tokens": 50
+  }
+}

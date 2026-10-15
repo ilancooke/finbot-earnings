@@ -28,6 +28,7 @@ aws = ["boto3==1.43.114"]
 
 [project.scripts]
 earnings = "finbot_earnings.cli:main"
+earnings-eval = "finbot_earnings.evaluation.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

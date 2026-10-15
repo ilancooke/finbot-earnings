@@ -1,0 +1,52 @@
+{
+  "case_id": "conflicting-values",
+  "tags": [
+    "html",
+    "multiple_attachments",
+    "conflict"
+  ],
+  "filing": {
+    "event_type": "filing.ready",
+    "schema_version": "1.0",
+    "filing_id": "0000000001-26-000007",
+    "cik": "0000000001",
+    "ticker": "FIXTURE",
+    "company_name": "Fixture Example Corporation",
+    "form_type": "8-K",
+    "filed_at": "2026-10-14T00:00:00.000000Z",
+    "ready_at": "2026-10-14T00:00:01.000000Z",
+    "primary_artifact_id": "0000000001-26-000007/release.htm",
+    "artifacts": [
+      {
+        "artifact_id": "0000000001-26-000007/release.htm",
+        "filename": "release.htm",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000007/release.htm",
+        "size_bytes": 219,
+        "content_type": "text/html"
+      },
+      {
+        "artifact_id": "0000000001-26-000007/supplement.htm",
+        "filename": "supplement.htm",
+        "s3_uri": "s3://evaluation-fixtures/0000000001-26-000007/supplement.htm",
+        "size_bytes": 219,
+        "content_type": "text/html"
+      }
+    ],
+    "snapshot_id": "2515c4a4630eda451f2b24f9eaf73de01723afd879dcb8cd430a02214a5150f3"
+  },
+  "documents": {
+    "0000000001-26-000007/release.htm": {
+      "path": "conflicting-values/release.htm",
+      "sha256": "32c0e728206f4f901dda8c0a775683898af788f7b073f2fc288ad47b12eac207"
+    },
+    "0000000001-26-000007/supplement.htm": {
+      "path": "conflicting-values/supplement.htm",
+      "sha256": "f27ab5a6cc2478eb155902620f82ab1243315d67bc6c2c1ae35a60863cb28f85"
+    }
+  },
+  "expected": {
+    "classification": "uncertain",
+    "facts": []
+  },
+  "fixture_response": "conflicting-values/fixture-response.json"
+}

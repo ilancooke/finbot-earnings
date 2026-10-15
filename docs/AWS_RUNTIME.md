@@ -157,6 +157,10 @@ evaluation request using the configured Nova Lite model:
 {"operation":"evaluate","run_id":"reviewed-corpus-v1","filing":{}}
 ```
 
+For baseline development before deployment, use the
+[local evaluation runner](LOCAL_EVALUATION.md) with saved filing documents and labels.
+It calls the same Nova adapter and validator, persisting only local results.
+
 Replace `filing` with a complete valid FilingReady payload. Invoking this endpoint
 reads S3 and makes a paid model call; it records evaluation results without canonical
 changes or publication. It is not invoked by normal tests or deployment. Review
