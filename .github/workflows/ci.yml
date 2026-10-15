@@ -1,0 +1,53 @@
+name: CI
+
+'on':
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      JSII_RUNTIME_PACKAGE_CACHE: /tmp/finbot-earnings-jsii
+      CDK_DISABLE_CLI_TELEMETRY: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Install tools
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -e '.[dev]'
+          npm ci --ignore-scripts --no-audit --no-fund
+      - name: Offline checks
+        run: |
+          .venv/bin/python -m compileall -q src tests infra scripts
+          .venv/bin/python -m pytest
+          .venv/bin/python -m build
+          git diff --check
+      - name: Build and synthesize release
+        run: |
+          .venv/bin/python scripts/build_lambda.py
+          npm run synth
+          .venv/bin/python -m scripts.release_manifest
+          mkdir -p build/release
+          cp -R cdk.out build/release/cdk.out
+          cp build/release-manifest.json build/release/
+          cp -R dist build/release/dist
+      - uses: actions/upload-artifact@v7
+        with:
+          name: earnings-release-${{ github.sha }}
+          path: build/release/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

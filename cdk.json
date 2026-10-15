@@ -1,0 +1,4 @@
+{
+  "app": ".venv/bin/python -m infra.cdk.app",
+  "context": {}
+}

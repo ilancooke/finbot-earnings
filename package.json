@@ -1,0 +1,6 @@
+{
+  "name": "finbot-earnings-infra-tools",
+  "private": true,
+  "scripts": {"cdk": "cdk", "synth": "cdk synth --strict --no-lookups"},
+  "devDependencies": {"aws-cdk": "2.1145.0"}
+}

@@ -2,16 +2,23 @@
 
 Recorded 2026-10-14. This document summarizes the architecture discussed for the
 repurposed package and the agreed processing behavior. It describes a target,
-not the existing POC or a deployed earnings service. The filing-level input event
-also requires a future change in `finbot-filings`.
+not the existing POC or a deployed earnings service. The filing-level producer implementation is in `finbot-filings`; production
+adoption requires its normal release.
+
+The filing core and AWS adapters are implemented separately from the POC. See
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) for its SQLite reference adapter,
+lease fencing, atomic event/outbox commits, explicit run identities and narrow
+evidence policy. [AWS_RUNTIME.md](AWS_RUNTIME.md) describes the DynamoDB adapter,
+SQS handler, CDK definitions and release workflows. They have not been deployed;
+the initial configuration selects Nova Lite and disables consumption pending evaluation.
 
 [FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md) defines package ownership and purpose.
 [V0_DECISIONS.md](V0_DECISIONS.md) defines the minimal EPS response, validation
 acceptance and canonical event identity/revisions. This document owns runtime
 composition, filing-level input, operational behavior and deployment decisions.
 [CONTRACTS.md](CONTRACTS.md) records the consumer expectations for the producer-owned
-`FilingReady` contract and snapshot identity. Remaining wire contracts, resource configuration and detailed
-operator procedures remain implementation work.
+`FilingReady` contract and snapshot identity. AWS_RUNTIME.md records the initial
+resource configuration and release procedures; activation remains separate work.
 
 ## Working architecture
 
@@ -43,8 +50,8 @@ a continuously polling service. Start with one input message per invocation and
 limited concurrency to control model traffic. The complete processing budget must
 fit within the ordinary on-demand Lambda invocation limit of 15 minutes.
 ECS remains an alternative if measured duration or document-processing needs
-outgrow that approach. Exact timeout, concurrency, runtime and deployment settings
-have not been selected. See [Lambda/SQS behavior](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
+outgrow that approach. Initial timeout, concurrency, runtime and deployment settings
+are now defined in AWS_RUNTIME.md. See [Lambda/SQS behavior](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html)
 and [Lambda limits](https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html).
 
 ## Filing-level input and readiness
@@ -102,7 +109,8 @@ The SQS message ID is transport metadata, not extraction identity.
 SNS/SQS notifications and retries can deliver the same logical work again. Only
 one worker may claim a given job at a time. Repeated deliveries reuse a durable
 result or resume unfinished work; they must not automatically create a new LLM
-run or event revision. Exact claim/expiry/recovery mechanics remain to be designed.
+run or event revision. The offline adapter uses expiring claims and fenced writes;
+the DynamoDB adapter implements equivalent guarantees with conditional transactions.
 A crash after model completion but before saving the response can still require
 another call: one-call processing is not an exactly-once invocation guarantee.
 
@@ -135,8 +143,8 @@ Keep one logical processing record containing source references, the input
 manifest, model result, validation findings/outcome and accepted facts. Also
 retain configuration/model versions, token usage, timing and publication state.
 Classification, extraction and validation do not require separate records or
-calls. The physical item layout for preserved runs and canonical event revisions
-remains open.
+calls. The DynamoDB layout splits job STATE/INPUT/RESPONSE and event HEAD/REV items;
+see AWS_RUNTIME.md. SQLite remains the separate offline reference adapter.
 
 Persist the validated event revision and publication-pending state before sending
 to SNS. Record successful publication after SNS acknowledges it. A publication
@@ -147,13 +155,14 @@ Exhausted technical retries follow the same DLQ/redrive policy.
 Lost publication acknowledgments can cause repeated SNS notifications. Repeat
 the same logical revision and payload; consumers deduplicate by
 `(event_id, revision)`. Do not claim exactly-once downstream delivery. Detailed
-conditional writes and recovery mechanics remain implementation work.
+conditional writes for DynamoDB and SQLite transactions exercise these guarantees
+in offline tests, including concurrent revision changes and lost acknowledgments.
 
 The output notification contains a complete accepted snapshot: schema version,
 event ID/revision, company identity, reporting period, accepted EPS facts with
 their currencies and source evidence, source references and validation timestamp.
 Downstream clients should receive the extracted details directly, not just a
-storage pointer. The exact envelope remains to be defined. Review candidates and
+storage pointer. The reference envelope is specified in CONTRACTS.md. Review candidates and
 technical failures are not validated-event notifications.
 
 No new application S3 bucket is needed for the bounded v0 extraction records.
@@ -172,19 +181,18 @@ classify_and_extract(filing_documents, company_context, schema)
     → extraction_result + model_usage
 ```
 
-Validation, persistence and publication stay outside the adapter. Bedrock Converse
-is the recommended common starting API for compatible models, with model-specific
-request settings isolated inside the adapter. Require native structured-output
-support for the selected model/API combination and verify its input capabilities
-separately. A valid JSON response does not establish financial correctness.
+Validation, persistence and publication stay outside the adapter. The initial
+`NovaLiteModel` adapter uses Bedrock Converse with `amazon.nova-lite-v1:0` in
+`us-east-1`. It forces a single `report_earnings` tool with the minimal EPS schema
+and reads the returned `toolUse.input`; it never executes a function or makes a
+follow-up inference call. This is Nova's constrained tool-input approach, rather
+than Converse native JSON text output. Application schema and financial evidence
+checks remain necessary.
 
-A cheap OpenAI model is the desired baseline, but no exact model is pinned.
-Candidates discussed include [GPT-5.6 Luna](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-56-luna.html)
-and [gpt-oss-20b](https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-openai-gpt-oss-20b.html).
-Bedrock also documents structured outputs for [supported Claude models](https://docs.aws.amazon.com/bedrock/latest/userguide/claude-messages-structured-outputs.html).
-Support is model-, endpoint- and region-dependent; recheck the chosen model before
-implementation. These are reference candidates, not a frozen availability or
-pricing guarantee.
+HTML, TXT and PDF files are supplied together as original document bytes with
+artifact mappings. PDF-sourced facts require review until independent PDF evidence
+validation exists. See [AWS_RUNTIME.md](AWS_RUNTIME.md) for versioned configuration
+and input budgets. Other models can be compared later through separate adapters.
 
 Use the same extraction and validation code in two modes:
 
@@ -195,7 +203,7 @@ Use the same extraction and validation code in two modes:
 Run mode is part of work identity so an evaluation result cannot suppress a
 production job. Compare replacement models on reviewed filings before selecting
 them for production. Deliberate repeated experiments need distinguishable run
-identities; their exact representation remains open.
+identities; the core supplies an explicit `run_id`, defaulting to `initial`.
 
 ## Input bounds
 
@@ -218,8 +226,8 @@ Start with built-in CloudWatch metrics rather than custom metric dimensions per
 company, filing or model.
 
 The recommended initial alarms are DLQ messages present, excessive input queue
-age and repeated Lambda errors. Exact thresholds and notification setup remain
-open. Completed review outcomes should be inspectable in storage/logs rather
+age and repeated Lambda errors. Initial thresholds are defined in CDK; alarm
+subscriptions require setup. Completed review outcomes should be inspectable in storage/logs rather
 than treated as infrastructure failures.
 
 ## Deployment and release ownership
@@ -236,8 +244,8 @@ revisions. One owner keeps Lambda code/configuration and the declared infrastruc
 in sync without a separate baseline-versus-release configuration split.
 
 The earnings CDK definitions own the input queue/DLQ, DynamoDB table, Lambda,
-output SNS topic, earnings permissions and minimal alarms. Reference the existing
-filings SNS topic and raw-document bucket without taking ownership of them. The
+output SNS topic, earnings permissions and minimal alarms. Reference the producer’s
+`filing-ready` SNS topic (`FilingTopicArn`) and existing raw-document bucket without taking ownership of them. The
 producer's `FilingReady` implementation remains in `finbot-filings` and follows
 that package's delivery process.
 
@@ -287,19 +295,21 @@ publish production events.
 
 Retain release evidence identifying the commit, package hash, deployed Lambda
 version and extraction configuration version. Detailed build steps, role policies,
-deployment inputs, activation verification and rollback commands remain to be
-implemented in workflows and an operator runbook.
+deployment inputs, activation verification and rollback are documented in the
+workflows and [AWS_RUNTIME.md](AWS_RUNTIME.md). Initial OIDC roles and production
+environment protection still require cloud/repository setup.
 
 ## Remaining design and implementation work
 
-- Integrate with the producer-owned `FilingReady` contract.
-- DynamoDB keys, job claiming, revision concurrency and publication checkpoints.
-- Final output envelope and detailed reconciliation between filings.
-- Concrete evidence-verification rules for the v0 EPS schema.
-- Model selection, format support, limits, retry budgets and deployment settings.
-- GitHub workflows, Python CDK definitions and the detailed activation/rollback runbook.
-- Explicit inspection, replay/evaluation and DLQ-redrive commands.
+- Verify the initial cloud deployment and production environment/OIDC setup.
+- Evaluate the configured Nova Lite baseline on reviewed filing snapshots.
+- Broader reconciliation beyond economic duplicates, enrichment and conflicts.
+- Expand and evaluate the initial explicit-prose evidence policy on reviewed filings.
+- Tune input/output limits and timeouts against the chosen model and real filings.
+- Operator CLI commands for inspection, explicit reruns and selective DLQ redrive.
 
 Application validation should use offline fixtures and mocked model/AWS boundaries;
 paid evaluations and cloud activation are separate operations. Recording this
-architecture changes no application behavior or cloud resources.
+architecture alone changes no cloud resources. The offline implementation does
+not connect to AWS or a live model. Cloud adapters are tested with local emulation
+and SDK stubs; deployment and paid evaluations remain separate operations.

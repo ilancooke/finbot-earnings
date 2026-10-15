@@ -6,6 +6,11 @@ these capabilities. [ARCHITECTURE.md](ARCHITECTURE.md) records the working cloud
 design and agreed operational behavior; detailed contracts and deployment settings
 remain to be decided.
 
+Implementation status: [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) describes
+the first filing-level core with fake I/O/model boundaries and a SQLite reference
+store. The AWS adapters, CDK and release workflows are implemented as documented in
+[AWS_RUNTIME.md](AWS_RUNTIME.md); Nova Lite is configured, while evaluation and deployment remain pending.
+
 [V0_DECISIONS.md](V0_DECISIONS.md) records the agreed initial EPS schema,
 single-call processing approach, acceptance criteria and event identity/revisions.
 It refines the general scope below.
@@ -31,9 +36,8 @@ The target system listens for a new `FilingReady` event from `finbot-filings` an
 reads all stored documents in its selected package manifest. It processes the
 complete filing snapshot in one combined classification/extraction call.
 `FilingReady` establishes that the listed selected documents are stored, not that
-the filing has validated earnings. The current producer only emits per-document
-`ArtifactReady`; replacing it with filing-level publication is an upstream change
-still to implement. The target producer emits only `filing.ready`. See
+the filing has validated earnings. The producer implementation emits filing-level `filing.ready`; production adoption
+requires its normal release. It no longer publishes per-document `ArtifactReady`. See
 ARCHITECTURE.md for readiness and duplicate handling.
 
 ```text
@@ -64,8 +68,9 @@ Receive filing snapshot → classify + extract → validate → persist outcome
 
 Document preparation is not a required functional stage. Direct document input
 is the initial baseline to evaluate; preprocessing can be introduced if measured
-quality, cost or document limits justify it. The model and input strategy remain
-open choices.
+quality, cost or document limits justify it. The initial baseline is Nova Lite
+with direct HTML/TXT/PDF document input and schema-defined tool responses.
+PDF-derived facts remain review-only under the initial evidence policy.
 
 ## Outcomes and meaning of validation
 

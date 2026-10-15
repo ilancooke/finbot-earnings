@@ -1,10 +1,18 @@
 # finbot-earnings v0 decisions
 
 Status: agreed target decisions, recorded 2026-10-14. These refine
-[FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md); they are not yet implemented in the
-existing POC. [ARCHITECTURE.md](ARCHITECTURE.md) records the working deployment
+[FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md). The first offline core implements a
+bounded subset of evidence validation and reference persistence/recovery; see
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md). The existing POC remains separate.
+[ARCHITECTURE.md](ARCHITECTURE.md) records the working deployment
 design and agreed runtime behavior, including complete filing snapshots as input.
-Concrete model and deployment settings remain open.
+Initial runtime settings are recorded in [AWS_RUNTIME.md](AWS_RUNTIME.md).
+Nova Lite was selected on 2026-10-15 as the inexpensive evaluation baseline;
+cloud activation remains pending. The versioned adapter forces one schema-defined
+`report_earnings` tool response and consumes its input without executing a tool or
+making another model call. The minimal extraction contract below is unchanged.
+HTML/TXT/PDF files enter one request; PDF-sourced facts require review until
+independent PDF evidence validation is implemented.
 
 ## One call and one processing record
 
@@ -130,7 +138,8 @@ Start validated events at revision 1. Exact duplicates create no new revision.
 A changed accepted result creates a new preserved revision; it does not erase
 the earlier result. Conflicting later evidence requires review rather than
 automatic replacement. Consumers identify published versions by
-`(event_id, revision)`. Detailed reconciliation and publication-envelope rules
-remain subsequent decisions. Work deduplication uses filing snapshot, extraction
+`(event_id, revision)`. The reference envelope and enrichment/conflict rules are
+documented in [CONTRACTS.md](CONTRACTS.md) and OFFLINE_PROCESSING.md. Broader
+reconciliation remains subsequent work. Work deduplication uses filing snapshot, extraction
 configuration and run mode; it is separate from canonical event identity. See
 ARCHITECTURE.md for retries, evaluation isolation and publication recovery.

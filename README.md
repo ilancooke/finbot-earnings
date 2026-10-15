@@ -7,13 +7,42 @@ evidence, persist canonical events, and publish validated event revisions.
 [`docs/V0_DECISIONS.md`](docs/V0_DECISIONS.md) defines the initial single-call EPS
 schema, validation criteria and event identity/revisions.
 [`docs/CONTRACTS.md`](docs/CONTRACTS.md) records the expected `FilingReady` input,
-with the authoritative contract and producer design owned by `finbot-filings`.
+with the authoritative contract and implemented producer owned by `finbot-filings`.
+Producer deployment is separate from the earnings implementation. Earnings must
+subscribe to the producer’s `filing-ready` topic, exported as `FilingTopicArn`.
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) records the working cloud architecture
 and agreed duplicate handling, retries, publication recovery, evaluation isolation
 and input bounds, plus GitHub Actions/CDK deployment and release ownership.
-These describe the target; implementation and concrete deployment settings remain
-open.
-The remainder of this README describes the existing POC.
+The first implementation is an **offline filing-processing core** in
+`finbot_earnings.processing`: strict input validation, one mocked model call for
+all filing documents, conservative EPS evidence checks, durable SQLite processing
+records/event revisions, and recoverable publication.
+
+The AWS runtime now adds S3, Bedrock Converse, DynamoDB and SNS adapters, an SQS
+Lambda handler, Python CDK infrastructure and GitHub CI/deployment workflows.
+These are tested offline and **have not been deployed**. Queue consumption is
+disabled. The committed configuration selects **Amazon Nova Lite**
+(`amazon.nova-lite-v1:0`) with a required schema-defined tool response. HTML, TXT
+and PDF artifacts enter one filing request as original document bytes; PDF-sourced
+facts require review until independent PDF evidence validation is implemented.
+See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for configuration, build checks and release
+setup. The existing AWS producer remains owned by `finbot-filings`.
+
+Run the synthetic three-document filing without credentials or `.env` loading:
+
+```bash
+.venv/bin/python -m finbot_earnings.processing.demo \
+  --output-dir /tmp/finbot-earnings-filing-demo
+```
+
+Choose a new output directory. The demo produces one model call, one event and a
+successfully acknowledged duplicate. Inspect `processing-record.json`,
+`published-events.jsonl` and `processing.sqlite3` there. See
+[OFFLINE_PROCESSING.md](docs/OFFLINE_PROCESSING.md) for the implemented policy,
+limits and recovery behavior.
+
+The remainder of this README describes the preserved artifact-based POC; its
+`earnings` commands do not invoke the new filing-processing core.
 
 `finbot-earnings` is a low-latency, provenance-first Python pipeline for official public-company earnings artifacts. The MVP watches NVIDIA investor news and SEC submissions, saves every new source before analysis, extracts a compact earnings flash with OpenAI, and continuously records a UTC latency timeline.
 
@@ -76,9 +105,6 @@ No normal test makes a network or paid API call.
 
 ```bash
 python -m pytest
-
-# Or, with no test dependency installed:
-PYTHONPATH=src python -m unittest discover -v
 
 # Full fixture IR → SEC → parse → fake extraction → timeline path:
 EARNINGS_DATA_DIR=/tmp/finbot-earnings-demo \

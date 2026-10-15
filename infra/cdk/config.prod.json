@@ -1,0 +1,20 @@
+{
+  "account": "559007813222",
+  "region": "us-east-1",
+  "stack_name": "finbot-earnings-prod",
+  "filing_topic_arn": "arn:aws:sns:us-east-1:559007813222:finbot-prod-filing-ready",
+  "source_bucket": "finbot-prod-state-artifacts82dd59a1-8gt63rcgmaua",
+  "consumption_enabled": false,
+  "bedrock_resource_arns": [
+    "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
+  ],
+  "extraction": {
+    "version": "eps-nova-lite-v1",
+    "model_id": "amazon.nova-lite-v1:0",
+    "max_input_bytes": 131072,
+    "max_output_tokens": 4096,
+    "lease_seconds": 360,
+    "prompt_version": "eps-nova-tool-v1",
+    "max_documents": 5
+  }
+}

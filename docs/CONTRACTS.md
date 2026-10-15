@@ -8,9 +8,10 @@ in the sibling workspace checkout is authoritative. This document records the
 matching input expected by `finbot-earnings`; keep its fields and hashing rules
 aligned with that source.
 
-The producer transition is not implemented: current code publishes per-document
-`ArtifactReady`. The target earnings subscription consumes only `filing.ready`
-on the existing filings SNS topic. Earnings owns the SQS subscription and the
+The producer implementation now publishes filing-level `FilingReady`; deployment
+is a separate operation. The target earnings subscription consumes only `filing.ready`
+on the producer’s `finbot-prod-filing-ready` SNS topic (`FilingTopicArn` CDK
+output). Subscriptions to the old artifact-ready topic do not receive these events. Earnings owns the SQS subscription and the
 processing of the complete selected filing snapshot in one LLM request.
 
 The notification contains references, not document bytes.
@@ -97,7 +98,30 @@ filing_id + snapshot_id + extraction_config_version + run_mode
 The canonical EarningsEvent identity remains company and reporting period, as
 specified in [V0_DECISIONS.md](V0_DECISIONS.md).
 
+## Validated earnings event 1.0 — offline reference envelope
+
+The core persists the complete JSON payload before publication. Its fields are:
+
+| Field | Meaning |
+| --- | --- |
+| `event_type`, `schema_version` | `earnings.validated`, `1.0` |
+| `event_id`, `revision` | `<cik>:<period_kind>:<period_end>`, positive integer starting at 1 |
+| `cik`, `ticker`, `company_name` | Canonical upstream company metadata |
+| `period` | `kind` and `end_date` |
+| `facts` | Accepted minimal EPS facts, each retaining currency, original period label, source artifact ID and evidence |
+| `source_snapshots` | Supporting manifests: `filing_id`, `snapshot_id`, `form_type`, `filed_at`, `primary_artifact_id`, `artifacts` |
+| `validated_at`, `validation_policy` | Fixed-width UTC acceptance time and policy version |
+
+Every published revision is a complete accepted snapshot. Missing metrics are
+absent. Conflicting values are withheld for review. Independent added metrics may
+enrich an event in a new revision, retaining earlier facts and supporting manifests.
+Economic confirmations with equal decimal value and currency create no revision;
+their evidence remains in their own processing record. Lost acknowledgments can
+repeat the identical payload; consumers deduplicate `(event_id, revision)`.
+This envelope is exercised offline; no earnings SNS topic is deployed yet.
+
 ## Other contracts
 
-The LLM response is specified in [V0_DECISIONS.md](V0_DECISIONS.md). The final
-validated EarningsEvent publication envelope will be finalized separately.
+The LLM response is specified in [V0_DECISIONS.md](V0_DECISIONS.md). Adapter ports,
+work identity and the implemented evidence policy are documented in
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md).

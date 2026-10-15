@@ -14,7 +14,17 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<10"]
+dev = [
+  "pytest>=8,<10",
+  "build>=1.2,<2",
+  "boto3==1.43.114",
+  "moto[dynamodb]==5.2.4",
+  "aws-cdk-lib==2.273.0",
+  "constructs==10.8.1",
+  "PyYAML==6.0.3",
+  "jsonschema==4.26.0",
+]
+aws = ["boto3==1.43.114"]
 
 [project.scripts]
 earnings = "finbot_earnings.cli:main"

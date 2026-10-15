@@ -1,0 +1,138 @@
+name: Deploy
+
+'on':
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: Full main commit SHA with successful CI (blank uses current main)
+        required: false
+        type: string
+
+concurrency:
+  group: finbot-earnings-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    outputs:
+      commit: ${{ steps.release.outputs.commit }}
+      region: ${{ steps.release.outputs.region }}
+      stack: ${{ steps.release.outputs.stack }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Select successful main CI artifact
+        id: release
+        env:
+          REQUESTED_COMMIT: ${{ inputs.commit }}
+          DISPATCH_SHA: ${{ github.sha }}
+          DISPATCH_REF: ${{ github.ref }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          test "$DISPATCH_REF" = refs/heads/main
+          commit="${REQUESTED_COMMIT:-$DISPATCH_SHA}"
+          [[ "$commit" =~ ^[0-9a-f]{40}$ ]]
+          git merge-base --is-ancestor "$commit" origin/main
+          run_id=$(gh api --method GET "repos/$GH_REPO/actions/workflows/ci.yml/runs" \
+            -f head_sha="$commit" -f branch=main -f event=push -f status=success \
+            --jq '.workflow_runs[0].id // empty')
+          test -n "$run_id"
+          gh run download "$run_id" --name "earnings-release-$commit" --dir release
+          jq -e --arg commit "$commit" '.commit == $commit' release/release-manifest.json
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
+          echo "region=$(jq -r .region release/release-manifest.json)" >> "$GITHUB_OUTPUT"
+          echo "stack=$(jq -r .stack_name release/release-manifest.json)" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.release.outputs.commit }}
+          path: tools
+      - name: Verify CI assembly checksum
+        env:
+          EXPECTED_COMMIT: ${{ steps.release.outputs.commit }}
+        working-directory: tools
+        run: python3 -m scripts.verify_release ../release --commit "$EXPECTED_COMMIT"
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: tools
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.EARNINGS_PLAN_ROLE_ARN }}
+          aws-region: ${{ steps.release.outputs.region }}
+      - name: Read-only infrastructure diff
+        env:
+          STACK: ${{ steps.release.outputs.stack }}
+          CDK_DISABLE_CLI_TELEMETRY: '1'
+        run: |
+          tools/node_modules/.bin/cdk diff "$STACK" --app release/cdk.out --method template --fail-on never --no-lookups --no-color 2>&1 | tee release/cdk-diff.txt
+          {
+            echo '### Reviewed release'
+            cat release/release-manifest.json
+            echo '### Infrastructure diff'
+            cat release/cdk-diff.txt
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: reviewed-release-${{ github.run_id }}
+          path: release/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30
+  deploy:
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.prepare.outputs.commit }}
+      - uses: actions/download-artifact@v8
+        with:
+          name: reviewed-release-${{ github.run_id }}
+          path: release
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - uses: aws-actions/configure-aws-credentials@v6.3.0
+        with:
+          role-to-assume: ${{ vars.EARNINGS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ needs.prepare.outputs.region }}
+      - name: Deploy reviewed cloud assembly
+        env:
+          STACK: ${{ needs.prepare.outputs.stack }}
+          EXPECTED_COMMIT: ${{ needs.prepare.outputs.commit }}
+          CDK_DISABLE_CLI_TELEMETRY: '1'
+        run: |
+          jq -e --arg commit "$EXPECTED_COMMIT" '.commit == $commit' release/release-manifest.json
+          python3 -m scripts.verify_release release --commit "$EXPECTED_COMMIT"
+          node_modules/.bin/cdk deploy "$STACK" --app release/cdk.out --exclusively \
+            --require-approval never --no-lookups --outputs-file deployment-outputs.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: deployed-release-${{ github.run_id }}
+          path: |
+            deployment-outputs.json
+            release/release-manifest.json
+            release/cdk-diff.txt
+          if-no-files-found: error
+          retention-days: 90
