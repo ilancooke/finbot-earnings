@@ -29,7 +29,8 @@ def build(output):
     with tempfile.TemporaryDirectory(prefix="earnings-asset-", dir=output.parent) as temporary:
         staged = Path(temporary) / "asset"
         subprocess.run([sys.executable, "-m", "pip", "install", "--disable-pip-version-check",
-            "--only-binary=:all:", "--platform", "manylinux2014_x86_64", "--implementation", "cp",
+            "--only-binary=:all:", "--platform", "manylinux_2_28_x86_64",
+            "--platform", "manylinux2014_x86_64", "--implementation", "cp",
             "--python-version", "3.13", "--no-compile", "--target", str(staged),
             "-r", str(ROOT / "requirements-lambda.txt")], check=True)
         shutil.copytree(ROOT / "src/finbot_earnings", staged / "finbot_earnings",

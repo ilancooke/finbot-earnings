@@ -119,7 +119,7 @@ def test_selected_model_grants_only_explicit_resources(tmp_path):
 def test_committed_nova_configuration_stays_disabled(template):
     settings = Settings.load(CONFIG)
     assert settings.extraction.model_id == "amazon.nova-lite-v1:0"
-    assert settings.extraction.prompt_version == "eps-nova-tool-v1"
+    assert settings.extraction.prompt_version == "eps-nova-tool-v2"
     assert settings.extraction.max_documents == 5
     assert not settings.consumption_enabled
     template.has_resource_properties("AWS::Lambda::Function", {"Environment": {"Variables": Match.object_like({

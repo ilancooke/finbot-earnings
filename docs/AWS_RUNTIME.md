@@ -19,8 +19,11 @@ npm run synth
 ```
 
 Use Node 24 and Python 3.11+ locally; CI and Lambda use Python 3.13. The asset
-builder downloads the pinned SDK wheels for Linux x86_64, adds the application and
-verifies imports in isolation. The SDK dependency set is pure Python. It excludes
+builder downloads the pinned SDK and Pillow wheels for Linux x86_64, adds the application and
+verifies imports in isolation. Python 3.13 runs on Amazon Linux 2023/glibc 2.34;
+the builder accepts manylinux_2_28 and manylinux2014 wheels. Pillow contains native
+code, so validate its image decoder in the official Python 3.13 x86_64 Lambda
+container as well as checking host imports. The SDK dependency set is pure Python. It excludes
 the legacy POC's OpenAI dependencies. Synthesis uses explicit account/region and
 no AWS lookups. Neither command deploys resources or invokes a model. Source changes
 require rebuilding the asset before synthesizing.
@@ -32,13 +35,23 @@ with `FINBOT_EARNINGS_ASSET` for local synthesis. CI builds the committed produc
 configuration. No secrets or AWS profiles belong in it.
 
 The initial adapter uses Nova Lite in-region with its exact foundation-model ARN
-in `bedrock_resource_arns`. Extraction version `eps-nova-lite-v1` pins prompt
-`eps-nova-tool-v1`. Nova uses constrained tool inputs for structured extraction;
+in `bedrock_resource_arns`. Extraction version `eps-nova-lite-images-v1` pins prompt
+`eps-nova-tool-v2`. Nova uses constrained tool inputs for structured extraction;
 it does not use Converse `outputConfig.textFormat`. A replacement model needs a
 verified adapter, model/region capabilities and explicit invocation ARNs.
 Keep consumption disabled while evaluating, and bump the extraction version when
 model, prompt, inference limits or validation settings change. The full
 configuration is saved and checked against work identity to catch accidental reuse.
+
+Supporting JPEG/PNG/GIF bytes use labeled Converse image blocks, separately from
+the five document blocks. Bounds are 20 images, 3,750,000 bytes per image, 12 MiB
+aggregate raster bytes, 8000 pixels per side and one frame. A conservative encoded
+payload check reserves space below Nova v1's 25-MB request limit. Invalid or
+excessive inputs go to review before a paid call; never drop pages to fit. Visual
+facts receive `image_evidence_requires_review` and cannot become accepted metrics.
+The legacy v1 prompt remains supported only for image-free snapshots. Evaluation
+receipts hash the actual selected prompt. These behaviors are tested with SDK
+Stubber and local synthetic images, without invoking Bedrock.
 
 Runtime configuration is supplied by CDK, without `.env` loading:
 

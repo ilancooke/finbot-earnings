@@ -14,6 +14,7 @@ from html.parser import HTMLParser
 import re
 
 from .domain import Document, Fact, response_facts
+from .images import image_format
 
 
 def normalized(value):
@@ -152,8 +153,9 @@ def validate(filing, documents, response, config):
         return ValidationResult("review_required", ({"code": "uncertain_or_inconsistent_classification"},))
     pdf_ids = {document.reference.artifact_id for document in documents
                if document.reference.filename.lower().endswith(".pdf")}
+    image_ids = {document.reference.artifact_id for document in documents if image_format(document.reference.filename)}
     views = {document.reference.artifact_id: document_blocks(document) for document in documents
-             if document.reference.artifact_id not in pdf_ids}
+             if document.reference.artifact_id not in pdf_ids | image_ids}
     declared = defaultdict(set)
     for blocks in views.values():
         if owned_document(blocks, filing.company_name):
@@ -169,7 +171,8 @@ def validate(filing, documents, response, config):
         if len(values) > 1:
             conflicts.add(period_key)
     for fact in facts:
-        code = ("pdf_evidence_requires_review" if fact.source_artifact_id in pdf_ids
+        code = ("image_evidence_requires_review" if fact.source_artifact_id in image_ids
+                else "pdf_evidence_requires_review" if fact.source_artifact_id in pdf_ids
                 else _fact_error(fact, filing, views, declared))
         if fact.period_key in conflicts:
             code = "material_fact_conflict"

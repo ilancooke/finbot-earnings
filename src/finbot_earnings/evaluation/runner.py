@@ -10,7 +10,7 @@ import statistics
 import time
 import uuid
 
-from finbot_earnings.processing.aws_adapters import EPS_SCHEMA, SYSTEM_PROMPT
+from finbot_earnings.processing.aws_adapters import EPS_SCHEMA, system_prompt
 from finbot_earnings.processing.contracts import json_text, utc_text
 from finbot_earnings.processing.domain import ModelResult, response_facts
 from finbot_earnings.processing.errors import TechnicalFailure
@@ -96,7 +96,7 @@ def run(corpus, output_dir, config, model, *, provider="bedrock", region="us-eas
     manifest = dict(schema_version="1.0", run_id=run_id, started_at=utc_text(datetime.now(timezone.utc)),
         provider=provider, region=region, corpus_id=corpus.corpus_id, corpus_sha256=corpus.sha256,
         label_source=corpus.label_source, config=config.to_dict(), scoring_version="eps-exact-v1",
-        prompt_sha256=hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest(),
+        prompt_sha256=hashlib.sha256(system_prompt(config.prompt_version).encode()).hexdigest(),
         schema_sha256=hashlib.sha256(json_text(EPS_SCHEMA).encode()).hexdigest(),
         validator_sha256=hashlib.sha256(Path(validation.__file__).read_bytes()).hexdigest(),
         pricing=None if pricing is None else asdict(pricing))

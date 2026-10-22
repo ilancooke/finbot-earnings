@@ -15,6 +15,7 @@ from .domain import (
 from .errors import ContractError, InputReview, StaleClaim, TechnicalFailure, WorkBusy, WorkConflict
 from .repository import ProcessingRepository
 from .validation import ValidationResult, document_blocks, validate
+from .images import image_format, valid_image, MAX_IMAGES, MAX_IMAGE_BYTES, MAX_IMAGE_TOTAL_BYTES
 
 LOGGER = logging.getLogger(__name__)
 
@@ -53,7 +54,8 @@ class FilingPipeline:
                 if reason is None:
                     documents = self._load(filing)
                     try:
-                        if any(not document.body or (not document.reference.filename.lower().endswith(".pdf")
+                        if any(not document.body or (not image_format(document.reference.filename)
+                                and not document.reference.filename.lower().endswith(".pdf")
                                 and not document_blocks(document)) for document in documents):
                             reason = "empty_document"
                     except UnicodeError:
@@ -61,6 +63,9 @@ class FilingPipeline:
                     if reason is None and any(document.reference.filename.lower().endswith(".pdf")
                             and not document.body.startswith(b"%PDF-") for document in documents):
                         reason = "invalid_pdf_document"
+                    if reason is None and any(image_format(doc.reference.filename)
+                            and not valid_image(doc.body, image_format(doc.reference.filename)) for doc in documents):
+                        reason = "invalid_or_oversized_supporting_image"
                 if reason is not None:
                     validation = ValidationResult("review_required", ({"code": reason},))
                 else:
@@ -117,11 +122,23 @@ class FilingPipeline:
             return self._failed(job)
 
     def _input_bound(self, filing):
-        if len(filing.artifacts) > self.config.max_documents:
+        images = [artifact for artifact in filing.artifacts if image_format(artifact.filename)]
+        documents = [artifact for artifact in filing.artifacts if not image_format(artifact.filename)]
+        if len(documents) > self.config.max_documents:
             return "too_many_documents"
-        if sum(artifact.size_bytes for artifact in filing.artifacts) > self.config.max_input_bytes:
+        if len(images) > MAX_IMAGES:
+            return "too_many_supporting_images"
+        if (sum(image.size_bytes for image in images) > MAX_IMAGE_TOTAL_BYTES
+                or any(image.size_bytes > MAX_IMAGE_BYTES for image in images)):
+            return "supporting_images_exceed_limit"
+        if sum(artifact.size_bytes for artifact in documents) > self.config.max_input_bytes:
             return "filing_input_exceeds_limit"
         for artifact in filing.artifacts:
+            format = image_format(artifact.filename)
+            if format:
+                if artifact.content_type is not None and artifact.content_type.split(";", 1)[0].strip().lower() != "image/" + format:
+                    return "unsupported_document_format"
+                continue
             if not artifact.filename.lower().endswith((".txt", ".htm", ".html", ".pdf")):
                 return "unsupported_document_format"
             if artifact.content_type is not None:
@@ -133,12 +150,17 @@ class FilingPipeline:
         return None
 
     def _load(self, filing):
-        documents, total = [], 0
+        documents, total, image_total = [], 0, 0
         for artifact in filing.artifacts:
-            body = self.documents.read(artifact, max_bytes=self.config.max_input_bytes - total)
+            image = bool(image_format(artifact.filename))
+            bound = min(MAX_IMAGE_BYTES, MAX_IMAGE_TOTAL_BYTES - image_total) if image else self.config.max_input_bytes - total
+            body = self.documents.read(artifact, max_bytes=bound)
             if not isinstance(body, bytes) or len(body) != artifact.size_bytes:
                 raise TechnicalFailure("stored_object_size_mismatch")
-            total += len(body)
+            if image:
+                image_total += len(body)
+            else:
+                total += len(body)
             if total > self.config.max_input_bytes:
                 raise TechnicalFailure("stored_object_exceeds_limit")
             documents.append(Document(artifact, body))

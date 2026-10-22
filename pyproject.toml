@@ -9,6 +9,7 @@ description = "Low-latency ingestion and structured extraction of official earni
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+  "Pillow>=12,<13",
   "openai>=2.0,<3",
   "python-dotenv>=1.0,<2",
 ]

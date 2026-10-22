@@ -5,6 +5,7 @@ from urllib.parse import unquote, urlsplit
 from .contracts import json_text
 from .domain import ModelResult
 from .errors import InputReview, TechnicalFailure
+from .images import image_format, valid_image, MAX_IMAGES, MAX_IMAGE_TOTAL_BYTES
 
 
 def object_schema(properties):
@@ -77,8 +78,16 @@ class SNSPublisher:
 
 
 NOVA_LITE_MODEL_ID = "amazon.nova-lite-v1:0"
-NOVA_PROMPT_VERSION = "eps-nova-tool-v1"
+NOVA_PROMPT_VERSION = "eps-nova-tool-v2"
+IMAGE_INSTRUCTIONS = """Supporting page images preserve tables. Match each image label to its artifact ID.
+Use the image artifact ID for facts grounded in an image; visual evidence requires human review.
+Read page images in the order referenced by their parent HTML documents. Do not treat a flattened
+hidden transcription as a substitute for table column alignment."""
 EXTRACTION_TOOL = "report_earnings"
+
+
+def system_prompt(version):
+    return SYSTEM_PROMPT + ("\n" + IMAGE_INSTRUCTIONS if version == NOVA_PROMPT_VERSION else "")
 
 
 class NovaLiteModel:
@@ -91,15 +100,35 @@ class NovaLiteModel:
         config = request.config
         if config.model_id != NOVA_LITE_MODEL_ID:
             raise TechnicalFailure("unsupported_model", retryable=False)
-        if config.prompt_version != NOVA_PROMPT_VERSION:
+        if config.prompt_version not in {NOVA_PROMPT_VERSION, "eps-nova-tool-v1"}:
             raise TechnicalFailure("unsupported_prompt_version", retryable=False)
-        if not 1 <= len(request.documents) <= 5:
+        image_docs = [doc for doc in request.documents if image_format(doc.reference.filename)]
+        if image_docs and config.prompt_version != NOVA_PROMPT_VERSION:
+            raise InputReview("supporting_images_require_prompt_v2")
+        source_docs = [doc for doc in request.documents if not image_format(doc.reference.filename)]
+        if not 1 <= len(source_docs) <= 5:
             raise InputReview("too_many_documents")
+        if len(image_docs) > MAX_IMAGES:
+            raise InputReview("too_many_supporting_images")
+        if sum(len(doc.body) for doc in image_docs) > MAX_IMAGE_TOTAL_BYTES:
+            raise InputReview("supporting_images_exceed_limit")
         context = dict(cik=request.filing.cik, ticker=request.filing.ticker,
             company_name=request.filing.company_name, filing_id=request.filing.filing_id,
             filed_at=request.filing.filed_at, form_type=request.filing.form_type, documents=[])
         documents = []
+        encoded_size = 0
         for index, doc in enumerate(request.documents, start=1):
+            raster = image_format(doc.reference.filename)
+            if raster:
+                if not valid_image(doc.body, raster):
+                    raise InputReview("invalid_or_oversized_supporting_image")
+                name = f"Supporting image {index}"
+                context["documents"].append(dict(name=name, artifact_id=doc.reference.artifact_id,
+                    filename=doc.reference.filename))
+                documents.extend([{"text": f"{name}: {doc.reference.artifact_id} ({doc.reference.filename})"},
+                    {"image": {"format": raster, "source": {"bytes": doc.body}}}])
+                encoded_size += 4 * ((len(doc.body) + 2) // 3)
+                continue
             suffix = doc.reference.filename.rsplit(".", 1)[-1].lower()
             format = {"htm": "html", "html": "html", "txt": "txt", "pdf": "pdf"}.get(suffix)
             if format is None:
@@ -110,9 +139,14 @@ class NovaLiteModel:
             context["documents"].append(dict(name=name, artifact_id=doc.reference.artifact_id,
                                              filename=doc.reference.filename))
             documents.append({"document": {"format": format, "name": name, "source": {"bytes": doc.body}}})
+            encoded_size += 4 * ((len(doc.body) + 2) // 3)
+        # Reserve space for prompt, tool schema and JSON. Never truncate a filing
+        # to fit the Nova v1 25 MB payload bound.
+        if encoded_size + len(json_text(context).encode()) > 24_000_000:
+            raise InputReview("filing_exceeds_provider_payload_limit")
         try:
             response = self.client.converse(modelId=config.model_id,
-                system=[{"text": SYSTEM_PROMPT}],
+                system=[{"text": system_prompt(config.prompt_version)}],
                 messages=[{"role": "user", "content": [{"text": json_text(context)}, *documents]}],
                 inferenceConfig={"maxTokens": config.max_output_tokens},
                 toolConfig={"tools": [{"toolSpec": {"name": EXTRACTION_TOOL,

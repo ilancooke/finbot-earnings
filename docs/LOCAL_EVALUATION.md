@@ -38,7 +38,7 @@ not set a failure threshold. All corpus inputs are checked before inference star
 The default `--config infra/cdk/config.prod.json` supplies region and extraction
 configuration. An alternate file needs `region` and the complete `extraction`
 object; other infrastructure fields are ignored. The current adapter requires
-`amazon.nova-lite-v1:0` and prompt `eps-nova-tool-v1`. Normal AWS credentials must
+`amazon.nova-lite-v1:0` and prompt `eps-nova-tool-v2`. Normal AWS credentials must
 permit `bedrock:InvokeModel` on that model in the configured region. `--profile`
 is optional; the default AWS credential chain also works. A single client is
 created lazily and reused. Existing input/output limits and review policy apply.

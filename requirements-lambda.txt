@@ -1,4 +1,5 @@
-# SDK and its complete pure-Python dependency set, bundled for Lambda Python 3.13.
+# SDK dependencies and the Linux raster validator, bundled for Lambda Python 3.13.
+Pillow==12.3.0
 boto3==1.43.114
 botocore==1.43.114
 jmespath==1.1.0

@@ -9,12 +9,12 @@
     "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
   ],
   "extraction": {
-    "version": "eps-nova-lite-v1",
+    "version": "eps-nova-lite-images-v1",
     "model_id": "amazon.nova-lite-v1:0",
     "max_input_bytes": 131072,
     "max_output_tokens": 4096,
     "lease_seconds": 360,
-    "prompt_version": "eps-nova-tool-v1",
+    "prompt_version": "eps-nova-tool-v2",
     "max_documents": 5
   }
 }

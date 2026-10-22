@@ -54,6 +54,12 @@ null. Every artifact must belong to the envelope's filing and company; artifact
 identity must agree with accession and filename. Preserve canonical S3 URI
 encoding from upstream.
 
+Supporting JPEG/PNG/GIF files can appear in this same manifest. Original HTML
+image references retain parent association and page order; rasters are handled
+separately from standalone document counts. No new event fields or hash rules are
+introduced. Update image-unaware consumers before upstream image acquisition or
+recovery publishes new snapshots. Existing event snapshots remain immutable.
+
 ### Readiness guarantees expected by the consumer
 
 The notification lists a nonempty complete selection with unique artifact IDs

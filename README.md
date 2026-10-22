@@ -25,6 +25,17 @@ disabled. The committed configuration selects **Amazon Nova Lite**
 (`amazon.nova-lite-v1:0`) with a required schema-defined tool response. HTML, TXT
 and PDF artifacts enter one filing request as original document bytes; PDF-sourced
 facts require review until independent PDF evidence validation is implemented.
+Supporting JPEG/PNG/GIF artifacts now enter that same request as labeled image
+blocks. They have separate limits: 20 images, 3,750,000 bytes each, 12 MiB total,
+at most 8000 pixels per side, and one frame. Invalid or excessive images produce
+review-required outcomes before inference; inputs are never silently truncated.
+Image-sourced facts also require review and are excluded from automatically
+accepted metrics. Original HTML remains the source of parent/page order.
+The committed configuration now selects `eps-nova-lite-images-v1` with prompt
+`eps-nova-tool-v2`; the legacy prompt remains available for image-free snapshots.
+Pillow validates rasters; Lambda bundles its pinned Linux wheel. No live model
+call or deployment is needed for the offline tests. Deploy this consumer support
+before activating upstream image acquisition/recovery.
 See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for configuration, build checks and release
 setup. The existing AWS producer remains owned by `finbot-filings`.
 

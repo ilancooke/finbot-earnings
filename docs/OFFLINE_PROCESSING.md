@@ -44,7 +44,11 @@ Defaults: 16 documents, 4 MiB aggregate input, 64 KiB saved model result, 32 fac
 three failures per stage and a 300-second claim. All are finite configurable
 limits, not provider capacity claims. Supported inputs are UTF-8 HTML/plain text
 and PDF bytes. The configured Nova runtime further limits inputs to five documents
-and 128 KiB total. Unsupported formats, empty documents or an oversized
+and 128 KiB total document bytes. Supporting JPEG/PNG/GIF inputs are separate:
+20 images, 3,750,000 bytes each, 12 MiB total, at most 8000 pixels per side and
+one frame. Pillow verifies rasters before inference. All image bytes retain their
+manifest identity and enter the same model request; no pages are truncated.
+Unsupported formats, empty documents or an oversized
 whole snapshot finish as `review_required` without a model call. Missing objects
 or stored-size mismatches are technical failures.
 
@@ -68,6 +72,9 @@ This initial policy deliberately accepts a narrow fixture-verifiable subset:
   `pdf_evidence_requires_review` because independent PDF evidence checks are not
   implemented. They cannot become accepted facts. An invalid PDF header causes
   review before inference; provider PDF decoding restrictions still apply.
+- Image files enter labeled image blocks; image-sourced facts receive
+  `image_evidence_requires_review` and are withheld from accepted metrics.
+  Independently supported prose facts can still pass, as with PDF evidence.
 
 Conflicting candidate values block that reporting period, including otherwise
 valid facts for it. An independent unsupported fact can be withheld while another
