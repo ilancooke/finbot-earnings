@@ -1,10 +1,12 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **Milestones 1–5 are complete; Milestone 6 is in progress.**
-Fiscal release packaging/infrastructure and offline verification are prepared.
-Read-only checks confirm no earnings stack is deployed. GitHub release access,
-protected production setup, secure credential population, alert confirmation and
-live enabled delivery remain outstanding. Resume using the
+Status updated 2026-10-26: **Milestones 1–5 are complete; Milestone 6 is in progress.**
+GitHub release access and protected production setup are complete. The initial
+disabled deployment failed on Lambda reserved concurrency and rolled back, retaining
+resources. The worker now uses shared account capacity with no reservation; its SQS
+trigger still caps processing at two simultaneous filings. A new reviewed release,
+stack recovery, secure credential population, alert confirmation and live enabled
+delivery remain outstanding. Resume using the
 [release runbook](docs/RELEASE_RUNBOOK.md) and [checkpoint](ROADMAP.md#current-checkpoint).
 
 This package consumes complete stored FilingReady snapshots from `finbot-filings`,

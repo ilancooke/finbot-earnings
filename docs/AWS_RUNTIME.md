@@ -1,10 +1,14 @@
 # AWS runtime and release setup
 
-Updated 2026-10-25 during **Milestone 6, in progress**. Fiscal CDK settings,
+Updated 2026-10-26 during **Milestone 6, in progress**. Fiscal CDK settings,
 scoped IAM, pinned Linux bundle, target-container verification, inspection queue,
 email/operational alarms and release-access templates are implemented locally.
-No earnings stack exists in AWS at read-only inspection. Deployment, secret
-population, provider readiness, confirmed email and enabled delivery remain pending.
+The initial disabled deployment on 2026-10-26 failed to create the worker because
+the account cannot allocate its two reserved executions. The stack is
+ROLLBACK_COMPLETE with retained resources. The user chose no Lambda reservation;
+the source now uses shared account capacity and keeps SQS maximum concurrency two.
+Recovery/deployment, secret population, provider readiness, confirmed email and
+enabled delivery remain pending.
 Follow [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md) for observed state and exact resume steps.
 
 [Production parity evidence](PRODUCTION_PARITY.md) includes 50 saved request/output
@@ -106,8 +110,13 @@ unattached OperatorInspection/OperatorRecovery managed policies distinguish tabl
 and output inspection from charged inference/publication access. The runbook lists
 separate administrative permissions needed for live replay and redrive.
 
-Lambda remains Python 3.13/x86_64, 1024 MiB, 300 seconds, concurrency two, batch one,
-partial batch responses, 1800-second input visibility and five receives before DLQ.
+Lambda remains Python 3.13/x86_64, 1024 MiB, 300 seconds, batch one, partial batch
+responses, 1800-second input visibility and five receives before DLQ. The SQS
+event-source mapping caps queue-driven concurrency at two. The function has no
+reserved concurrency and shares the regional account pool; other Lambda workloads
+can delay processing when that pool is exhausted. Other invocation paths do not
+inherit the SQS cap. Removing the reservation does not mean setting it to zero,
+which would throttle all worker invocations.
 The 360-second work lease exceeds invocation timeout. These are initial bounded
 settings, pending actual provider RPM/TPM/traffic checks before activation. Do not
 claim a verified throughput estimate. Alarms cover work/input-delivery/output-delivery

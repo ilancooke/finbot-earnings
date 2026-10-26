@@ -1,11 +1,66 @@
 # Reviewed release and initial activation
 
-Milestone 6 is **in progress**, 2026-10-25. Local preparation is implemented;
-no earnings resources have been deployed. Resume this milestone at the external
-setup below. All commands run from `finbot-earnings`. Never put provider credentials
-in command arguments, chat, Git, workflow inputs or release evidence.
+Milestone 6 is **in progress**, updated 2026-10-26. Release access and protected
+GitHub setup are complete. The first disabled deployment rolled back after Lambda
+rejected its concurrency reservation. The source now omits the reservation and
+keeps SQS maximum concurrency two. Resume with a new reviewed release and a
+retained-resource recovery plan. All commands run from `finbot-earnings`. Never put
+provider credentials in command arguments, chat, workflow inputs or release evidence.
+
+## Deployment attempt and concurrency decision — 2026-10-26
+
+The user deployed `finbot-earnings-release-access` successfully, stack ARN
+`arn:aws:cloudformation:us-east-1:559007813222:stack/finbot-earnings-release-access/243ad4e0-d145-11f1-83ab-0affd46b34d1`.
+Its outputs are `arn:aws:iam::559007813222:role/finbot-earnings-github-plan` and
+`arn:aws:iam::559007813222:role/finbot-earnings-github-deploy`. Both repository
+variables are populated. GitHub `production` has required reviewer `ilancooke`,
+self-review allowed, and exactly the main branch rule (ID `64412050`). These were
+configured by the user through the step-by-step commands, not by AWS MCP mutation.
+
+Merged source `43b7aab673bed212b9283bcf6eae35b59ed384bd` passed
+[main CI 40330825407](https://github.com/ilancooke/finbot-earnings/actions/runs/40330825407).
+The user approved [Deploy 40393601425](https://github.com/ilancooke/finbot-earnings/actions/runs/40393601425)
+after its prepare job validated the exact clean CI artifact. Release asset SHA-256
+was `e8e970ffa074829acd9b61e13610d01c9341d22728a049bbf14252ec66da7201`;
+assembly SHA-256 was `7d1559a53318b8334a0b0bce84e214b8ed3b58de79f1ff8ca757c42857a11bed`.
+Consumption was false and the frozen fiscal digest matched. The diff's lookup-role
+warning fell back to the plan identity and did not cause the deployment failure.
+
+The worker failed with: reserving two executions would decrease the account's
+unreserved concurrency below its required minimum of 10. User-provided
+`get-account-settings` output confirms regional total/unreserved concurrency
+**10 / 10**. `describe-stacks` confirms **ROLLBACK_COMPLETE**, termination
+protection **true**. The worker never became available; no live extraction test
+was dispatched and the USD 5 allowance is unchanged.
+
+The user chose **no function reservation**, retaining SQS maximum concurrency two.
+Omit ReservedConcurrentExecutions entirely; zero would disable invocation. The
+queue source still starts at most two simultaneous invocations, but shares account
+capacity with other Lambda workloads. Direct Lambda invocation has no function-level
+two-execution cap; other invocation paths must be deliberate. Extraction behavior,
+provider attempts and output identities are unchanged. No quota increase is needed
+for the reservation after this source change.
+
+Rollback logs show DELETE_SKIPPED for the table, all five queues, dedicated secret
+and log group; policies/subscriptions/topics were rolled back. A pending alarm email
+subscription was detached during rollback. Inventory actual state before recovery;
+retain original records, messages and any securely populated credential. A retry of
+the old artifact would repeat the reservation error. The ROLLBACK_COMPLETE stack
+and retained named resources also need an explicit recovery/import plan before a
+new protected release can succeed. Do not silently delete retained resources to
+avoid name collisions. Reconfirm the final alarm subscription after successful
+recovery rather than relying on the first attempt's email.
+
+Next: review/merge the no-reservation source fix, wait for successful main CI, then
+inspect the failed stack's retained logical/physical resource IDs and plan recovery
+before dispatching another protected deployment. Cloud recovery remains an operator
+step; no stack/resource deletion or import is authorized by this source edit.
 
 ## Observed prerequisites
+
+The following records the initial 2026-10-25 inspection. The deployment-attempt
+section above supersedes its earnings/GitHub state; producer observations remain
+historical evidence and should be rechecked before activation.
 
 Read-only AWS MCP checks used account `559007813222`, principal `codex-readonly`,
 region `us-east-1`. `DescribeStacks` reports `finbot-earnings-prod` does not exist.
@@ -41,6 +96,8 @@ it is **not** a release artifact for this work.
 
 ## External setup before release
 
+The user completed this procedure on 2026-10-26; retain it as the setup reference.
+
 The AWS owner reviews `infra/cdk/access_app.py` and its separate synthesized assembly
 `build/release-access`. It imports the existing GitHub OIDC provider and creates
 only earnings plan/deploy roles and policies. Do not change producer roles/trust.
@@ -69,8 +126,8 @@ assuming AWS credentials. The deploy OIDC subject ends `:environment:production`
 the plan subject ends `:ref:refs/heads/main`, using the immutable prefix above.
 Recheck OIDC customization if ownership or repository settings change.
 
-Review and commit/push this implementation when authorized. No commit or push was
-requested in this session. Wait for successful push CI on that exact main commit.
+For subsequent source fixes, review and commit/push when authorized. Wait for
+successful push CI on that exact main commit.
 It must build the fiscal bundle, pass the target-container check and upload
 `earnings-release-<full SHA>`. Local dirty-source artifacts are review previews;
 `verify_release` intentionally refuses them for deployment.

@@ -55,43 +55,41 @@ Suggested new-session instruction:
 
 ## Current checkpoint
 
-- Date: 2026-10-25. All D01–D12 decisions remain approved. Milestones **1–5
-  complete; 6 in progress**, awaiting external release setup and protected rollout.
-- Repository: `main`, initially clean at `abc33ca2fd6b120f044fc0ce02b985353a439be5`
-  (Milestone 5 is committed; its historical uncommitted description is superseded).
-  This session's M6 work remains uncommitted; exact paths/checks are in the
-  [M6 handoff](#milestone-6--in-progress--2026-10-25). No sibling/shared-data edits.
-- Delivered locally: frozen fiscal CDK settings; complete pinned Linux bundle;
-  scoped dedicated-secret access; 14-day output inspection/subscription/DLQ;
-  unattached operator inspection/recovery policies; nine operational alarms/email;
-  queue/invocation timing logs; stronger release checks and protected-environment
-  preflight; separate repository-specific OIDC setup assembly; release runbook.
-- Parity/configuration unchanged: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
-  `fiscal-eps-acceptance-v1`; config `eps-openai-luna-v6-v1`, digest
-  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
-  Host and exact Python 3.13 Linux asset replay all **50 cases / 189 members /
-  83 observations / 353 inventory files**, including 34 HON images. All request
-  fingerprints retain M5's documented timestamp exception. No paid calls.
-- Verification: **180 offline tests**, compilation, package build, dependency
-  consistency, documentation/contracts/links, target native imports/decoders,
-  strict offline application/access CDK synthesis and diff checks pass. Preview
-  assembly/asset/config/consumption verification passes, then correctly rejects
-  dirty source for deployment. No successful-CI artifact exists for these changes.
-- Observed read-only: no earnings stack/table/queues/secret/roles. Producer SNS and
-  source S3 exist; a saved genuine HON FilingReady and all 35 objects are present.
-  CDK bootstrap v32/GitHub OIDC exist. GitHub production lookup is 404 and Actions
-  variables are empty. Existing main CI succeeds only for the prior M5 commit.
-  Exact observed identities and limitations are in [RELEASE_RUNBOOK.md](docs/RELEASE_RUNBOOK.md).
-- Next action: resume **Milestone 6** at external setup. AWS owner reviews/applies
-  the separate `build/release-access` assembly with explicit bootstrap approval;
-  repository owner configures required production reviewer/main branch rule and
-  plan/deploy role variables. Review/commit/push implementation when authorized,
-  obtain exact successful CI, review its diff and use GitHub production approval
-  for the initial disabled deployment. Then secure key population, provider limits,
-  email confirmation, controlled smoke, backlog estimate, protected enabled release
-  and actual queue-triggered EPS receipt. No cloud mutation was attempted.
+- Date: 2026-10-26. Milestones **1–5 complete; 6 in progress**. Release access is
+  set up; the first disabled application deployment rolled back. Resume M6 only.
+- Repository: `main`, initially clean at `43b7aab673bed212b9283bcf6eae35b59ed384bd`
+  (merged release preparation). Current uncommitted fix removes the Lambda function
+  reservation, keeps SQS maximum concurrency two, and updates its assertion/docs.
+  No extractor/runtime/dependency/identity change. See the
+  [latest handoff](#milestone-6--in-progress--2026-10-26).
+- User-completed setup: release-access stack and plan/deploy roles created; role
+  variables configured; GitHub production requires reviewer `ilancooke` and branch
+  main. Exact role/stack ARNs and rule ID are in RELEASE_RUNBOOK. The user runs
+  cloud/GitHub mutation commands step by step and pastes their output.
+- Release: successful main CI `40330825407` for `43b7aab...`; protected Deploy
+  `40393601425` had clean source, matching frozen fiscal config, consumption false
+  and only resource additions. User approved it. Lambda creation failed because
+  reserving two executions left fewer than the account's required 10 unreserved.
+  Actual regional total/unreserved limits are **10 / 10** from user CLI output.
+- Stack: `finbot-earnings-prod` is **ROLLBACK_COMPLETE**, termination protection true.
+  Rollback retained table, five queues, secret and log group. Worker never became
+  available. Policies/subscriptions/topics rolled back; pending alarm email was
+  detached. Inventory retained IDs and plan preservation/import before retrying.
+- Decision: on 2026-10-26 the user chose **no Lambda reservation** to simplify the
+  setup. Shared account capacity can delay earnings under contention; the SQS
+  source remains capped at two concurrent invocations. This does not mean reserve
+  zero. No quota-increase request or cloud concurrency edit was made.
+- Verification: **180 offline tests**, compilation, strict offline CDK synthesis,
+  documentation/contracts/links and diff checks pass. Synthesized worker has no
+  ReservedConcurrentExecutions property; the SQS maximum stays two. Frozen fiscal
+  directory/dependencies remain unchanged, so prior 50-case Linux parity applies.
+- Next action: review/merge this fix and wait for a new exact successful main CI
+  artifact. Continue guided read-only inventory of the rolled-back stack and its
+  retained resources, then review a recovery plan before any destructive/import
+  action or protected redeployment. After recovery: secure provider setup, confirmed
+  alarm email, budgeted smoke, backlog review, enabled release and real SQS EPS receipt.
 - API ledger: previous USD 5, spent USD 0, no new unknown usage,
-  **USD 5 remaining cumulatively**. Normal production funding is user-managed.
+  **USD 5 remaining cumulatively**. No live inference or shared-data/catalog change.
 
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
@@ -105,7 +103,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
 | 5 — Production parity evidence | Complete | Milestone 4 complete | [2026-10-25 completion](#milestone-5--complete--2026-10-25) |
-| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [2026-10-25 handoff](#milestone-6--in-progress--2026-10-25) |
+| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [2026-10-26 handoff](#milestone-6--in-progress--2026-10-26) |
 
 Use Not started, In progress, or Complete. Put a link to the durable completion
 record in the final column when complete. Keep this table and README in sync.
@@ -1132,6 +1130,70 @@ Use this template (include actual paths/values, not just "tests passed"):
   SQS-triggered extraction on a fresh real snapshot and inspection receipt, then
   duplicate reuse and record all deployed IDs/timings/usage. Keep M6 **In progress**
   until those criteria pass. No subsequent milestone is started.
+
+
+### Milestone 6 — in progress — 2026-10-26
+
+- Scope delivered: user-approved simplification to use shared Lambda account
+  capacity, with no function reservation and the existing SQS maximum concurrency
+  two. Initial consumption remains false. The regression assertion now requires
+  ReservedConcurrentExecutions to be absent, preventing accidental reservation zero.
+  No runtime, extractor, dependency, payload/identity or provider-attempt change.
+- Repository/version: initially clean `main` at
+  `43b7aab673bed212b9283bcf6eae35b59ed384bd`. Uncommitted edits only in `README.md`,
+  `ROADMAP.md`, `docs/AWS_RUNTIME.md`, `docs/RELEASE_RUNBOOK.md`,
+  `infra/cdk/stack.py` and `tests/test_earnings_infra.py`. No sibling/shared-data
+  edits, source package build, model call, quota request, cloud mutation, commit or
+  push by the agent in this fix. Existing verified Lambda assets were used because
+  application source/dependency bytes did not change; CI rebuilds the next release.
+- Live progress reported by the user: release-access stack creation succeeded at
+  `arn:aws:cloudformation:us-east-1:559007813222:stack/finbot-earnings-release-access/243ad4e0-d145-11f1-83ab-0affd46b34d1`;
+  plan/deploy role ARNs and repository variables are configured. GitHub production
+  requires `ilancooke` review (self-review allowed), custom main branch rule
+  `64412050`. Source preparation was merged as `43b7aab...`; successful main CI
+  [40330825407](https://github.com/ilancooke/finbot-earnings/actions/runs/40330825407)
+  produced its exact artifact. User dispatched and approved
+  [Deploy 40393601425](https://github.com/ilancooke/finbot-earnings/actions/runs/40393601425).
+  Preparation passed; clean artifact/digest and disabled consumption matched the
+  reviewed diff. Full release identities are preserved in RELEASE_RUNBOOK.
+- Deployment failure: Worker creation returned HTTP 400 because its reservation of
+  two decreased unreserved account concurrency below the required minimum of 10.
+  The user supplied Lambda AccountLimit total/unreserved **10 / 10**, and stack
+  state **ROLLBACK_COMPLETE**, termination protection **true**. Worker creation
+  failed before any live extraction. Logs show retained table, five queues, secret
+  and log group; topics/policies/subscriptions rolled back, with pending alarm email
+  detached. This is a partial failed deployment, not successful release/activation.
+- Engineering decision: on 2026-10-26 the user explicitly selected no reservation
+  instead of seeking a quota increase. This is within D11d's operational settings.
+  SQS caps queue-triggered executions at two; other Lambda workloads can contend
+  for account capacity. Other invocation paths do not inherit the SQS source cap.
+  No spend-cap or extraction-policy change. AWS MCP documentation confirms source
+  maximum concurrency is independent of function reserved concurrency.
+- Checks using repository .venv on 2026-10-26:
+  `.venv/bin/python -m pytest` passes **180 tests** (9.25 seconds);
+  `.venv/bin/python -m compileall -q src tests infra scripts` passes;
+  `JSII_RUNTIME_PACKAGE_CACHE=/tmp/finbot-earnings-jsii CDK_DISABLE_CLI_TELEMETRY=1 node_modules/.bin/cdk synth --strict --no-lookups --output build/no-reservation-review`
+  passes with no AWS calls. An inline JSON comparison against the previous local
+  `cdk.out/finbot-earnings-prod.template.json` proves **exactly one changed resource**:
+  Worker11F36D0F loses ReservedConcurrentExecutions=2, with every other property and
+  resource identical. The source mapping still has MaximumConcurrency=2 and
+  Enabled=false. `.venv/bin/python -m pip check`, the docs/contracts README's
+  schema/example/identity/local-link checker and `git diff --check` pass.
+  `git diff --exit-code -- src requirements-lambda.txt pyproject.toml` passes;
+  frozen config/digest and prior Linux parity evidence remain applicable.
+- Documentation: current README/checkpoint/progress and runtime/runbook updated,
+  historical M6 record preserved. Initial 2026-10-25 observations are explicitly
+  historical; current user-reported setup, failed release identity, quota/error,
+  retained resources and pending recovery are durable. M6 remains **In progress**.
+- API test ledger: previous USD 5, known new spend USD 0, no new unknown usage,
+  **USD 5 remaining cumulatively**. No provider request was dispatched.
+- Next action: user reviews/merges this source fix through a branch/PR and waits for
+  new successful main CI. Continue step-by-step read-only inventory of retained
+  logical/physical IDs, then prepare a concrete preservation/import recovery plan
+  before any stack removal/import or protected redeployment. Do not retry the old
+  artifact or delete retained operational state. After recovery, continue secret/
+  provider/email checks, budgeted smoke/backlog assessment and protected enabled
+  SQS-triggered EPS receipt proof. No later milestone or live recovery is complete.
 
 
 ## Reference sources and implementation constraints

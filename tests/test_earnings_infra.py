@@ -35,7 +35,7 @@ def test_queue_subscription_alias_and_limits(template):
         "ScalingConfig": {"MaximumConcurrency": 2}, "FunctionName": {"Fn::Join": ["", Match.array_with([":production"])]}})
     template.has_resource_properties("AWS::Lambda::Function", {
         "Runtime": "python3.13", "Architectures": ["x86_64"], "Timeout": 300,
-        "ReservedConcurrentExecutions": 2, "LoggingConfig": Match.object_like({"LogFormat": "JSON"})})
+        "ReservedConcurrentExecutions": Match.absent(), "LoggingConfig": Match.object_like({"LogFormat": "JSON"})})
     template.has_resource_properties("AWS::SQS::Queue", {
         "VisibilityTimeout": 1800, "MessageRetentionPeriod": 1209600, "SqsManagedSseEnabled": True,
         "RedrivePolicy": Match.object_like({"maxReceiveCount": 5})})

@@ -86,7 +86,7 @@ class EarningsStack(Stack):
         worker = function.Function(self, "Worker", function_name=prefix, runtime=function.Runtime.PYTHON_3_13,
             architecture=function.Architecture.X86_64, code=function.Code.from_asset(str(asset_path)), role=role,
             handler="finbot_earnings.processing.lambda_handler.handler", timeout=Duration.seconds(300), memory_size=1024,
-            reserved_concurrent_executions=2, logging_format=function.LoggingFormat.JSON, log_group=group,
+            logging_format=function.LoggingFormat.JSON, log_group=group,
             application_log_level_v2=function.ApplicationLogLevel.INFO,
             current_version_options=function.VersionOptions(removal_policy=RemovalPolicy.RETAIN),
             environment={"EARNINGS_TABLE_NAME": table.table_name, "EARNINGS_SOURCE_BUCKET": settings.source_bucket,
