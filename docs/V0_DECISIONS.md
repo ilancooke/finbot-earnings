@@ -2,7 +2,8 @@
 
 Updated 2026-10-25 for Milestone 1. Filename retained for existing links. The
 approved D01–D12 target **supersedes the 2026-10-14 v0 target**. Implemented
-`eps-v0`/`explicit-prose-v1` behavior remains unchanged until later milestones.
+`FiscalConsumer` now implements the fiscal policy. Retained legacy
+`eps-v0`/`explicit-prose-v1` modules are separate until Milestone 4 cleanup.
 [CONTRACTS.md](CONTRACTS.md) owns exact fields/identity/schemas;
 [ROADMAP.md](../ROADMAP.md#decision-register--d01d12-approved) owns approvals.
 
@@ -21,8 +22,8 @@ approved D01–D12 target **supersedes the 2026-10-14 v0 target**. Implemented
 | Configuration version | `eps-openai-luna-v6-v1`, frozen in Milestone 2's isolated extractor |
 
 The isolated port implements preparation/transport with [hashes, pins and bounds](EXTRACTOR.md).
-The consumer remains on v0 until Milestone 3, which selects
-physical keys/indexes and CLI syntax. No target version aliases a legacy record.
+Milestone 3 integrates that boundary with version-2 storage, transactional
+status partitions and CLI; see OFFLINE_PROCESSING. No target version aliases a legacy record.
 
 ## One extraction call
 
@@ -32,8 +33,8 @@ request: strict `earnings_eps` structured output, medium reasoning,
 `max_output_tokens=4096`, `store=false`, `truncation=disabled`,
 `service_tier=default`, implicit prompt cache with `ttl=30m`. The evals candidate
 uses a 120-second timeout and one SDK retry. The port retains that timeout but
-uses zero SDK retries and at most three application attempts, to be durably
-counted in Milestone 3. No model fallback/repair or
+uses zero SDK retries and at most three application attempts, durably
+reserved and counted by the version-2 stores in Milestone 3. No model fallback/repair or
 fabricated legacy classification/evidence fields.
 
 These settings describe the checked local reference, not verified account access.
@@ -130,6 +131,6 @@ exhausted inputs remain inspectable/redrivable.
 
 Preserve old `earnings.validated` / `1.0` company-period revisions and POC state
 separately. No automatic migration, merge, overwrite or legacy republication.
-Milestone 2 maintains an explicit transition boundary; Milestone 3 switches the
-consumer. Legacy evaluation mode/endpoint retires in Milestone 4; experiments
+Milestone 2 maintains the frozen boundary; Milestone 3 now connects the fiscal
+consumer without modifying legacy records. Legacy evaluation mode/endpoint retires in Milestone 4; experiments
 remain in `finbot-filing-evals`.

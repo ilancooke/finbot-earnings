@@ -1,11 +1,11 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–2
-are complete; Milestones 3–6 have not started.** This document is the durable plan
+Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–3
+are complete; Milestones 4–6 have not started.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
-in Milestone 1; Milestone 2 adds an isolated extractor while the Nova consumer
-remains unchanged. A decision approval is not a
+in Milestone 1; Milestone 2 adds the frozen extractor; Milestone 3 integrates
+the fiscal consumer/storage/publication/CLI. Legacy paths remain until Milestone 4. A decision approval is not a
 completed implementation milestone.
 
 ## Required end state
@@ -55,31 +55,38 @@ Suggested new-session instruction:
 
 ## Current checkpoint
 
-- Date: 2026-10-25.
-- Planning: all 24 entries under D01–D12 approved; none unanswered.
-- Completed: **Milestones 1–2 — contracts and isolated tested extractor**. See the
-  [Milestone 2 completion record](#milestone-2--complete--2026-10-25) for API,
-  frozen configuration/implementation hashes, bounds, dependencies and checks.
-- Current work: Milestone 1 is committed at `2fb3554`; Milestone 2 source,
-  dependency, test and documentation changes are uncommitted. The Nova consumer,
-  stores, demo, Lambda packaging, NVDA POC and local evaluator remain usable.
-  No consumer integration or Milestone 3 work has begun. Shared data is unchanged.
-- Source configuration disables consumption; actual cloud/GitHub state has not
-  been inspected. No deployed-state claim follows from source configuration.
-- Verification: compilation, 237 offline tests (66 new extractor tests), wheel/
-  sdist build, wheel-resource import, dependency and specification/link/diff checks
-  passed. All 50 saved inputs fit the frozen bounds, including HON's 34 images.
-  Tests use the real SDK with mocked HTTP; no live provider/account claim.
-- Next session: **Milestone 3**. Read the new receipt API and contracts, then adapt
-  acceptance and filing-specific persistence/publication. Choose bounded storage
-  splitting for receipts that exceed a DynamoDB item and durably count the three
-  application attempts; do not use the old prose validator or canonical merge.
-- API test ledger: USD 5 previous balance, USD 0 used in Milestone 2, no unknown
-  usage from this session, **USD 5 remaining** cumulatively. No provider calls.
-  Ongoing production funding is user-managed under D11e.
-- External setup remains Milestone 6: actual deployed-state inspection, GitHub/OIDC
-  readiness, dedicated secret/secure credential population, alarm-email
-  confirmation and output subscription/delivery verification.
+- Date: 2026-10-25. All 24 D01–D12 decisions remain approved.
+- Completed: **Milestones 1–3**. See [Milestone 3 record](#milestone-3--complete--2026-10-25).
+  Fiscal consumer, acceptance, immutable filing-specific events, both stores,
+  recovery, Lambda source wiring, demo and operator CLI are implemented offline.
+- Repository: branch `main`, starting clean HEAD `c6efa5d` (Milestone 2 committed).
+  This corrects the previous checkpoint's stale uncommitted-M2 description.
+  Milestone 3 changes are uncommitted; exact files are listed in its record.
+  No sibling repository or shared operational data was changed.
+- Version/configuration: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
+  `fiscal-eps-acceptance-v1`; frozen `eps-openai-luna-v6-v1` digest remains
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
+  Extractor module/resource bytes and dependency pins remain unchanged.
+- Persistence: new `EPS2#` work/config/blob/event/status partitions and SQLite
+  `fiscal_v2_items`; 128-KiB immutable byte chunks, 24-MiB logical blobs,
+  atomic fenced outcome/event/intent/status commits; no legacy migration/GSI/scan.
+  Three durable attempt reservations per identity include crashed attempts;
+  explicit retry does not reset them. See OFFLINE_PROCESSING for exact layout.
+- Verification: 298 offline tests pass; compilation, wheel/sdist build,
+  dependency, contract/example/link and diff checks pass. The real frozen SDK
+  boundary is mocked in demo/tests; no live provider/account claim.
+- Next session: **Milestone 4 only**. Read this record and its listed inputs,
+  identify consumers of legacy helpers, then remove superseded NVDA acquisition,
+  local evaluation/endpoint/commands and unused dependencies/assets while retaining
+  fiscal production coverage and historical records/data. Do not start parity or release.
+- Source runtime requires new fiscal digest and dedicated secret ARN env vars.
+  **CDK config, Linux bundle/dependencies and permissions still describe Nova and
+  cannot deploy the new source runtime yet**. Consumption remains disabled in source;
+  actual cloud/GitHub state is unverified. Final packaging/IAM/secret/inspection
+  queue/alarm/OIDC setup and protected deployment/activation remain Milestone 6.
+- API ledger: previous USD 5, used USD 0, no unknown usage from this session,
+  **USD 5 remaining** cumulatively. No provider or AWS resource calls; AWS MCP
+  was used only for documentation. Ongoing funding remains user-managed.
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
 
@@ -89,7 +96,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | --- | --- | --- | --- |
 | 1 — Contracts and documentation | Complete | Approved decisions below | [2026-10-25 completion](#milestone-1--complete--2026-10-25) |
 | 2 — Tested extractor | Complete | Milestone 1 complete | [2026-10-25 completion](#milestone-2--complete--2026-10-25) |
-| 3 — Filing consumer integration | Not started | Milestone 2 complete | None |
+| 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Not started | Milestone 3 complete | None |
 | 5 — Production parity evidence | Not started | Milestone 4 complete | None |
 | 6 — Reviewed release and activation | Not started | Milestone 5 complete | None |
@@ -211,24 +218,24 @@ cross-filing reconciliation with immutable filing-specific events, and implement
 the approved operator CLI. Keep obsolete paths only where needed for the explicit
 Milestone 4 removal. Document pending deployment configuration/packaging work.
 
-- [ ] Implement the agreed acceptance policy and distinguish accepted, empty,
+- [x] Implement the agreed acceptance policy and distinguish accepted, empty,
   review and technical-failure outcomes without claiming unperformed checks.
-- [ ] Replace cross-filing reconciliation with immutable filing-snapshot results,
+- [x] Replace cross-filing reconciliation with immutable filing-snapshot results,
   retaining fiscal identity, currencies, exact decimal strings and source provenance.
-- [ ] Preserve duplicate suppression and immutable history. Apply D05's final
+- [x] Preserve duplicate suppression and immutable history. Apply D05's final
   event identity and explicit-reprocessing policy; do not wait for or merge later
   disclosures before publishing a ready filing's accepted result.
-- [ ] Version stored payloads/configuration and handle old records explicitly;
+- [x] Version stored payloads/configuration and handle old records explicitly;
   changed model, prompt, schema or acceptance behavior needs a new work identity.
-- [ ] Verify atomic outcome/publication commits, stale-worker fencing, independent
+- [x] Verify atomic outcome/publication commits, stale-worker fencing, independent
   concurrent filing processing and retry of saved publication payloads without
   new inference. A crash before response persistence can still require inference
   again; do not promise exactly-once provider invocation.
-- [ ] Provide focused inspection and explicit reprocessing/redrive commands for
+- [x] Provide focused inspection and explicit reprocessing/redrive commands for
   stored jobs and immutable events, with distinguishable new inference runs.
-- [ ] Update the offline filing demo/fixtures to exercise the new EPS arrays and
+- [x] Update the offline filing demo/fixtures to exercise the new EPS arrays and
   `earnings.extracted` output, empty/review outcomes and duplicate handling.
-- [ ] Wire the new consumer entry point and document required environment/secret
+- [x] Wire the new consumer entry point and document required environment/secret
   references. Use mocks for SDK/Secrets Manager access; leave live setup to Milestone 6.
 
 Acceptance: both storage adapters pass offline tests for the revised contract,
@@ -423,7 +430,7 @@ the disabled stage is specific to this first rollout.
 
 ## Milestone completion records
 
-Milestones 1–2 are complete. Append one durable record at each session boundary;
+Milestones 1–3 are complete. Append one durable record at each session boundary;
 preserve earlier records. Link completed milestones from
 the progress table. For partial work, record which task is next and why exit
 criteria have not yet been met.
@@ -647,6 +654,134 @@ Use this template (include actual paths/values, not just "tests passed"):
   frozen extraction behavior and prior records. Stop before Milestone 4 cleanup.
 
 
+### Milestone 3 — complete — 2026-10-25
+
+- Scope delivered: `FiscalConsumer` now runs complete FilingReady snapshots through
+  the frozen real OpenAI boundary, durable receipt storage, `fiscal-eps-acceptance-v1`
+  and immutable `earnings.extracted` 1.0 publication. Nonempty/empty/review/failure
+  outcomes remain distinct; no legacy prose validation or cross-filing merging.
+  The SQS source runtime, focused CLI and offline demo use the new boundary.
+  No Milestone 4 deletions, parity study or release work was performed.
+- Repository/version: `finbot-earnings`, branch `main`, clean starting commit
+  `c6efa5d` (`Implement the tested extraction configuration`). Changes remain
+  **uncommitted** in `README.md`, `ROADMAP.md`, `pyproject.toml`,
+  `docs/{ARCHITECTURE,AWS_RUNTIME,CONTRACTS,EXTRACTOR,FUNCTIONAL_SCOPE,OFFLINE_PROCESSING,V0_DECISIONS}.md`,
+  `docs/contracts/README.md`, `src/finbot_earnings/processing/{demo,lambda_handler}.py`,
+  new `processing/{fiscal_contract,fiscal_consumer,fiscal_repository,fiscal_stores,fiscal_runtime,operator}.py`,
+  `tests/{test_filing_processing,test_lambda_handler}.py`, and new
+  `tests/{test_fiscal_consumer,test_fiscal_runtime}.py`. `processing/` shorthand
+  above is under `src/finbot_earnings/`. Filings/evals checkouts were read-only and
+  clean. No user work was overwritten; build outputs remain ignored.
+- Contract/acceptance: preserve exact decimals, currencies, fiscal identity and
+  complete source/config/request/native-response provenance. `FiscalIdentity`
+  matches the documented SHA-256 encoding and prefixes. Unique metric/currency/
+  period keys and one fiscal period across arrays are required; whole-response
+  business conflicts go to review. Empty arrays complete `no_eps_extracted`, with
+  no event or inference retry. Invalid model envelopes/schema fail terminally;
+  no repair loop or independent fact verification is claimed. Format/size policy
+  remains whole-snapshot HTML/original JPEG/PNG/GIF, including mixed HTML/PDF
+  review before inference. Events over 245,760 UTF-8 bytes go to explicit review.
+- Versioning: record schema 2 and config/prompt/schema/preparation/acceptance/event
+  versions/digest remain exactly as recorded in Milestone 2. Frozen extractor source,
+  resources and dependency pins are unchanged; `load_config()` verifies them.
+  Global immutable config-version/digest registration rejects changed content under
+  one version even across different filings. Legacy records are never reinterpreted,
+  overwritten, merged, migrated or automatically republished.
+- Persistence: `SQLiteFiscalRepository` and `DynamoDBFiscalRepository` share logical
+  transitions. SQLite table `fiscal_v2_items`; DynamoDB `EPS2#WORK#<work_id>/STATE`,
+  `EPS2#CONFIG#<version>/DIGEST`, `EPS2#BLOB#<sha256>/CHUNK#0000...`,
+  `EPS2#EVENT#<event_id>/PAYLOAD`, `EPS2#STATUS#<status>/<work_id>`. Raw JSON blobs
+  split at 131,072 bytes before base64; 25,165,824-byte logical cap/192 chunks.
+  Exact canonical byte digest/length/membership verified on read. Immutable chunks
+  stage before the fenced pointer commit; interrupted writes leave unlinked chunks,
+  not partial saved receipts. No automatic GC/TTL. State/event/intent/status changes
+  commit together under SQLite transactions or DynamoDB version/token/expiry CAS
+  transactions. Payload/reference history is immutable; publication ack/time and
+  attempts remain separate. Strong status queries page 1–100 rows by work ID,
+  no scans/GSI/infrastructure change. Per-item/transaction conservative JSON bounds
+  are 380 KiB / 3,800,000 bytes. No company-period HEAD or revision.
+- Retry/fencing: 360-second lease; reserve each of at most three application attempts
+  durably before preparation/secret/provider access, including crashes. Missing
+  receipts retain unknown usage; no exactly-once promise. Attempts with saved
+  receipts retain call/usage flags and complete responses. Automatic transient
+  retries use remaining ordinals; SDK retries stay zero and timeout 120 seconds.
+  Three stage failures exhaust persistence/publication recovery. Explicit rearm
+  resets stage counters only, preserving all provider reservations/checkpoints.
+  Fixed provider configuration can be explicitly redriven with a remaining attempt;
+  invalid output is not automatically re-inferred. Saved response/event recovery
+  skips source/provider access; publication repeats identical bytes after lost ack.
+- CLI: new installed `earnings-ops` / `python -m finbot_earnings.processing.operator`:
+  `inspect WORK_OR_PROCESSING_REF`, `event EVENT_ID`,
+  `list STATUS [--limit 1..100] [--cursor WORK_ID]`, `retry WORK_ID`,
+  `reprocess WORK_ID --run-id UNUSED_ID`, `output [--queue-url URL] [--limit 1..10]`.
+  `--sqlite PATH` precedes the subcommand; default is DynamoDB. Inspection resolves
+  `/input` refs and shows full config/sources/response/reasons/usage/timings. Retry
+  requires failed work and matching saved configuration; it can charge/publish.
+  Fresh extraction requires an unused non-initial run ID, preserves the complete
+  manifest and can charge/publish a new event. Output uses mocked/tested ReceiveMessage
+  with zero visibility and no delete, preserving queue send time separately;
+  repeated inspection increments receive count and is not archival receipt tracking.
+- Entry points/environment: normal `lambda_handler.runtime()` builds fiscal source
+  wiring; cached AWS clients have 3/10-second connect/read bounds and two total SDK
+  attempts. Provider credential is fetched only for extraction using dedicated
+  `EARNINGS_OPENAI_SECRET_ARN` / AWSCURRENT plain SecretString; no secret read on
+  inspect/duplicate/saved-publication recovery. `EARNINGS_FISCAL_CONFIG_SHA256`
+  must match the packaged digest. Existing table/bucket/input/output topic and queue
+  ARN env vars remain required; `EARNINGS_OUTPUT_QUEUE_URL` is operator-only.
+  S3 missing/access/transient exceptions are safely normalized. No `.env` loading
+  in the fiscal path. Failed command diagnostics do not print SDK error bodies.
+- Exit evidence: both stores pass actual mocked-HTTP SDK tests for accepted/empty/
+  review/invalid results, equal EPS in distinct filings/snapshots/fresh runs,
+  independent interleaved filing commits, durable attempt/crash budgets, saved
+  receipt/publication recovery, stale claims (including expiry during blob staging),
+  immutable receipts, config/input conflicts, bounded status pages and operator
+  retry/reprocessing. A 1.5-MiB native response round-trips exact bytes in over
+  20 chunks. Partial chunk upload never links a receipt. DynamoDB transaction
+  cancellation proves no event/status/outcome partial commit. SQLite reopen proves
+  duplicate persistence. Handler/Secrets Manager/S3/SQS use offline mocks/Stubber.
+  Full emitted event validates against the documented schema; schema/identity
+  examples remain checked. The demo uses the actual extractor/SDK over mocked HTTP,
+  three HTML files, one accepted event/duplicate, one empty run and mixed-PDF review.
+- Checks on 2026-10-25 with repo `.venv`, Python 3.11.17:
+  `.venv/bin/python -m compileall -q src tests infra scripts` passed;
+  `.venv/bin/python -m pytest` passed **298 tests** (61 more than Milestone 2);
+  `.venv/bin/python -m build --no-isolation --outdir /tmp/finbot-earnings-m3-dist`
+  built wheel/sdist; wheel-only import/entry-point/config verification passed;
+  `.venv/bin/python -m pip check` passed;
+  `.venv/bin/python -c 'from pathlib import Path; exec(Path("docs/contracts/README.md").read_text().split("```python\n", 1)[1].split("```", 1)[0])'`
+  passed two schemas, 16 responses, six identities, one event and three input
+  examples plus local link checks; `git diff --check` passed.
+  `.venv/bin/python -m finbot_earnings.processing.demo --output-dir /tmp/finbot-earnings-m3-verified-demo`
+  passed: two mocked calls with three documents each, one event, acknowledged
+  duplicate, empty `no_eps_extracted`, mixed-PDF `review_required`.
+  These are software checks, not paid extraction-quality evidence or live delivery.
+- Documentation: README/checkpoint/progress/checkboxes updated; OFFLINE_PROCESSING
+  documents layout/attempts/CLI, AWS_RUNTIME distinguishes source wiring from pending
+  deployment, and scope/contract/acceptance/architecture/extractor notes are reconciled.
+- Remaining legacy/release boundaries: `earnings` and `earnings-eval`, top-level
+  NVDA/acquisition/extractors/storage/config, local evaluator/starter corpus/docs,
+  v0 processing pipeline/domain/validation/reconciliation/repositories/Nova adapter
+  and `legacy_runtime()`/`operation=evaluate` remain for Milestone 4. Inspect helper
+  consumers before deletion: fiscal runtime still uses S3Documents/SNSPublisher,
+  shared contracts/errors and the handler. Existing CDK config/permissions/Linux
+  dependency manifest/build still describe Nova and **cannot deploy the fiscal
+  source runtime**; update/test them in Milestone 6 after cleanup/parity. Keep
+  stateful IDs and old records. Source consumption remains disabled, actual state
+  unverified. No production fixture mode or evaluation framework was introduced.
+- Live actions: none. AWS MCP read-only documentation checked transaction limits,
+  Secrets Manager GetSecretValue and SQS ReceiveMessage. No AWS resource/account or
+  GitHub access/mutations, credentials, paid calls, shared-data writes or catalog
+  changes. API ledger: prior USD 5, spent USD 0, no unknown usage introduced,
+  **USD 5 remaining** cumulatively.
+- External action needed now: none. Dedicated secret/population, IAM/quotas,
+  inspection queue, alarm confirmation, Linux assets, actual cloud/GitHub checks
+  and protected release/activation remain Milestone 6.
+- Next session: **Milestone 4 only**. Read this record, README/pyproject and legacy
+  build/module/test/doc consumers, then retire superseded POC/evaluation paths and
+  unused dependencies/assets, preserving useful fiscal coverage and all historical
+  shared data. Stop before Milestone 5 parity or Milestone 6 release work.
+
+
 ## Reference sources and implementation constraints
 
 Existing defaults to retain unless a decision above changes them: at-least-once
@@ -698,8 +833,8 @@ verification) and `.github/workflows/`. Legacy acquisition/extraction modules an
 the `evaluation/` subtree are removed only after replacement behavior is covered.
 Milestone 1 reconciled the scope/acceptance/contract/architecture documents and
 labeled current offline/AWS behavior separately from target semantics. The approved
-roadmap still takes precedence; code remains the old NVDA/Nova/canonical-event
-implementation until subsequent milestones.
+roadmap still takes precedence; Milestone 3 now implements the fiscal consumer in a new namespace; legacy
+NVDA/Nova/canonical code remains until Milestone 4 cleanup. Deployment is pending.
 
 Operational setup is still required; it is not an unresolved design choice:
 

@@ -1,9 +1,9 @@
 # finbot-earnings target architecture and processing behavior
 
-Updated 2026-10-25 for Milestone 1. This is the approved migration target.
-[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and current-runtime sections of
-[AWS_RUNTIME.md](AWS_RUNTIME.md) describe the unchanged Nova/prose-validation/
-canonical-revision implementation. Actual deployed state remains unverified.
+Updated 2026-10-25 through Milestone 3. Fiscal consumer, acceptance, stores,
+publication recovery and CLI are implemented offline. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md)
+and [AWS_RUNTIME.md](AWS_RUNTIME.md) document source behavior and pending
+packaging/infrastructure release. Actual deployed state remains unverified.
 [FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md) owns scope, [V0_DECISIONS.md](V0_DECISIONS.md)
 acceptance, [CONTRACTS.md](CONTRACTS.md) fields/identity, and [ROADMAP.md](../ROADMAP.md)
 sequence and approvals.
@@ -45,13 +45,13 @@ supporting images enter one request with identity/context/ordering retained.
 TXT/PDF or other unsupported members send the whole snapshot to review, including
 mixed HTML/PDF. No attachment omissions, text truncation or multiple-call split.
 The isolated extractor's [frozen bounds](EXTRACTOR.md#frozen-bounds-and-unsupported-inputs)
-cover the HON 34-image case; consumer integration follows in Milestone 3.
+cover the HON 34-image case and now apply to the fiscal consumer.
 
 A small injected extractor returns the fiscal v2 object, native response, usage
 and timing/request provenance. Milestone 2 implements
 `processing.fiscal.OpenAIFiscalExtractor.extract(filing, source, run_id=..., attempt=...)`
 returning a serializable receipt. Schema-valid `extracted` is distinct from
-business acceptance; the existing consumer has not been switched.
+business acceptance; `FiscalConsumer` now commits acceptance and publication.
 Use tested prompt/schema/preparation/settings in V0_DECISIONS, traceably ported
 from evals without sibling imports or evaluation-app dependency. No invented
 classifier/evidence fields to fit old interfaces.
@@ -67,9 +67,9 @@ conflict gate delays another filing's accepted event.
 Claims expire; every owned checkpoint checks token/expiry. Preserve SQLite
 transactions and equivalent DynamoDB conditional/transactional guarantees. Save
 response before acceptance. Commit outcome, immutable event and publication intent
-atomically. No target company-period HEAD/revision. Milestone 3 selects physical
-keys/indexes and status-list query design in a namespace separate from legacy
-jobs/events, preserving old records rather than reinterpreting their payloads.
+atomically. No target company-period HEAD/revision. Milestone 3 implements `EPS2#` work/event/blob/config/status partitions and
+SQLite `fiscal_v2_items`, preserving legacy jobs/events. Strong status queries
+need no GSI or scan; bounded immutable blobs avoid oversized transactions.
 
 One accepted work identity produces one event with both EPS arrays, issuer, one
 source filing/snapshot and model/configuration/run/acceptance provenance. No
@@ -97,15 +97,15 @@ Review/empty outcomes require explicit new-run processing following inspection.
 Never mutate or automatically republish legacy canonical events. New accepted
 runs publish even if EPS is unchanged.
 
-Response/event/item bounds remain finite. Milestones 2–3 choose limits/storage
-handling without losing provenance or partially committing a filing. Do not assume
+Response/event/item bounds remain finite. Milestones 2–3 implement finite limits and chunked storage
+without losing provenance or partially committing a filing. Do not assume
 the existing small DynamoDB response budget fits the new native response. If
 storage overflow needs another durable mechanism, document that engineering choice
 before relying on it; this milestone does not mandate an application bucket.
 
 ## Operations, latency and releases
 
-Milestone 3 supplies CLI inspection/listing, checkpoint retry, fresh extraction and
+Milestone 3 implements CLI inspection/listing, checkpoint retry, fresh extraction and
 output-queue inspection, with inference/publication effects clear. Experiments
 remain in `finbot-filing-evals`. Verify port parity against the saved 50-filing v6
 baseline in Milestone 5; no automatic paid repeat campaign.
@@ -135,5 +135,4 @@ invoke. Build Linux-compatible assets before synthesis and verify actual state.
 Routine releases preserve consumption state with one normal release and no
 automatic disable/enable cycle. Pausing is deliberate. Rollback checks storage/
 schema compatibility and consumption settings while retaining history. Cloud setup
-and deployment remain Milestone 6, not changes authorized in this documentation
-session. See AWS_RUNTIME for existing release tools and target prerequisites.
+and deployment remain Milestone 6. See AWS_RUNTIME for existing release tools and target prerequisites.

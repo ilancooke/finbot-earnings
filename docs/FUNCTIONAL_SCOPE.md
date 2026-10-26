@@ -1,8 +1,9 @@
 # finbot-earnings functional scope
 
-Updated 2026-10-25 for Milestone 1. This is the **approved launch target**, not
-implemented runtime behavior. Nova filing processing, the NVDA POC and the local
-evaluator still coexist. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and
+Updated 2026-10-25 through Milestone 3. The fiscal consumer, acceptance,
+immutable storage/events, recovery and operator CLI now implement this approved
+scope offline. Deployable packaging/infrastructure remains Milestone 6. Legacy
+Nova processing, the NVDA POC and the local evaluator remain until Milestone 4. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and
 [AWS_RUNTIME.md](AWS_RUNTIME.md) distinguish current code from this target.
 [ROADMAP.md](../ROADMAP.md) governs the migration and approved D01–D12 decisions;
 [CONTRACTS.md](CONTRACTS.md) specifies exact fields, schemas and identity.
@@ -116,7 +117,8 @@ without inference; delivery is at least once and consumers deduplicate event IDs
 Launch CLI requirements: inspect runs/events, sources, saved response, outcomes,
 reasons, usage and timing; list review/failed/empty outcomes; resume failed
 checkpoints; request fresh extraction with a new identity; inspect output-queue
-events. Syntax/indexes are Milestone 3 work. Commands must identify inference and
+events. Milestone 3 implements these commands and transactional status queries in
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md). Commands identify inference and
 publication effects. A web review UI is deferred; preserve prior/shared-data history.
 
 Process new and all retained queued notifications after activation. No automatic

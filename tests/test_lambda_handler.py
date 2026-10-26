@@ -24,6 +24,7 @@ def runtime(monkeypatch):
     monkeypatch.setenv("EARNINGS_QUEUE_ARN", QUEUE)
     monkeypatch.setenv("FILING_READY_TOPIC_ARN", TOPIC)
     monkeypatch.setattr(lambda_handler, "runtime", lambda: worker)
+    monkeypatch.setattr(lambda_handler, "legacy_runtime", lambda: worker)
     return worker
 
 
@@ -34,7 +35,7 @@ def record(identifier="message", **changes):
 
 
 def test_success_and_semantic_reviews_acknowledge(runtime):
-    for outcome in ("validated", "review_required", "no_relevant_earnings"):
+    for outcome in ("accepted", "review_required", "no_eps_extracted"):
         runtime.result = ProcessResult("work", outcome, True)
         assert lambda_handler.handler({"Records": [record()]}, CONTEXT) == {"batchItemFailures": []}
     assert all(not kwargs for _, kwargs in runtime.calls)
@@ -87,20 +88,20 @@ def test_missing_message_id_rejects_whole_batch(runtime):
         lambda_handler.handler({"Records": [item]}, CONTEXT)
 
 
-def test_runtime_builds_reusable_clients_with_bounded_sdk_timeouts(monkeypatch):
+def test_legacy_runtime_remains_isolated_until_milestone_4(monkeypatch):
     from finbot_earnings.processing.domain import ExtractionConfig
     from finbot_earnings.processing.contracts import json_text
     monkeypatch.setenv("EARNINGS_EXTRACTION_CONFIG", json_text(ExtractionConfig("aws-test", model_id="amazon.nova-lite-v1:0", prompt_version="eps-nova-tool-v1").to_dict()))
     for key, value in {"EARNINGS_TABLE_NAME": "earnings", "EARNINGS_SOURCE_BUCKET": "artifacts",
         "EARNINGS_TOPIC_ARN": TOPIC, "FILING_READY_TOPIC_ARN": TOPIC, "EARNINGS_QUEUE_ARN": QUEUE}.items():
         monkeypatch.setenv(key, value)
-    lambda_handler.runtime.cache_clear()
+    lambda_handler.legacy_runtime.cache_clear()
     try:
-        first = lambda_handler.runtime()
-        assert lambda_handler.runtime() is first
+        first = lambda_handler.legacy_runtime()
+        assert lambda_handler.legacy_runtime() is first
         assert first.model.client.meta.service_model.service_name == "bedrock-runtime"
         assert first.model.client.meta.config.retries["total_max_attempts"] == 1
         assert first.model.client.meta.config.read_timeout == 180
         assert first.documents.client.meta.config.read_timeout == 10
     finally:
-        lambda_handler.runtime.cache_clear()
+        lambda_handler.legacy_runtime.cache_clear()

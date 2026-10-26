@@ -1,10 +1,11 @@
 # finbot-earnings event contracts
 
-Updated 2026-10-25 through Milestone 2. Input 1.0 remains unchanged. The isolated
-[fiscal extractor](EXTRACTOR.md) implements response/schema/preparation checks with
-packaged resources. Work, acceptance, persistence and `earnings.extracted` below
-remain target specifications until Milestone 3. The consumer still uses legacy
-`earnings.validated` 1.0; it does not load the documentation schemas/examples.
+Updated 2026-10-25 through Milestone 3. Input 1.0 remains unchanged. The
+[fiscal extractor](EXTRACTOR.md), `FiscalConsumer` and version-2 stores implement
+the response, acceptance, identity and `earnings.extracted` contract below.
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) records physical storage and CLI.
+The documentation event schema checks runtime fixtures in tests; runtime acceptance
+uses the packaged fiscal schema. Legacy paths/records remain separately until cleanup.
 
 ## FilingReady 1.0 — consumer expectations agreed 2026-10-14
 
@@ -170,8 +171,8 @@ content is: immutable identity and complete input manifest (`input`), full
 `extraction_config` and digest, saved native/parsed `response` with usage and
 extraction timing, outcome/reasons, immutable event reference/bytes and separate
 publication attempts/acknowledgments/times. Keep invalid/refused/incomplete results
-inspectable too. Physical keys, item splitting and status indexes are Milestone 3;
-these fields do not claim the legacy store already supports version 2.
+inspectable too. Physical keys, bounded chunk splitting and transactional status partitions are
+implemented in Milestone 3; see OFFLINE_PROCESSING. Legacy stores remain separate.
 
 ## Work and immutable event identity
 
@@ -211,7 +212,7 @@ event_id = "earnings.extracted:1.0:" + D
 manifest_ref = processing_record_ref + "/input"
 ```
 
-Processing/manifest references are logical identifiers resolved by the future
+Processing/manifest references are logical identifiers resolved by the version-2
 operator/storage adapter, not public URLs or new S3 paths. `manifest_ref` resolves
 to the exact complete FilingReady input retained for this work. One accepted work
 has one immutable event. Do not include EPS values or completion/publication times
@@ -343,22 +344,22 @@ review/empty outcomes acknowledge normally. Transient/exhausted technical work
 remains unacknowledged until recovery/SQS redrive; there is no unbounded automatic
 retry or inference on completed empty/review outcomes. Explicit new-run reprocessing
 retains the same complete manifest and new run/configuration, with charges and
-publication effects visible. Actual operator command syntax is Milestone 3 work.
+publication effects visible. Operator command syntax is in OFFLINE_PROCESSING.
 
 ## Compatibility with implemented v0
 
-Current runtime accepts `eps-v0` classification/facts with evidence/period-end dates
+The retained legacy runtime accepts `eps-v0` classification/facts with evidence/period-end dates
 and emits `earnings.validated` / `1.0`: company-period `event_id`, integer `revision`,
 `facts`, `source_snapshots`, `validated_at`, `validation_policy`. Independent
 prose checks and canonical enrichment/conflict handling apply there only; see
-[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md). Its tests/demo remain unchanged.
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md). Legacy tests remain; the demo now exercises the fiscal consumer.
 
 The new event family also starts at schema `1.0`; event type plus version selects
 the contract. Never parse old payloads as the new family, relabel them as extracted,
 migrate/rewrite old jobs or automatically republish history. New work/record
 namespaces and configuration hashes prevent legacy completions suppressing new
 runs. No older published-schema consumer compatibility is promised. Inspect actual
-stored state before Milestone 3/6 migration decisions; source configuration is
+stored cloud state before Milestone 6 release decisions; source configuration is
 not proof of deployed state.
 
 ## Reference identity

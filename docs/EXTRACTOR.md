@@ -1,8 +1,8 @@
 # Isolated fiscal EPS extractor — Milestone 2
 
-Implemented 2026-10-25 in `finbot_earnings.processing.fiscal`. The existing Nova
-consumer, stores, demo and commands still use their old contract. This module is
-an independently tested transition boundary; Milestone 3 integrates it. It does
+Implemented 2026-10-25 in `finbot_earnings.processing.fiscal`. Milestone 3
+now integrates this frozen boundary through `FiscalConsumer`, version-2 stores,
+the demo and `earnings-ops`. Retained legacy modules use their old contract. It does
 not publish events, claim work, load `.env`, fetch web resources or write files.
 
 ## API and receipt
@@ -34,9 +34,9 @@ The JSON-compatible receipt contains:
   milliseconds; `provider_called`, outcome, safe reasons and retryability.
 
 `extracted` means **schema-valid output only**, including empty arrays. The adapter
-does not call that result accepted or non-earnings. Milestone 3 must persist the
-receipt, apply single-period/unique-observation business rules, produce
-`accepted`/`no_eps_extracted` and commit events/publication intent. Never adapt this
+does not call that result accepted or non-earnings. `FiscalConsumer` persists the
+receipt, applies single-period/unique-observation business rules, produces
+`accepted`/`no_eps_extracted` and commits events/publication intent. Never adapt this
 object by fabricating v0 classification, evidence or calendar dates.
 
 Input review returns `review_required` with no provider call. Refusal/incomplete
@@ -75,7 +75,7 @@ go to `unsupported_document_encoding` review instead of silent replacement.
 | Input token admission estimate | 900,000 |
 | Native response body | 2 MiB (2,097,152 bytes), streaming read bound |
 | Extracted JSON text | 64 KiB (65,536 UTF-8 bytes) |
-| Future output event reservation | 240 KiB (245,760 bytes); enforced by Milestone 3 |
+| Future output event reservation | 240 KiB (245,760 bytes); enforced by FiscalConsumer |
 
 The token estimate is one token per UTF-8 byte of prepared text, instructions and
 transport schema, plus 8,192 per image and 16,384 overhead. It is a conservative
@@ -92,7 +92,7 @@ provider acceptance remain release checks, not claims established by mock tests.
 Every input-bound reason includes `snapshot_bound_exceeded`, named `bound`,
 `actual`, `limit` and artifact ID/filename or contributing artifact IDs. Inspect the
 whole snapshot and fix the issue before deliberately requesting a new run; do not
-drop a selected PDF or oversized image. Operator CLI syntax is Milestone 3 work.
+drop a selected PDF or oversized image. Operator CLI syntax is in OFFLINE_PROCESSING.
 
 ## Reference behavior and deliberate port differences
 
@@ -122,7 +122,7 @@ SDK retries change from evals' one retry to **zero**. Each adapter invocation is
 exactly one provider attempt. The application is responsible for durably claiming
 and counting at most three attempts for transient failures; attempt 3 returns
 `retryable=false`, and ordinals outside 1–3 are rejected. The adapter has no retry
-loop and cannot enforce a durable budget without Milestone 3's store. A timeout can
+loop and cannot enforce a durable budget without the version-2 store. A timeout can
 have unknown charges; a crash before receipt persistence can require another call.
 The client timeout remains 120 seconds. Worker/queue/lease timing must be reconciled
 with this in Milestones 3/6.
@@ -131,10 +131,9 @@ Pins in `pyproject.toml` and the config: OpenAI 2.54.0, httpx 0.28.1, html5lib 1
 webencodings 0.6.1, six 1.17.0, Pillow 12.3.0 and jsonschema 4.26.0.
 The Nova Lambda dependency manifest/build remains unchanged; production Linux
 packaging is Milestone 6. The 2-MiB response plus byte-exact body/manifest/config
-**will not fit one DynamoDB item**. Milestone 3 must choose bounded splitting or
-another explicit durable design; do not plug this receipt into the old small-item
-store or lose response provenance. The output-event reservation is not a claim
-that publication is implemented.
+**will not fit one DynamoDB item**. Milestone 3 implements bounded immutable chunk splitting and atomic pointer/
+outcome/event commits in the new stores; see OFFLINE_PROCESSING. It enforces the
+240-KiB event reservation before publication. Do not use the old small-item store.
 
 ## Offline verification
 

@@ -18,7 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 @lru_cache(maxsize=1)
-def runtime():
+def legacy_runtime():
     # No clients or credentials are resolved at import time. Reuse clients in
     # warm invocations; the Lambda role supplies temporary credentials.
     extraction = ExtractionConfig(**json_value(os.environ["EARNINGS_EXTRACTION_CONFIG"]))
@@ -36,10 +36,16 @@ def runtime():
         extraction, expected_topic_arn=os.environ["FILING_READY_TOPIC_ARN"])
 
 
+@lru_cache(maxsize=1)
+def runtime():
+    from .fiscal_runtime import build_consumer
+    return build_consumer()
+
+
 def handler(event, context):
     if isinstance(event, dict) and event.get("operation") == "evaluate":
         fields(event, ("operation", "filing", "run_id"))
-        result = runtime().process(event["filing"], run_mode="evaluation", run_id=event["run_id"])
+        result = legacy_runtime().process(event["filing"], run_mode="evaluation", run_id=event["run_id"])
         return asdict(result)
     if not isinstance(event, dict) or not isinstance(event.get("Records"), list) or not event["Records"]:
         raise ValueError("Expected SQS records or explicit evaluation request")

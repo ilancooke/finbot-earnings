@@ -1,8 +1,8 @@
 # Milestone 1 contract specifications
 
 These files specify the approved launch contract. The isolated Milestone 2 extractor
-loads its own byte-exact packaged fiscal schema; the legacy consumer does not import
-these documents. [CONTRACTS.md](../CONTRACTS.md) explains the business rules and
+loads its own byte-exact packaged fiscal schema; the fiscal consumer uses that packaged schema. Runtime event fixtures validate
+against the documentation event schema in tests; legacy code stays separate. [CONTRACTS.md](../CONTRACTS.md) explains the business rules and
 compatibility boundary. Synthetic examples are not deployable input/configuration
 or new extraction-quality evidence.
 
