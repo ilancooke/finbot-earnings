@@ -1,2 +1,0 @@
-Fixture Example Corporation financial outlook
-For the three months ending December 31, 2026, the company expects GAAP diluted earnings per share of US$2.00. These forecasts are not reported results.

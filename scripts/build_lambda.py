@@ -36,7 +36,8 @@ def build(output):
         shutil.copytree(ROOT / "src/finbot_earnings", staged / "finbot_earnings",
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         # Isolated interpreter proves the asset imports without local site-packages
-        # or the old POC's OpenAI dependencies. Importing never creates AWS clients.
+        # (lazy fiscal imports do not validate the provider bundle). Finalize Linux
+        # dependencies and decoder checks in Milestone 6. Imports create no AWS clients.
         program = "import sys; sys.path.insert(0," + repr(str(staged)) + "); import finbot_earnings.processing.lambda_handler"
         subprocess.run([sys.executable, "-I", "-S", "-c", program], cwd=temporary, check=True)
         for cache in staged.rglob("__pycache__"):

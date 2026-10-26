@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "finbot-earnings"
 version = "0.1.0"
-description = "Low-latency ingestion and structured extraction of official earnings artifacts"
+description = "Filing-snapshot fiscal EPS extraction and publication"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,7 +16,6 @@ dependencies = [
   "webencodings==0.6.1",
   "six==1.17.0",
   "jsonschema==4.26.0",
-  "python-dotenv>=1.0,<2",
 ]
 
 [project.optional-dependencies]
@@ -33,15 +32,12 @@ dev = [
 aws = ["boto3==1.43.114"]
 
 [project.scripts]
-earnings = "finbot_earnings.cli:main"
-earnings-eval = "finbot_earnings.evaluation.__main__:main"
 earnings-ops = "finbot_earnings.processing.operator:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-finbot_earnings = ["companies.toml"]
 "finbot_earnings.processing.fiscal" = ["resources/*.txt", "resources/*.json"]
 
 [tool.pytest.ini_options]

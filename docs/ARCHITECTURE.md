@@ -1,6 +1,6 @@
 # finbot-earnings target architecture and processing behavior
 
-Updated 2026-10-25 through Milestone 3. Fiscal consumer, acceptance, stores,
+Updated 2026-10-25 through Milestone 4. Fiscal consumer, acceptance, stores,
 publication recovery and CLI are implemented offline. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md)
 and [AWS_RUNTIME.md](AWS_RUNTIME.md) document source behavior and pending
 packaging/infrastructure release. Actual deployed state remains unverified.
@@ -115,7 +115,7 @@ persistence/publication stages. `filed_at` is SEC acceptance, not discovery; onl
 measure discovery/acquisition with real timestamps. Report unavailable data and
 backlog catch-up separately. Launch-and-measure has no hard numeric SLA. Choose
 finite concurrency/timeouts/leases/visibility/retries consistent with real provider
-quotas and observed traffic. Current Nova settings are not OpenAI launch limits.
+quotas and observed traffic. The old CDK configuration still needs migration in Milestone 6.
 
 Alarms cover processing/publication failures, dead letters, excessive queue delay
 and worker errors. Earnings alarm SNS delivers to `ilancooke@gmail.com`; confirm

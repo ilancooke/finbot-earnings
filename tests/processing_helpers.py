@@ -1,14 +1,8 @@
 """Synthetic filing and recording boundaries; never access provider services."""
 
-from copy import deepcopy
-from datetime import datetime, timezone
 import hashlib
 import json
 
-from finbot_earnings.processing.domain import ModelResult
-
-NOW = datetime(2026, 10, 14, tzinfo=timezone.utc)
-EVENT_ID = "0000320193:quarter:2026-09-30"
 PERIOD = "Three months ended September 30, 2026"
 GAAP = f"For the {PERIOD.lower()}, GAAP diluted earnings per share were US$1.23."
 ADJUSTED = f"For the {PERIOD.lower()}, adjusted diluted earnings per share were US$1.45."
@@ -39,14 +33,8 @@ def fixture(sequence=1, *, gaap=GAAP, adjusted=ADJUSTED, heading_period=PERIOD):
                  s3_uri="s3://artifacts/" + accession + "/" + name, size_bytes=len(body),
                  content_type="text/html") for name, body in bodies.items()])
     rehash(payload)
-    facts = [dict(metric=metric, value=value, currency="USD",
-        period=dict(kind="quarter", end_date="2026-09-30", label=PERIOD),
-        source_artifact_id=accession + "/" + filename, evidence=quote)
-        for metric, value, filename, quote in (
-            ("gaap_diluted_eps", "1.23", "release.htm", gaap),
-            ("adjusted_diluted_eps", "1.45", "supplement.htm", adjusted))]
-    return payload, {accession + "/" + name: body for name, body in bodies.items()}, {
-        "classification": "reports_earnings", "facts": facts}
+    return payload, {accession + "/" + name: body for name, body in bodies.items()}
+
 
 
 class Documents:
@@ -56,15 +44,6 @@ class Documents:
     def read(self, artifact, *, max_bytes):
         self.reads.append(artifact.artifact_id)
         return self.bodies[artifact.artifact_id]
-
-
-class Model:
-    def __init__(self, response):
-        self.response, self.requests = response, []
-
-    def classify_and_extract(self, request):
-        self.requests.append(request)
-        return ModelResult(deepcopy(self.response), "fixture", {"input_tokens": 100, "output_tokens": 50})
 
 
 class Publisher:

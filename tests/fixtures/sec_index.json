@@ -1,8 +1,0 @@
-{
-  "directory": {"name": "/Archives/edgar/data/1045810/000104581026000099", "item": [
-    {"name": "nvda-20260826.htm", "type": "text/html", "size": "15000"},
-    {"name": "q2fy27pr.htm", "type": "text/html", "size": "25000"},
-    {"name": "q2fy27cfocommentary.htm", "type": "text/html", "size": "12000"},
-    {"name": "nvda-20260826.xsd", "type": "text/xml", "size": "2000"}
-  ]}
-}

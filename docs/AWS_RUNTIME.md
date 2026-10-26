@@ -1,6 +1,6 @@
 # AWS runtime and release setup
 
-Updated 2026-10-25 through Milestone 3. The SQS handler now selects the fiscal
+Updated 2026-10-25 through Milestone 4. The SQS handler now selects the fiscal
 consumer. Its source wiring and SDK/Secrets Manager interactions are tested offline;
 **the committed CDK configuration, dependency bundle and permissions still describe
 Nova and are not ready to deploy this consumer**. Consumption remains disabled in
@@ -118,214 +118,46 @@ EPS processing and inspection-queue receipt**; direct invocation or publish ack
 alone is insufficient. Scoped live tests share USD 5 cumulatively; this milestone
 spent USD 0. Ongoing OpenAI funding is user-managed through its UI.
 
-## Legacy boundary retained until Milestone 4
+## Package and build boundary after cleanup
 
-The old `operation=evaluate` handler deliberately uses `legacy_runtime()` and
-remains publication-free. Nova pipeline/repositories, the NVDA POC, local evaluator,
-old entry points, dependencies and tests remain pending the explicit cleanup
-milestone. They do not implement fiscal events. The historical baseline below
-records existing build/CDK/release tooling and is **not a fiscal deployment recipe**.
+Only the filing consumer runs in Lambda. The evaluation endpoint, Nova adapter,
+old pipeline/repositories, NVDA watcher and local evaluation runner are removed.
+Raw FilingReady or `operation=evaluate` direct invocations without a nonempty
+SQS batch are rejected. Production fresh runs remain explicit through
+`earnings-ops reprocess`; they are not an evaluation mode. Use
+[finbot-filing-evals](../../finbot-filing-evals/README.md) for experiments, corpus
+review and quality reports. No historical operational data was deleted.
 
-## Legacy Nova configuration and build baseline
+`pyproject.toml` pins the fiscal extractor dependencies and exposes only
+`earnings-ops`. The Lambda manifest currently contains the retained AWS SDK and
+Pillow dependency closure; none is exclusive to the removed paths. It still lacks
+the complete fiscal Linux dependency set. The builder copies only current source
+and performs a lazy handler-import check; that check alone does not establish
+that the frozen extractor or native image decoder works in Lambda. Milestone 6
+must finalize and verify the bundle before any deployment.
 
-Current-code baseline: implemented and tested offline, 2026-10-15. Historical
-documentation records earnings as undeployed; actual AWS state has not been
-verified in the 2026-10-25 Milestone 1 documentation session. The committed configuration disables queue consumption and selects
-Amazon Nova Lite (`amazon.nova-lite-v1:0`) in `us-east-1`. The artifact POC and local filing demo remain usable.
+`infra/cdk/settings.py` temporarily owns `LegacyExtractionSettings`, a validation
+shape for the unchanged old CDK configuration. It has no inference or evaluation
+behavior and is not imported by the application. This preserves offline synthesis
+and stateful resource definitions during cleanup. Replace that compatibility shape,
+old model environment and Bedrock permissions with fiscal configuration in
+Milestone 6. No cloud resource or deployment configuration was changed here.
 
-## Legacy build configuration and local checks
+## Retained release tooling
 
-From this repository root:
+CI runs offline tests and package builds, then builds a Linux asset, synthesizes
+CDK without lookups and records a release manifest. The existing self-contained
+`earnings-release-<commit>` artifact contains the cloud assembly, Lambda asset,
+distributions and manifest. Current packaging/configuration is pending the
+Milestone 6 changes above; a successful synthesis alone is not fiscal readiness.
 
-```bash
-.venv/bin/python -m pip install -e '.[dev]'
-npm ci --ignore-scripts --no-audit --no-fund
-export JSII_RUNTIME_PACKAGE_CACHE=/tmp/finbot-earnings-jsii
-.venv/bin/python -m pytest
-.venv/bin/python scripts/build_lambda.py
-npm run synth
-.venv/bin/python -m scripts.release_manifest
-```
+The manually dispatched Deploy workflow requires successful push CI for the exact
+main commit, downloads and verifies that artifact, then shows its manifest and a
+read-only infrastructure diff. The protected GitHub `production` environment gates
+the job that deploys the same assembly. Deployments are serialized. Preserve this
+review flow and immutable Lambda version/production alias behavior.
 
-Use Node 24 and Python 3.11+ locally; CI and Lambda use Python 3.13. The asset
-builder downloads the pinned SDK and Pillow wheels for Linux x86_64, adds the application and
-verifies imports in isolation. Python 3.13 runs on Amazon Linux 2023/glibc 2.34;
-the builder accepts manylinux_2_28 and manylinux2014 wheels. Pillow contains native
-code, so validate its image decoder in the official Python 3.13 x86_64 Lambda
-container as well as checking host imports. The SDK dependency set is pure Python. It excludes
-the legacy POC's OpenAI dependencies. Synthesis uses explicit account/region and
-no AWS lookups. Neither command deploys resources or invokes a model. Source changes
-require rebuilding the asset before synthesizing.
-
-`infra/cdk/config.prod.json` contains account/region, stack name, producer topic,
-existing source bucket, extraction configuration and consumption state. Override
-the configuration path with `FINBOT_EARNINGS_CONFIG` and the generated asset path
-with `FINBOT_EARNINGS_ASSET` for local synthesis. CI builds the committed production
-configuration. No secrets or AWS profiles belong in it.
-
-The initial adapter uses Nova Lite in-region with its exact foundation-model ARN
-in `bedrock_resource_arns`. Extraction version `eps-nova-lite-images-v1` pins prompt
-`eps-nova-tool-v2`. Nova uses constrained tool inputs for structured extraction;
-it does not use Converse `outputConfig.textFormat`. A replacement model needs a
-verified adapter, model/region capabilities and explicit invocation ARNs.
-For this pre-activation Nova baseline, consumption remains disabled. Bump the extraction version when
-model, prompt, inference limits or validation settings change. The full
-configuration is saved and checked against work identity to catch accidental reuse.
-
-Supporting JPEG/PNG/GIF bytes use labeled Converse image blocks, separately from
-the five document blocks. Bounds are 20 images, 3,750,000 bytes per image, 12 MiB
-aggregate raster bytes, 8000 pixels per side and one frame. A conservative encoded
-payload check reserves space below Nova v1's 25-MB request limit. Invalid or
-excessive inputs go to review before a paid call; never drop pages to fit. Visual
-facts receive `image_evidence_requires_review` and cannot become accepted metrics.
-The legacy v1 prompt remains supported only for image-free snapshots. Evaluation
-receipts hash the actual selected prompt. These behaviors are tested with SDK
-Stubber and local synthetic images, without invoking Bedrock.
-
-Runtime configuration is supplied by CDK, without `.env` loading:
-
-| Environment variable | Meaning |
-| --- | --- |
-| `EARNINGS_TABLE_NAME` | Earnings-owned DynamoDB table |
-| `EARNINGS_SOURCE_BUCKET` | Existing filings bucket; other buckets are rejected |
-| `FILING_READY_TOPIC_ARN` | Expected upstream SNS notification origin |
-| `EARNINGS_QUEUE_ARN` | Expected SQS event source |
-| `EARNINGS_TOPIC_ARN` | Validated earnings SNS topic |
-| `EARNINGS_EXTRACTION_CONFIG` | JSON representation of `ExtractionConfig` |
-
-The current runtime budget is 128 KiB aggregate HTML/TXT/PDF, five documents,
-4,096 output tokens and a 64 KiB saved response. The five-document cap follows
-Nova v1; the adapter also bounds each document to 4.5 MB. The smaller aggregate
-budget is provisional and needs tuning on real filings. Every file enters the
-same request as original bytes in a Converse document block, with neutral document
-names mapped to artifact IDs and filenames in the accompanying context. HTML/TXT
-must be UTF-8 for the evidence validator. Unsupported/oversized snapshots receive
-review; missing objects retry. No attachment is silently omitted or truncated.
-
-The narrow `explicit-prose-v1` validator checks HTML/TXT evidence. It does not parse
-PDF evidence: PDF-sourced facts are retained with `pdf_evidence_requires_review`
-and cannot establish accepted facts. Independently supported HTML/TXT facts may
-still pass; material candidate conflicts block the affected period. PDF-only
-earnings results require review. Evaluate this policy before activation.
-
-## Runtime and storage behavior
-
-S3 object keys are URI-decoded once; streaming reads are bounded and always closed.
-The worker has GetObject access only to the configured source bucket. For SSE-KMS
-objects, configure `source_kms_key_arn` and ensure its key policy permits the new
-worker role. The source bucket and producer SNS topic remain outside this stack.
-
-Bedrock Converse defines one `report_earnings` tool whose input schema is the
-minimal EPS schema, and forces it with `toolChoice.tool.name`. The adapter accepts
-exactly one matching `toolUse` with `stopReason=tool_use` and reads its `input`.
-There is no function execution, tool-result round trip or repair call. Missing,
-multiple, wrong-name or incomplete tool responses fail. Schema-invalid input
-objects are saved and rejected by application validation.
-
-The request has an explicit output-token limit and versioned system prompt. SDK
-inference retries are disabled; the persisted application retry budget owns
-retries. Throttling/timeouts retry; configuration/access errors and incomplete
-output do not loop. Raw provider error text and document bodies are not logged.
-
-The DynamoDB table uses `pk`/`sk` and no scans or secondary indexes:
-
-| Partition | Sort key | Stored record |
-| --- | --- | --- |
-| `JOB#<work_id>` | `STATE` | Configuration, identity, lease/token, attempt/version counters, completion and publication references |
-| `JOB#<work_id>` | `INPUT` | Immutable FilingReady JSON |
-| `JOB#<work_id>` | `RESPONSE` | Immutable model result, usage and timing |
-| `EVENT#<event_id>` | `HEAD` | Latest canonical revision number |
-| `EVENT#<event_id>` | `REV#<10-digit revision>` | Immutable saved payload plus publication acknowledgment/time |
-
-Reads are strongly consistent. Each state mutation checks its version; owned
-checkpoints also check claim token and expiry. Completion atomically commits all
-event changes and the job outcome while checking every previously read head.
-Concurrent conflicts re-read and reconcile, preserving earlier revisions. A saved
-revision doubles as its publication intent, avoiding a second payload copy.
-Publication retries load the identical payload without S3 reads or inference.
-The adapter rejects oversized individual items and transactions conservatively
-before calling DynamoDB; it never partially commits a filing's periods.
-
-CDK defines a protected, retained table with point-in-time recovery, retained
-14-day input/failure queues, a separate SNS-delivery failure queue, validated and
-alarm SNS topics, and 30-day JSON logs. Runtime permissions target the specific
-table, bucket, topic and model ARNs. SNS SendMessage policies restrict both source
-topic and account. There is no producer-resource replacement or cross-stack export.
-
-Lambda uses a retained immutable version behind `production`. SQS targets that
-alias, batch size 1, maximum/reserved concurrency 2, 300-second function timeout,
-360-second lease, 1,800-second visibility and five receives before DLQ. The handler
-returns partial failures for retry/busy/exhausted jobs and acknowledges completed
-review/non-earnings outcomes. Less than 240 seconds remaining defers a message.
-Structured outcome logs complement alarms for both failure queues, 15-minute input
-age and Lambda errors. Input-age alarms may fire while consumption is disabled.
-
-## Existing release tooling and legacy evaluation endpoint
-
-Initial setup is separate from local implementation. Configure a protected GitHub
-`production` environment requiring approval and restricting deployment to `main`.
-Create repository-specific OIDC roles and repository variables:
-
-- `EARNINGS_PLAN_ROLE_ARN`: trust this repository's `main` ref. Allow read-only
-  CloudFormation inspection and required CDK bootstrap lookup-role access.
-- `EARNINGS_DEPLOY_ROLE_ARN`: trust only this repository's `production` environment.
-  Allow the scoped CDK bootstrap publishing/deployment roles and the CloudFormation
-  execution role needed for the earnings stack. Scope producer access to SNS
-  subscription management on the existing filing-ready ARN. Do not grant management
-  of the producer stack or raw bucket.
-
-Both OIDC trusts must constrain `aud` to `sts.amazonaws.com` and `sub` to the
-specific repository/ref or environment. Review bootstrap execution permissions,
-role trust and alarm subscriptions during setup. No long-lived AWS keys are needed.
-
-CI runs offline tests, package builds and CDK synthesis without AWS credentials.
-It retains a self-contained `earnings-release-<commit>` artifact including the
-cloud assembly, bundled Lambda asset, package distributions and release manifest.
-
-Manually dispatch **Deploy** from `main`, optionally selecting a full main commit
-SHA. It requires successful push CI for that exact commit and downloads its
-artifact and verifies its assembly checksum. The prepare job shows a read-only
-template diff and the release manifest.
-After reviewing those results, approve the production job. It deploys that same
-assembly, uploads assets through CDK and records stack outputs/Lambda version.
-Deployments are serialized. No operator digest copying or separate code deployment
-is required. Workflow dispatch and environment approval happen in GitHub; the
-current task has not dispatched either workflow.
-
-The current handler implements an explicit evaluation operation; a deployed alias
-would accept it using configured Nova Lite. This endpoint is legacy and scheduled
-for Milestone 4 removal; do not deploy/invoke it as the new migration verification:
-
-```json
-{"operation":"evaluate","run_id":"reviewed-corpus-v1","filing":{}}
-```
-
-The [local evaluation runner](LOCAL_EVALUATION.md) also remains implemented until
-Milestone 4, but its migration instructions are superseded. Use the separate evals
-package for quality work and the approved saved v6 baseline.
-
-Replace `filing` with a complete valid FilingReady payload. Invoking this endpoint
-reads S3 and makes a paid model call; it records legacy evaluation results without
-canonical changes or publication. Normal tests/deployment do not invoke it. This
-is not the approved launch-quality or activation procedure; use Milestones 5–6
-and the target prerequisites above. Disabled consumption still permits SNS to
-enqueue new notifications, retained for 14 days.
-
-To pause, release a configuration with consumption disabled. For rollback, dispatch
-a compatible earlier main commit whose CI artifact is retained, review the diff
-and approve deployment. This restores its code/configuration and alias through CDK;
-it does not erase processing records or event revisions. Check data/configuration
-compatibility and the earlier consumption setting before rollback.
-
-Legacy repository-only inspection/redrive is superseded by the fiscal CLI above. Repository methods
-`get_job`, `event` and `rearm` are available to an operator adapter. Rearm a terminal
-job before explicitly redelivering it; retain saved results/outbox payloads. A new
-inference experiment needs a different run/configuration identity. SNS-delivery
-failures have no job yet and must be inspected separately from processing failures.
-
-AWS references: [Nova structured tool inputs](https://docs.aws.amazon.com/nova/latest/userguide/prompting-structured-output.html),
-[Nova tool choice](https://docs.aws.amazon.com/nova/latest/userguide/tool-choice.html),
-[Nova document limits](https://docs.aws.amazon.com/nova/latest/userguide/modalities-document.html),
-[transaction constraints](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactWriteItems.html),
-[Lambda/SQS](https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html),
-[CDK assets](https://docs.aws.amazon.com/cdk/v2/guide/assets.html).
+GitHub setup still needs repository-scoped OIDC plan/deploy roles, variables
+`EARNINGS_PLAN_ROLE_ARN` and `EARNINGS_DEPLOY_ROLE_ARN`, main-ref/environment trust
+and confirmed protected production approval. Inspect the actual setup during
+Milestone 6; neither workflow dispatch nor deployment occurred in cleanup.

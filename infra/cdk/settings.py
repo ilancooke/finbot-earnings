@@ -1,9 +1,42 @@
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from pathlib import Path
 import re
 
 from finbot_earnings.processing.contracts import fields, json_value
-from finbot_earnings.processing.domain import ExtractionConfig
+
+
+@dataclass(frozen=True)
+class LegacyExtractionSettings:
+    """CDK-only compatibility shape; replace with fiscal settings in Milestone 6."""
+    version: str
+    model_id: str = "fixture"
+    prompt_version: str = "eps-v0"
+    schema_version: str = "eps-v0"
+    validation_policy: str = "explicit-prose-v1"
+    max_documents: int = 16
+    max_input_bytes: int = 4 * 1024 * 1024
+    max_response_bytes: int = 64 * 1024
+    max_facts: int = 32
+    max_stage_failures: int = 3
+    lease_seconds: int = 300
+    max_output_tokens: int = 4096
+
+    def __post_init__(self):
+        for name in ("version", "model_id", "prompt_version", "schema_version"):
+            value = getattr(self, name)
+            if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9._:/-]{1,200}", value):
+                raise ValueError(f"invalid {name}")
+        if self.validation_policy != "explicit-prose-v1" or self.schema_version != "eps-v0":
+            raise ValueError("unsupported validation policy or schema")
+        bounds = {"max_documents": 100, "max_input_bytes": 64 * 1024 * 1024,
+                  "max_response_bytes": 256 * 1024, "max_facts": 100,
+                  "max_stage_failures": 10, "lease_seconds": 3600, "max_output_tokens": 16384}
+        for name, maximum in bounds.items():
+            if type(getattr(self, name)) is not int or not 1 <= getattr(self, name) <= maximum:
+                raise ValueError(f"invalid {name}")
+
+    def to_dict(self):
+        return asdict(self)
 
 
 @dataclass(frozen=True)
@@ -15,7 +48,7 @@ class Settings:
     source_bucket: str
     consumption_enabled: bool
     bedrock_resource_arns: tuple[str, ...]
-    extraction: ExtractionConfig
+    extraction: LegacyExtractionSettings
     source_kms_key_arn: str | None = None
 
     @classmethod
@@ -34,7 +67,7 @@ class Settings:
             raise ValueError("Invalid source bucket")
         if type(value["consumption_enabled"]) is not bool:
             raise ValueError("consumption_enabled must be boolean")
-        extraction = ExtractionConfig(**value["extraction"])
+        extraction = LegacyExtractionSettings(**value["extraction"])
         if extraction.lease_seconds <= 300:
             raise ValueError("Lease must outlive the 300-second Lambda timeout")
         if not isinstance(value["bedrock_resource_arns"], list) or any(not isinstance(arn, str) or not re.fullmatch(

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from finbot_earnings.processing import lambda_handler
-from finbot_earnings.processing.domain import ProcessResult
+from finbot_earnings.processing.fiscal_consumer import FiscalResult
 from tests.processing_helpers import fixture
 
 QUEUE = "arn:aws:sqs:us-east-1:123456789012:earnings"
@@ -16,7 +16,7 @@ CONTEXT = SimpleNamespace(get_remaining_time_in_millis=lambda: 300_000)
 def runtime(monkeypatch):
     class Worker:
         calls = []
-        result = ProcessResult("work", "validated", True)
+        result = FiscalResult("work", "accepted", True)
         def process(self, message, **kwargs):
             self.calls.append((message, kwargs))
             return self.result
@@ -24,26 +24,25 @@ def runtime(monkeypatch):
     monkeypatch.setenv("EARNINGS_QUEUE_ARN", QUEUE)
     monkeypatch.setenv("FILING_READY_TOPIC_ARN", TOPIC)
     monkeypatch.setattr(lambda_handler, "runtime", lambda: worker)
-    monkeypatch.setattr(lambda_handler, "legacy_runtime", lambda: worker)
     return worker
 
 
 def record(identifier="message", **changes):
-    payload, _, _ = fixture()
+    payload, _ = fixture()
     return dict(messageId=identifier, eventSource="aws:sqs", eventSourceARN=QUEUE,
         body=json.dumps(dict(Type="Notification", TopicArn=TOPIC, Message=json.dumps(payload))), **changes)
 
 
 def test_success_and_semantic_reviews_acknowledge(runtime):
     for outcome in ("accepted", "review_required", "no_eps_extracted"):
-        runtime.result = ProcessResult("work", outcome, True)
+        runtime.result = FiscalResult("work", outcome, True)
         assert lambda_handler.handler({"Records": [record()]}, CONTEXT) == {"batchItemFailures": []}
     assert all(not kwargs for _, kwargs in runtime.calls)
 
 
 def test_retry_busy_and_terminal_return_partial_batch_failure(runtime):
     for outcome in ("retry", "busy", "processing_failed"):
-        runtime.result = ProcessResult("work", outcome, False)
+        runtime.result = FiscalResult("work", outcome, False)
         assert lambda_handler.handler({"Records": [record()]}, CONTEXT) == {
             "batchItemFailures": [{"itemIdentifier": "message"}]}
 
@@ -67,13 +66,15 @@ def test_unexpected_failure_retries_only_affected_records(runtime):
     assert result == {"batchItemFailures": [{"itemIdentifier": "first"}]}
 
 
-def test_evaluation_is_explicit_and_always_isolated(runtime):
-    payload, _, _ = fixture()
-    result = lambda_handler.handler(dict(operation="evaluate", filing=payload, run_id="model-comparison-1"), CONTEXT)
-    assert result["acknowledge"]
-    assert runtime.calls[0][1] == {"run_mode": "evaluation", "run_id": "model-comparison-1"}
-    with pytest.raises(ValueError):
-        lambda_handler.handler(payload, CONTEXT)
+@pytest.mark.parametrize("event", [
+    dict(operation="evaluate", filing=fixture()[0], run_id="model-comparison-1"),
+    fixture()[0],
+    dict(Records=[]),
+])
+def test_only_sqs_batches_are_supported(runtime, event):
+    with pytest.raises(ValueError, match="Expected nonempty SQS records"):
+        lambda_handler.handler(event, CONTEXT)
+    assert not runtime.calls
 
 
 def test_remaining_time_budget_defers_without_starting_model(runtime):
@@ -86,22 +87,3 @@ def test_missing_message_id_rejects_whole_batch(runtime):
     del item["messageId"]
     with pytest.raises(ValueError):
         lambda_handler.handler({"Records": [item]}, CONTEXT)
-
-
-def test_legacy_runtime_remains_isolated_until_milestone_4(monkeypatch):
-    from finbot_earnings.processing.domain import ExtractionConfig
-    from finbot_earnings.processing.contracts import json_text
-    monkeypatch.setenv("EARNINGS_EXTRACTION_CONFIG", json_text(ExtractionConfig("aws-test", model_id="amazon.nova-lite-v1:0", prompt_version="eps-nova-tool-v1").to_dict()))
-    for key, value in {"EARNINGS_TABLE_NAME": "earnings", "EARNINGS_SOURCE_BUCKET": "artifacts",
-        "EARNINGS_TOPIC_ARN": TOPIC, "FILING_READY_TOPIC_ARN": TOPIC, "EARNINGS_QUEUE_ARN": QUEUE}.items():
-        monkeypatch.setenv(key, value)
-    lambda_handler.legacy_runtime.cache_clear()
-    try:
-        first = lambda_handler.legacy_runtime()
-        assert lambda_handler.legacy_runtime() is first
-        assert first.model.client.meta.service_model.service_name == "bedrock-runtime"
-        assert first.model.client.meta.config.retries["total_max_attempts"] == 1
-        assert first.model.client.meta.config.read_timeout == 180
-        assert first.documents.client.meta.config.read_timeout == 10
-    finally:
-        lambda_handler.legacy_runtime.cache_clear()

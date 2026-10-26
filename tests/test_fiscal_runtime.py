@@ -62,7 +62,7 @@ def test_secret_sdk_access_and_actual_adapter_over_mocked_http(monkeypatch, tmp_
                 lambda request: (calls.append(request), httpx.Response(200, json=native()))[1])))
         import finbot_earnings.processing.fiscal as boundary
         monkeypatch.setattr(boundary, "make_client", client)
-        payload, bodies, _ = fixture()
+        payload, bodies = fixture()
         receipt = extractor.extract(FilingReady.parse(payload), Documents(bodies), attempt=1)
         assert receipt["outcome"] == "extracted" and len(calls) == 1
         assert "offline-project-credential" not in json_text(receipt)
@@ -76,7 +76,7 @@ def test_secret_failure_budget_and_cli_errors_do_not_expose_credentials(monkeypa
         consumer = fiscal_runtime.build_consumer(repo)
         consumer.extractor.secrets = Mock()
         consumer.extractor.secrets.get_secret_value.side_effect = RuntimeError("sensitive-private-key")
-        payload, _, _ = fixture()
+        payload, _ = fixture()
         result = consumer.process(payload)
         assert not result.acknowledge
         job = repo.get_job(result.work_id)

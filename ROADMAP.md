@@ -1,11 +1,11 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–3
-are complete; Milestones 4–6 have not started.** This document is the durable plan
+Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–4
+are complete; Milestones 5–6 have not started.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
 in Milestone 1; Milestone 2 adds the frozen extractor; Milestone 3 integrates
-the fiscal consumer/storage/publication/CLI. Legacy paths remain until Milestone 4. A decision approval is not a
+the fiscal consumer/storage/publication/CLI. Milestone 4 removes legacy paths. A decision approval is not a
 completed implementation milestone.
 
 ## Required end state
@@ -56,37 +56,44 @@ Suggested new-session instruction:
 ## Current checkpoint
 
 - Date: 2026-10-25. All 24 D01–D12 decisions remain approved.
-- Completed: **Milestones 1–3**. See [Milestone 3 record](#milestone-3--complete--2026-10-25).
-  Fiscal consumer, acceptance, immutable filing-specific events, both stores,
-  recovery, Lambda source wiring, demo and operator CLI are implemented offline.
-- Repository: branch `main`, starting clean HEAD `c6efa5d` (Milestone 2 committed).
-  This corrects the previous checkpoint's stale uncommitted-M2 description.
-  Milestone 3 changes are uncommitted; exact files are listed in its record.
+- Completed: **Milestones 1–4**. See [Milestone 4 record](#milestone-4--complete--2026-10-25).
+  The focused fiscal consumer, stores, publication recovery, Lambda source wiring,
+  demo and operator CLI remain covered after legacy cleanup.
+- Repository: branch `main`, starting clean HEAD `1cd63d2` (Milestone 3 committed).
+  This corrects the previous checkpoint's stale uncommitted-M3 description.
+  Milestone 4 changes are uncommitted; exact paths/groups are listed in its record.
   No sibling repository or shared operational data was changed.
+- Removed: NVDA watcher, SEC/IR acquisition, old extraction/grouping/latency commands,
+  Nova/canonical runtime/stores, earnings-local evaluator/starter corpus and its
+  instructions, `earnings` / `earnings-eval`, POC config/dependency/assets and
+  Lambda `operation=evaluate` mode. The installed command is **`earnings-ops`**.
+  Historical corpora, sources, runs and stored records are preserved.
+- Retained: shared FilingReady/contracts/errors, S3/SNS adapters, frozen extractor,
+  fiscal consumer/stores, production tests and release tooling. The old extraction
+  configuration validator is now `infra.cdk.settings.LegacyExtractionSettings`,
+  an infrastructure-only bridge until Milestone 6, with no runtime/evaluation path.
 - Version/configuration: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
   `fiscal-eps-acceptance-v1`; frozen `eps-openai-luna-v6-v1` digest remains
   `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
-  Extractor module/resource bytes and dependency pins remain unchanged.
-- Persistence: new `EPS2#` work/config/blob/event/status partitions and SQLite
-  `fiscal_v2_items`; 128-KiB immutable byte chunks, 24-MiB logical blobs,
-  atomic fenced outcome/event/intent/status commits; no legacy migration/GSI/scan.
-  Three durable attempt reservations per identity include crashed attempts;
-  explicit retry does not reset them. See OFFLINE_PROCESSING for exact layout.
-- Verification: 298 offline tests pass; compilation, wheel/sdist build,
-  dependency, contract/example/link and diff checks pass. The real frozen SDK
-  boundary is mocked in demo/tests; no live provider/account claim.
-- Next session: **Milestone 4 only**. Read this record and its listed inputs,
-  identify consumers of legacy helpers, then remove superseded NVDA acquisition,
-  local evaluation/endpoint/commands and unused dependencies/assets while retaining
-  fiscal production coverage and historical records/data. Do not start parity or release.
-- Source runtime requires new fiscal digest and dedicated secret ARN env vars.
-  **CDK config, Linux bundle/dependencies and permissions still describe Nova and
-  cannot deploy the new source runtime yet**. Consumption remains disabled in source;
-  actual cloud/GitHub state is unverified. Final packaging/IAM/secret/inspection
-  queue/alarm/OIDC setup and protected deployment/activation remain Milestone 6.
-- API ledger: previous USD 5, used USD 0, no unknown usage from this session,
-  **USD 5 remaining** cumulatively. No provider or AWS resource calls; AWS MCP
-  was used only for documentation. Ongoing funding remains user-managed.
+  All frozen extractor module/resource bytes and dependency pins remain unchanged.
+  Storage/identity/retry contracts remain as recorded in Milestone 3.
+- Verification: **176 offline tests** pass, including retained fiscal/recovery/SDK/
+  handler/operator/infra/release coverage, explicit evaluation-request rejection,
+  both-store historical-record preservation and the extracted fiscal demo test.
+  Compilation, wheel/sdist build, all 19 wheel-only module imports, exact 24-file
+  source/resource inventories, installed command/dependency, contract/example/link
+  and diff checks pass. The demo publishes one synthetic event over mocked HTTP.
+- Next session: **Milestone 5 only**. Read its inputs and this completion record;
+  compare the focused production port with the saved v6 50-filing experiment and
+  write durable parity evidence. No parity campaign or release work was started here.
+- Release boundary: old CDK config/permissions and incomplete Linux dependency
+  manifest still require Milestone 6 changes; **do not deploy them as fiscal-ready**.
+  The lazy handler-import check is not full provider/native-decoder verification.
+  Consumption is disabled in source; actual cloud/GitHub state remains unverified.
+  Packaging/IAM/secret/inspection queue/alarms and reviewed activation remain M6.
+- API ledger: previous USD 5, spent USD 0, no unknown usage introduced,
+  **USD 5 remaining** cumulatively. No provider or AWS/GitHub calls this session.
+
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
 
@@ -97,7 +104,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 1 — Contracts and documentation | Complete | Approved decisions below | [2026-10-25 completion](#milestone-1--complete--2026-10-25) |
 | 2 — Tested extractor | Complete | Milestone 1 complete | [2026-10-25 completion](#milestone-2--complete--2026-10-25) |
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
-| 4 — Legacy cleanup | Not started | Milestone 3 complete | None |
+| 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
 | 5 — Production parity evidence | Not started | Milestone 4 complete | None |
 | 6 — Reviewed release and activation | Not started | Milestone 5 complete | None |
 
@@ -268,19 +275,19 @@ while keeping the new filing consumer and its tests intact. Historical shared-da
 artifacts are preserved. Update references in both README and this roadmap if a
 retired document is removed or renamed.
 
-- [ ] Remove the NVDA watcher, SEC/IR acquisition adapters, legacy extraction,
+- [x] Remove the NVDA watcher, SEC/IR acquisition adapters, legacy extraction,
   approximate-date event grouping, latency-flash commands and POC-only configuration.
-- [ ] Remove the earnings-local evaluation runner, `earnings-eval` entry point,
+- [x] Remove the earnings-local evaluation runner, `earnings-eval` entry point,
   starter corpus and obsolete evaluation/golden-dataset instructions.
-- [ ] Remove the runtime evaluation endpoint/mode where it exists solely to
+- [x] Remove the runtime evaluation endpoint/mode where it exists solely to
   support the retired workflow; retain explicit production reprocessing identities.
-- [ ] Remove unused dependencies, tests and packaging assets associated with those
+- [x] Remove unused dependencies, tests and packaging assets associated with those
   paths. Preserve or replace tests that protect production behavior.
-- [ ] Rewrite README and runtime instructions around the filing consumer and link
+- [x] Rewrite README and runtime instructions around the filing consumer and link
   to `finbot-filing-evals` for experiments, corpus review and quality results.
   Include the D07b limitations, mixed-format example, configured numeric limits
   and operator steps for inspecting and explicitly reprocessing review outcomes.
-- [ ] Preserve historical shared-data corpora, source artifacts and run results;
+- [x] Preserve historical shared-data corpora, source artifacts and run results;
   retiring code does not require deleting operational data.
 
 Acceptance: installed commands, documentation, dependencies and Lambda assets have
@@ -782,6 +789,108 @@ Use this template (include actual paths/values, not just "tests passed"):
   shared data. Stop before Milestone 5 parity or Milestone 6 release work.
 
 
+### Milestone 4 — complete — 2026-10-25
+
+- Scope delivered: retired superseded acquisition/extraction, canonical processing
+  and earnings-local evaluation code. The fiscal FilingReady consumer is the sole
+  application path. No parity study, provider calls or release implementation.
+- Repository/version: `finbot-earnings`, branch `main`, initially clean at
+  `1cd63d2ee014820ea214f3e7ded675cec6078347` (committed Milestone 3). All changes remain
+  **uncommitted**; no unrelated work was overwritten and no commit was requested.
+- Deletions (79 tracked files): top-level source
+  `src/finbot_earnings/{__main__,cli,clock,config,eligibility,identity,models,parsing,pipeline,storage}.py`
+  and `companies.toml`; entire source `sources/`, `extractors/` and `evaluation/`
+  subtrees; `processing/{domain,pipeline,repository,sqlite_store,dynamodb_store,validation,reconciliation,images}.py`;
+  `.env.example`; `evaluations/starter/` (synthetic corpus only);
+  `docs/LOCAL_EVALUATION.md`, `docs/GOLDEN_DATASET.md`;
+  `tests/helpers.py`, `tests/test_{cli_environment,dynamodb_processing,eligibility_extraction,identity_storage,local_evaluation,pipeline_fixture,sources,supporting_images,filing_processing}.py`
+  and four NVDA/SEC fixtures (`nvda_release.html`, `nvidia_rss.xml`, `sec_index.json`,
+  `sec_submissions.json`). Source shorthand is under `src/finbot_earnings/`.
+  Historical shared-data corpora/source artifacts/labels/runs were not touched.
+- Modified/new paths: `README.md`, `ROADMAP.md`, `pyproject.toml`,
+  `docs/{ARCHITECTURE,AWS_RUNTIME,CONTRACTS,EXTRACTOR,FUNCTIONAL_SCOPE,OFFLINE_PROCESSING,V0_DECISIONS}.md`,
+  `docs/contracts/README.md`, `infra/cdk/settings.py`, `scripts/build_lambda.py`,
+  `src/finbot_earnings/__init__.py`, `processing/{aws_adapters,errors,lambda_handler}.py`,
+  `tests/processing_helpers.py`,
+  `tests/test_{aws_adapters,filing_contract,fiscal_consumer,fiscal_extractor,fiscal_runtime,lambda_handler}.py`,
+  and new `tests/test_fiscal_demo.py`. Ignored editable metadata/scripts and the
+  setuptools generated application copy were refreshed locally; no generated data
+  or build artifact is committed. Existing generated Lambda/release assets are
+  unverified and must be rebuilt during Milestone 6 before synthesis/deployment.
+- Exit evidence: no watcher, SEC/IR downloader, approximate-date grouping,
+  latency-flash command, local benchmark/corpus runner or evaluation endpoint
+  remains in current source or package artifacts. The handler accepts nonempty
+  SQS batches; former evaluation requests fail before runtime/source/credential work.
+  Production explicit run identities/reprocessing remain unchanged. Only
+  `earnings-ops` is installed, with inspect/event/list/retry/reprocess/output.
+  Reinstalling editable metadata removed old console scripts in this repo's venv.
+- Helper/dependency decisions: retained exact S3Documents/SNSPublisher behavior,
+  FilingReady parser/identity helpers and production-safe errors. Removed the Nova
+  adapter/schema/prompt and its `InputReview` error. Removed `python-dotenv` and
+  companies package-data declarations; OpenAI/parser/Pillow/schema pins remain
+  required by the fiscal extractor. Every existing Lambda-manifest dependency is
+  still needed by fiscal AWS/image handling, so no pin was removed there. Final
+  Linux provider dependency closure is explicitly Milestone 6, not cleanup.
+- Infrastructure bridge: CDK imported the old runtime `ExtractionConfig`. Moved
+  its configuration-only validation/serialization unchanged to infrastructure as
+  `LegacyExtractionSettings`, preserving current settings/synthesized properties
+  without retaining a runtime domain module. No CDK deployment setting, logical
+  resource ID, permissions, consumption state or workflow changed. Old Nova IAM/
+  environment and the bridge still need the planned Milestone 6 replacement.
+- Coverage preservation: the fiscal suite retains the real mocked SDK, 34 images,
+  all input bounds, mixed HTML/PDF whole-snapshot review, schema/business/empty
+  outcomes, duplicate/new-run identities, both stores, fencing/concurrency, durable
+  attempt budgets, saved-response/publication recovery and CLI tests. Retained
+  S3 decoding/bounds/stream closure and exact SNS payload/ack tests without Nova
+  fixtures. Moved the useful fiscal demo test out of the deleted legacy pipeline
+  suite. Added both-store synthetic historical-record preservation through normal
+  processing/duplicate delivery, without depending on retired repository classes.
+  Removed tests exercise obsolete behavior and are superseded by fiscal coverage.
+- Frozen behavior: all `processing/fiscal/` source/resources are byte-unchanged
+  from starting HEAD; `git diff --exit-code -- src/finbot_earnings/processing/fiscal`
+  passes. Config remains `eps-openai-luna-v6-v1`, SHA-256
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
+  No contract, storage namespace, retry budget or extraction behavior change.
+- Checks on 2026-10-25, repo `.venv` Python 3.11.17:
+  `.venv/bin/python -m compileall -q src tests infra scripts` passed;
+  `.venv/bin/python -m pytest` passed **176 tests**;
+  `.venv/bin/python -m pip install --no-deps --no-build-isolation -e .` passed;
+  `.venv/bin/python -m pip check` passed;
+  `.venv/bin/earnings-ops --help` passed and metadata lists only the new command;
+  `.venv/bin/python -m build --no-isolation --outdir /tmp/finbot-earnings-m4-dist`
+  built wheel/sdist after clearing only the old setuptools generated application copy.
+  An inline `.venv/bin/python -I` artifact check verified exact **24 source/resource
+  files**, byte-for-byte wheel equality to source, matching sdist source inventory,
+  **19 wheel-only module imports**, config/pin validation, no dotenv requirement,
+  sole console entry point and removal of both old installed scripts.
+  `.venv/bin/python -c 'from pathlib import Path; exec(Path("docs/contracts/README.md").read_text().split("```python\n", 1)[1].split("```", 1)[0])'`
+  passed two schemas, 16 responses, six identities, one event, three input examples
+  and local documentation link checks. `git diff --check` passed.
+  `.venv/bin/python -m finbot_earnings.processing.demo --output-dir /tmp/finbot-earnings-m4-verified-demo`
+  passed: two mocked calls, three HTML documents each, one accepted EPS event,
+  acknowledged duplicate, empty result and mixed-PDF review before inference.
+  CDK synthesis assertions pass in the offline suite; no Lambda Linux build,
+  provider/container verification or live deployment was claimed.
+- Documentation: status/checkpoint/progress/checkboxes updated; README and runtime
+  guidance now center on the fiscal consumer and link to `finbot-filing-evals` for
+  experiments/corpus review/results. Removed obsolete golden/evaluation recipes.
+  D07b support/limits, mixed HTML/PDF and member/bound inspection plus explicit
+  fresh-run instructions remain documented. Prior milestone completion records
+  are historical evidence, including references to now-retired paths.
+- Live actions: none. No AWS/GitHub/resource/credential access, paid inference,
+  shared-data writes, catalog rebuild or sibling edits. AWS SDK Python skill was
+  consulted for retained mocked adapters; no new service/API assumptions required.
+- API test ledger: prior USD 5, known spend USD 0, no unknown usage introduced,
+  **USD 5 remaining** cumulatively. Production funding remains user-managed.
+- External actions needed now: none. Actual cloud/GitHub state, secret population,
+  IAM/quotas, inspection queue, email confirmation, Linux packaging and protected
+  deployment/activation remain Milestone 6.
+- Next session: **Milestone 5 only**. Read this record, the current extractor/config/
+  validation/tests and listed v6 experiment/run references, then produce durable
+  production-port parity evidence against saved run `20261023T145725Z-9ff8c84b`.
+  Do not automatically repeat the paid 50-filing campaign or start release work.
+
+
 ## Reference sources and implementation constraints
 
 Existing defaults to retain unless a decision above changes them: at-least-once
@@ -827,14 +936,14 @@ Use the fiscal schema and local structural validation in the evals package's
 semantics and do not apply the old independent-prose evidence gate to launch EPS.
 
 Current filing-code starting points are `src/finbot_earnings/processing/`
-(pipeline, domain/contracts, validation, repositories, adapters and Lambda handler),
+(fiscal extractor/consumer/contracts/stores, shared adapters and Lambda handler),
 `infra/cdk/` (stack/settings/configuration), `scripts/` (Lambda build/release
-verification) and `.github/workflows/`. Legacy acquisition/extraction modules and
-the `evaluation/` subtree are removed only after replacement behavior is covered.
+verification) and `.github/workflows/`. Milestone 4 removed legacy acquisition,
+extraction and evaluation code after replacement coverage passed.
 Milestone 1 reconciled the scope/acceptance/contract/architecture documents and
 labeled current offline/AWS behavior separately from target semantics. The approved
 roadmap still takes precedence; Milestone 3 now implements the fiscal consumer in a new namespace; legacy
-NVDA/Nova/canonical code remains until Milestone 4 cleanup. Deployment is pending.
+NVDA/Nova/canonical code was removed in Milestone 4. Deployment is pending.
 
 Operational setup is still required; it is not an unresolved design choice:
 
@@ -878,8 +987,8 @@ Documentation checks are not proof of account access or deployed configuration.
 
 ## Approved launch limitations — required documentation
 
-The following decisions describe the planned launch behavior; the existing
-Nova/POC implementation has not yet been migrated to enforce them.
+The fiscal implementation enforces the following launch behavior. Legacy runtime
+code is removed; production packaging/infrastructure remains Milestone 6 work.
 
 - Supported source formats are HTML plus original JPEG/PNG/GIF supporting images.
   TXT, PDF and other unsupported selected formats go to review for launch.
@@ -888,10 +997,9 @@ Nova/POC implementation has not yet been migrated to enforce them.
   even if another HTML document might contain readable EPS. No EPS event is emitted.
 - Oversized snapshots likewise go to review before inference. Documents are not
   truncated and selected attachments are not discarded to fit provider limits.
-- Exact finite document/image/request limits must be documented after provider
-  verification and implementation. The current Nova limits (128 KiB/five documents/
-  20 images) are not the approved limits for the direct OpenAI implementation;
-  launch bounds must accommodate the evaluated HON 34-image case.
+- The frozen finite document/image/request limits are documented in EXTRACTOR
+  and README and accommodate the evaluated HON 34-image case. The obsolete
+  128-KiB/five-document/20-image Nova bounds do not apply to the fiscal consumer.
 
 Milestones 1–4 must put the support matrix, examples, configured numeric bounds,
 review reason codes and explicit reprocessing procedure into the README,
@@ -937,7 +1045,7 @@ extractor time. Earlier v4 runs matched all 20 targets on 13 filings three times
 Both samples were used during development; these results are not held-out
 accuracy. The report measures fiscal EPS extraction, not independent evidence
 verification, classification quality or production reliability. Its Nova results
-use Nova 2 Lite, whereas earnings currently configures Nova Lite v1. Preserve the
+use Nova 2 Lite; the obsolete earnings CDK configuration still names Nova Lite v1. Preserve the
 saved experiments as historical evidence rather than treating them as validation
 of the current earnings adapter. Budget fresh documents separately from cached
 repeats.
@@ -948,14 +1056,13 @@ repeats.
 - [x] Filing-level processing with injected document, model, storage and publication adapters.
 - [x] Durable model responses, bounded retries, lease fencing and work deduplication.
 - [x] SQLite reference storage and DynamoDB persistence with atomic event/outcome commits.
-- [x] Canonical revisions/conflict review in the existing implementation; replace
-  cross-filing aggregation with D04's filing-specific results while retaining
-  immutable history and recoverable publication of saved payloads.
+- [x] Replace canonical revisions/conflict review with D04's filing-specific
+  results, retaining immutable history and recoverable saved-payload publication.
 - [x] S3/SNS adapters, an SQS Lambda handler, CDK definitions and CI/release workflows.
 - [x] Offline tests for processing, adapters, concurrency and publication recovery.
 
-The legacy NVDA watcher and earnings-local evaluation runner still coexist with
-this core. Repository documentation records the earnings service as undeployed;
+Milestone 4 removed the legacy NVDA watcher and earnings-local evaluation runner
+from this core. Repository documentation records the earnings service as undeployed;
 committed production configuration disables consumption. Recheck actual cloud
 state before release work.
 

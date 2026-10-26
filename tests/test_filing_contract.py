@@ -26,7 +26,7 @@ def test_independent_producer_golden_vector():
 
 
 def test_raw_and_sns_notifications_and_topic_check():
-    payload, _, _ = fixture()
+    payload, _ = fixture()
     wrapped = dict(Type="Notification", TopicArn="expected", Message=json.dumps(payload))
     assert FilingReady.parse(json.dumps(wrapped), expected_topic_arn="expected").to_dict() == FilingReady.parse(payload).to_dict()
     with pytest.raises(ContractError):
@@ -52,7 +52,7 @@ def test_raw_and_sns_notifications_and_topic_check():
     lambda p: p["artifacts"][0].update(s3_uri="s3://artifacts/%ff"),
 ])
 def test_invalid_contracts(change):
-    payload, _, _ = fixture()
+    payload, _ = fixture()
     change(payload)
     with pytest.raises(ContractError):
         FilingReady.parse(payload)
@@ -65,7 +65,7 @@ def test_json_duplicate_keys_and_nonfinite_rejected():
 
 
 def test_case_unicode_optional_metadata_and_encoded_key_affect_hash():
-    payload, _, _ = fixture()
+    payload, _ = fixture()
     payload["company_name"] = "Éxample 公司"
     payload["artifacts"][0].update(s3_uri="s3://artifacts/a%20b%23c.htm", document_type="8-K")
     rehash(payload)

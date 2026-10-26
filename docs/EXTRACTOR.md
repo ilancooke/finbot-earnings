@@ -2,7 +2,7 @@
 
 Implemented 2026-10-25 in `finbot_earnings.processing.fiscal`. Milestone 3
 now integrates this frozen boundary through `FiscalConsumer`, version-2 stores,
-the demo and `earnings-ops`. Retained legacy modules use their old contract. It does
+the demo and `earnings-ops`. Legacy runtime modules are removed in Milestone 4. The extractor does
 not publish events, claim work, load `.env`, fetch web resources or write files.
 
 ## API and receipt

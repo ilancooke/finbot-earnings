@@ -1,9 +1,10 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **Milestones 1–3 are complete.** The fiscal filing
-consumer now integrates the tested extractor, acceptance, filing-specific storage,
-publication recovery, Lambda source wiring, offline demo and operator CLI.
-Next is **Milestone 4 — legacy cleanup** in [ROADMAP.md](ROADMAP.md).
+Status updated 2026-10-25: **Milestones 1–4 are complete.** The fiscal filing
+consumer, acceptance, filing-specific storage, publication recovery, Lambda source
+wiring, offline demo and operator CLI are implemented. Superseded acquisition,
+extraction and earnings-local evaluation paths have been removed.
+Next is **Milestone 5 — production parity evidence** in [ROADMAP.md](ROADMAP.md).
 Each milestone is intended for a separate agentic session.
 
 This package consumes complete stored FilingReady snapshots from `finbot-filings`,
@@ -21,7 +22,7 @@ and golden-data review belong to `finbot-filing-evals`.
 | Storage/recovery | SQLite and DynamoDB version-2 adapters, bounded receipt chunks, status queries, fenced writes, durable attempts, identical saved-payload recovery | Inspect actual stored cloud state before release |
 | AWS source wiring | SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Milestone 6 updates old CDK config, Linux dependencies, IAM, secret, inspection queue and alarms |
 | Operator commands | `earnings-ops` inspect/event/list/retry/reprocess/output | Production operator permissions and live setup in Milestone 6 |
-| Legacy paths | Nova pipeline/stores, NVDA acquisition POC, `earnings`, `earnings-eval`, local evaluator and evaluation endpoint remain separate | Remove obsolete source/commands/dependencies in Milestone 4; preserve historical data |
+| Package scope | Filing consumer and `earnings-ops`; obsolete watcher/evaluator/commands removed | Historical shared-data artifacts and legacy stored records remain preserved |
 
 **The committed production configuration and Lambda dependency bundle still select
 Nova and disable consumption. They cannot deploy the new source runtime as-is.**
@@ -41,7 +42,7 @@ verify its exit criteria, update both documents and append the handoff, then sto
 | 1 | Formalize approved contracts and documentation | Complete |
 | 2 | Implement tested extractor behind transition boundary | Complete |
 | 3 | Integrate acceptance, filing-specific persistence, publication and CLI | Complete |
-| 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Not started |
+| 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Complete |
 | 5 | Verify production port against existing quality evidence | Not started |
 | 6 | Prepare reviewed release, deploy and activate | Not started |
 
@@ -109,7 +110,9 @@ HTTP: two mocked calls produce an accepted event and a separate empty run;
 a duplicate is acknowledged without another read/call/send, and mixed HTML/PDF
 is reviewed before inference. Inspect JSON records, `published-events.jsonl` and
 `processing.sqlite3`. No credentials, provider calls or shared-data writes.
-Milestone 3 verification results are recorded in the roadmap completion record.
+Milestone 4 verification results are recorded in the roadmap completion record.
+After updating an existing checkout, reinstall with the setup command above to
+refresh entry points and remove the retired `earnings` / `earnings-eval` scripts.
 
 ## Operator commands and runtime configuration
 
@@ -136,8 +139,13 @@ processing/manifest refs. `--sqlite PATH` reads an offline version-2 database.
 **`retry` resumes failed checkpoints and may incur inference charges or publish.
 `reprocess` requests a fresh extraction/new event identity and can incur charges.**
 It requires an unused non-`initial` run ID and reuses the complete saved manifest.
-Completed accepted/empty/review outcomes require a fresh run. Inspect unsupported
-members/bounds before fixing input upstream; do not discard selected files.
+Completed accepted/empty/review outcomes require a fresh run. For review outcomes,
+run `list review_required`, then `inspect WORK_ID` to read member/bound reasons.
+For example, HTML plus a selected PDF yields whole-snapshot review before inference.
+Resolve unsupported source acquisition upstream without discarding selected files;
+a changed manifest is a new snapshot. Use `reprocess WORK_ID --run-id UNUSED_ID`
+only when the saved complete snapshot is supported; repeating an unchanged
+unsupported snapshot produces review again.
 `output` peeks without deleting, can repeat messages, and increments receive count;
 SQS send time is separate from inspection time. The queue remains release work.
 
@@ -150,10 +158,11 @@ lazily for extraction; inspection and saved publication recovery do not read the
 See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for the source contract, offline SDK
 checks and pending CDK/packaging/IAM/release requirements.
 
-`earnings` / `python -m finbot_earnings` still run the legacy NVDA watcher and
-load the nearest `.env`, overriding inherited values. `earnings-eval` and the
-publication-free legacy `operation=evaluate` endpoint remain until Milestone 4.
-Their old local corpus docs are superseded; use the separate evals package.
+The installed application command is `earnings-ops`. The old `earnings`,
+`earnings-eval`, top-level module command and Lambda evaluation endpoint are removed.
+Experiments, corpus review and quality reports belong to
+[finbot-filing-evals](../finbot-filing-evals/README.md). Historical shared-data
+corpora, source artifacts, run results and old processing/event records are preserved.
 
 ## Quality and release boundaries
 
@@ -173,7 +182,7 @@ Routine updates preserve consumption state. Process all retained queued messages
 no automatic historical S3 backfill. Completion requires a real enabled
 queue-triggered EPS event received in inspection SQS, beyond SNS acknowledgment.
 
-Scoped API tests share USD 5 cumulatively; this milestone used USD 0 and USD 5
+Scoped API tests share USD 5 cumulatively; Milestone 4 used USD 0 and USD 5
 remains. Ongoing funding is user-managed through OpenAI's UI; no app spend cap or
 spend-alert system is implemented.
 
@@ -185,7 +194,6 @@ spend-alert system is implemented.
 | `processing/fiscal_contract.py`, `fiscal_consumer.py` | Fiscal acceptance, identity, event construction, processing |
 | `processing/fiscal_repository.py`, `fiscal_stores.py` | Shared v2 transitions, bounded blobs, SQLite/DynamoDB adapters |
 | `processing/fiscal_runtime.py`, `lambda_handler.py`, `operator.py`, `demo.py` | AWS wiring, SQS handler, operator CLI and offline demo |
-| Legacy `processing/pipeline.py`, stores, validation/reconciliation; top-level POC and `evaluation/` | Retained until Milestone 4 cleanup |
 | `infra/cdk/`, `scripts/`, `.github/workflows/` | Existing Nova build/release assets; finalize for fiscal runtime in Milestone 6 |
 | [ROADMAP.md](ROADMAP.md) | Approved decisions, milestone inputs and durable checkpoint/completion records |
 | [Scope](docs/FUNCTIONAL_SCOPE.md), [decisions](docs/V0_DECISIONS.md), [contracts](docs/CONTRACTS.md), [architecture](docs/ARCHITECTURE.md) | Approved fiscal semantics and implemented boundaries |

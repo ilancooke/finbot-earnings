@@ -1,7 +1,0 @@
-Fixture Example Corporation financial results - Three months ended September 30, 2026
-
-For the three months ended september 30, 2026, GAAP diluted loss per share was US$0.25.
-
-For the three months ended september 30, 2026, adjusted diluted loss per share was US$0.10.
-
-For the three months ended September 30, 2025, GAAP diluted earnings per share were US$2.00.

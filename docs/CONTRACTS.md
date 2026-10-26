@@ -346,13 +346,15 @@ retry or inference on completed empty/review outcomes. Explicit new-run reproces
 retains the same complete manifest and new run/configuration, with charges and
 publication effects visible. Operator command syntax is in OFFLINE_PROCESSING.
 
-## Compatibility with implemented v0
+## Compatibility with historical v0 records
 
-The retained legacy runtime accepts `eps-v0` classification/facts with evidence/period-end dates
-and emits `earnings.validated` / `1.0`: company-period `event_id`, integer `revision`,
-`facts`, `source_snapshots`, `validated_at`, `validation_policy`. Independent
-prose checks and canonical enrichment/conflict handling apply there only; see
-[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md). Legacy tests remain; the demo now exercises the fiscal consumer.
+The retired runtime accepted `eps-v0` classification/facts with evidence/period-end
+dates and emitted `earnings.validated` / `1.0`: company-period `event_id`, integer
+`revision`, `facts`, `source_snapshots`, `validated_at`, `validation_policy`.
+Milestone 4 removes that runtime, its independent prose validator and canonical
+reconciliation. Preserve its existing stored records and historical shared-data
+artifacts. The current consumer and demo use fiscal arrays exclusively; the
+[offline processing guide](OFFLINE_PROCESSING.md) describes their separate storage.
 
 The new event family also starts at schema `1.0`; event type plus version selects
 the contract. Never parse old payloads as the new family, relabel them as extracted,

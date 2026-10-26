@@ -1,4 +1,4 @@
-"""Errors passed to a future queue adapter as retry or failed-work outcomes."""
+"""Safe contract, concurrency and technical errors for the filing consumer."""
 
 
 class ContractError(ValueError):
@@ -24,11 +24,3 @@ class TechnicalFailure(RuntimeError):
         super().__init__(code)
         self.code = code
         self.retryable = retryable
-
-
-class InputReview(RuntimeError):
-    """A complete filing cannot fit the provider input contract; do not retry."""
-
-    def __init__(self, code: str):
-        super().__init__(code)
-        self.code = code

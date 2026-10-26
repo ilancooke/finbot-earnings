@@ -47,7 +47,7 @@ def worker(repo, response=None, *, publisher=None, transport=None, source=None):
         calls.append(json.loads(request.content))
         return transport(request) if transport else httpx.Response(200, json=native(labels() if response is None else response))
     extractor = OpenAIFiscalExtractor(make_client("offline-synthetic-key", http_client=httpx.Client(transport=httpx.MockTransport(handler))))
-    payload, bodies, _ = fixture()
+    payload, bodies = fixture()
     consumer = FiscalConsumer(repo, source or Documents(bodies), extractor, publisher or Publisher())
     consumer.calls = calls
     return consumer, payload
@@ -78,7 +78,7 @@ def test_end_to_end_duplicate_event_schema_decimal_refs_and_provenance(repo):
 def test_different_filings_changed_snapshots_and_fresh_runs_independent_even_equal_eps(repo):
     consumer, payload = worker(repo)
     first = consumer.process(payload)
-    later, bodies, _ = fixture(2)
+    later, bodies = fixture(2)
     consumer.documents = Documents(bodies)
     second = consumer.process(later)
     changed = deepcopy(later)
@@ -158,7 +158,7 @@ def test_transient_provider_attempts_durable_and_not_reset_by_rearm(repo):
 
 
 def test_crashed_attempt_reservations_and_stale_workers_fenced(repo):
-    payload, _, _ = fixture()
+    payload, _ = fixture()
     filing = FilingReady.parse(payload)
     first = repo.claim(filing, load_config())
     repo.begin_attempt(first["work_id"], first["claim_token"])
@@ -219,16 +219,45 @@ def test_input_and_config_conflicts_and_legacy_namespace_preserved(repo):
     changed_ready = {**payload, "ready_at": "2026-10-15T00:00:00.000000Z"}
     assert consumer.process(changed_ready).exhausted
     config = {**load_config(), "model": "other"}
-    other_payload, _, _ = fixture(2)
+    other_payload, _ = fixture(2)
     with pytest.raises(WorkConflict): repo.claim(FilingReady.parse(other_payload), config)
     assert repo.get_job(original.work_id)["input"] == FilingReady.parse(payload).to_dict()
     if isinstance(repo, SQLiteFiscalRepository):
-        from finbot_earnings.processing.sqlite_store import SQLiteProcessingRepository
-        legacy = SQLiteProcessingRepository(Path(repo.db.execute("PRAGMA database_list").fetchone()[2]))
-        assert legacy.get_job(original.work_id) is None
-        legacy.close()
+        assert repo.db.execute("SELECT name FROM sqlite_master WHERE name='processing_jobs'").fetchone() is None
     else:
         assert repo._get("JOB#" + original.work_id, "STATE") is None
+
+
+
+def test_historical_records_survive_processing_and_duplicate_delivery(repo):
+    # Seed historical storage directly: the retired application is not a dependency.
+    old_job = '{"record_schema_version":1,"outcome":"validated"}'
+    old_event = '{"event_type":"earnings.validated","revision":1}'
+    if isinstance(repo, SQLiteFiscalRepository):
+        repo.db.execute("CREATE TABLE processing_jobs (work_id TEXT PRIMARY KEY, record_json TEXT NOT NULL)")
+        repo.db.execute("CREATE TABLE event_revisions (event_id TEXT, revision INTEGER, payload_json TEXT, PRIMARY KEY(event_id,revision))")
+        repo.db.execute("INSERT INTO processing_jobs VALUES (?,?)", ("legacy-work", old_job))
+        repo.db.execute("INSERT INTO event_revisions VALUES (?,?,?)", ("legacy-event", 1, old_event))
+        before = list(repo.db.iterdump())
+    else:
+        legacy = [dict(pk="JOB#legacy-work", sk="STATE", record_json=old_job),
+                  dict(pk="EVENT#legacy-event", sk="REV#0000000001", payload_json=old_event)]
+        for item in legacy:
+            repo.client.put_item(TableName=repo.table_name, Item=item)
+    consumer, payload = worker(repo)
+    result = consumer.process(payload)
+    assert result.acknowledge and consumer.process(payload) == result
+    assert len(consumer.calls) == len(consumer.publisher.payloads) == 1
+    assert json.loads(consumer.publisher.payloads[0])["event_type"] == "earnings.extracted"
+    if isinstance(repo, SQLiteFiscalRepository):
+        after = list(repo.db.iterdump())
+        for line in before:
+            if '"processing_jobs"' in line or '"event_revisions"' in line or line.startswith("CREATE TABLE processing_jobs") or line.startswith("CREATE TABLE event_revisions"):
+                assert line in after
+        assert repo.db.execute("SELECT record_json FROM processing_jobs").fetchall() == [(old_job,)]
+        assert repo.db.execute("SELECT payload_json FROM event_revisions").fetchall() == [(old_event,)]
+    else:
+        assert all(repo._get(item["pk"], item["sk"]) == item for item in legacy)
 
 
 def test_atomic_completion_state_event_status_and_fencing(repo, monkeypatch):
@@ -285,7 +314,7 @@ def test_documented_identity_vectors_and_acceptance_cases():
 
 def test_claimed_independent_filings_commit_during_each_other_without_merge(repo, monkeypatch):
     consumer1, first = worker(repo)
-    second, bodies, _ = fixture(2)
+    second, bodies = fixture(2)
     consumer2, _ = worker(repo, source=Documents(bodies))
     actual = repo._cas
     raced = False

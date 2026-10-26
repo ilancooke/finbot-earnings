@@ -2,8 +2,8 @@
 
 Updated 2026-10-25 for Milestone 1. Filename retained for existing links. The
 approved D01–D12 target **supersedes the 2026-10-14 v0 target**. Implemented
-`FiscalConsumer` now implements the fiscal policy. Retained legacy
-`eps-v0`/`explicit-prose-v1` modules are separate until Milestone 4 cleanup.
+`FiscalConsumer` now implements the fiscal policy. Milestone 4 removes the legacy
+`eps-v0`/`explicit-prose-v1` runtime; historical stored records remain separate.
 [CONTRACTS.md](CONTRACTS.md) owns exact fields/identity/schemas;
 [ROADMAP.md](../ROADMAP.md#decision-register--d01d12-approved) owns approvals.
 
@@ -132,5 +132,5 @@ exhausted inputs remain inspectable/redrivable.
 Preserve old `earnings.validated` / `1.0` company-period revisions and POC state
 separately. No automatic migration, merge, overwrite or legacy republication.
 Milestone 2 maintains the frozen boundary; Milestone 3 now connects the fiscal
-consumer without modifying legacy records. Legacy evaluation mode/endpoint retires in Milestone 4; experiments
+consumer without modifying legacy records. Milestone 4 removes the legacy evaluation mode/endpoint; experiments
 remain in `finbot-filing-evals`.

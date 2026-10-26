@@ -1,39 +1,12 @@
-"""SQS partial-batch handler and explicit, publication-free evaluation entry point."""
+"""SQS partial-batch handler for complete FilingReady snapshots."""
 
-from dataclasses import asdict
 from functools import lru_cache
 import logging
 import os
 
-import boto3
-from botocore.config import Config
-
-from .aws_adapters import NovaLiteModel, S3Documents, SNSPublisher
-from .contracts import fields, json_value
-from .domain import ExtractionConfig
-from .dynamodb_store import DynamoDBProcessingRepository
-from .pipeline import FilingPipeline
+from .contracts import json_value
 
 LOGGER = logging.getLogger(__name__)
-
-
-@lru_cache(maxsize=1)
-def legacy_runtime():
-    # No clients or credentials are resolved at import time. Reuse clients in
-    # warm invocations; the Lambda role supplies temporary credentials.
-    extraction = ExtractionConfig(**json_value(os.environ["EARNINGS_EXTRACTION_CONFIG"]))
-    if extraction.model_id == "unselected":
-        raise ValueError("Select a structured-output Bedrock model before evaluation or consumption")
-    short = Config(connect_timeout=3, read_timeout=10, retries={"total_max_attempts": 2, "mode": "standard"})
-    inference = Config(connect_timeout=5, read_timeout=180, retries={"total_max_attempts": 1, "mode": "adaptive"})
-    session = boto3.Session()
-    repository = DynamoDBProcessingRepository(session.resource("dynamodb", config=short).meta.client,
-                                              os.environ["EARNINGS_TABLE_NAME"])
-    return FilingPipeline(repository,
-        S3Documents(session.client("s3", config=short), os.environ["EARNINGS_SOURCE_BUCKET"]),
-        NovaLiteModel(session.client("bedrock-runtime", config=inference)),
-        SNSPublisher(session.client("sns", config=short), os.environ["EARNINGS_TOPIC_ARN"]),
-        extraction, expected_topic_arn=os.environ["FILING_READY_TOPIC_ARN"])
 
 
 @lru_cache(maxsize=1)
@@ -43,12 +16,8 @@ def runtime():
 
 
 def handler(event, context):
-    if isinstance(event, dict) and event.get("operation") == "evaluate":
-        fields(event, ("operation", "filing", "run_id"))
-        result = legacy_runtime().process(event["filing"], run_mode="evaluation", run_id=event["run_id"])
-        return asdict(result)
     if not isinstance(event, dict) or not isinstance(event.get("Records"), list) or not event["Records"]:
-        raise ValueError("Expected SQS records or explicit evaluation request")
+        raise ValueError("Expected nonempty SQS records")
     failures = []
     for record in event["Records"]:
         # An invalid identifier cannot be expressed as a partial failure: reject

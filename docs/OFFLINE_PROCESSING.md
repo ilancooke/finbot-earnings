@@ -1,9 +1,9 @@
 # Offline filing processing
 
-Updated 2026-10-25 through Milestone 3. `FiscalConsumer` now connects the frozen
+Updated 2026-10-25 through Milestone 4. `FiscalConsumer` now connects the frozen
 OpenAI boundary to fiscal acceptance, durable storage and `earnings.extracted`
-publication. Normal tests and the demo are offline. Legacy Nova, NVDA and evaluation
-modules remain for Milestone 4 removal; their records are preserved separately.
+publication. Normal tests and the demo are offline. Superseded acquisition, Nova and evaluation code is removed; historical records
+and shared-data artifacts remain preserved separately.
 
 ## Run and inspect the demo
 
@@ -33,8 +33,9 @@ Inspect `filing-ready.json`, `synthetic-documents/`, `processing-record.json`,
 ```
 
 `earnings-ops` is the installed equivalent. Reinstall editable entry points after
-pulling this change. `earnings` and `earnings-eval` remain legacy commands until
-Milestone 4; they do not enter the fiscal consumer.
+pulling this change to remove the retired `earnings` and `earnings-eval` scripts.
+`earnings-ops` is the only installed application command. Experiments and corpus
+review belong to [finbot-filing-evals](../../finbot-filing-evals/README.md).
 
 ## Application boundary and acceptance
 
@@ -162,7 +163,11 @@ requests a fresh extraction and can publish a new event.** Run IDs must be unuse
 non-`initial`, 1–100 characters from letters/digits/dot/underscore/hyphen.
 The complete saved manifest is reused. Inspect source membership and reasons first;
 fix acquisition/unsupported-input problems upstream without removing members from
-the immutable snapshot. A changed manifest is a distinct snapshot.
+the immutable snapshot. A changed manifest is a distinct snapshot. Start with
+`list review_required`, then `inspect WORK_ID` to identify the exact member/bound.
+For HTML plus a selected PDF, the whole snapshot stays in review; a new run of
+the same unsupported manifest does not fix it. Explicitly reprocess only after
+confirming that the complete saved snapshot is supported by the selected configuration.
 
 `output` uses `ReceiveMessage` with zero visibility timeout and no delete. It can
 repeat the same messages, increments receive count, and may return fewer than the

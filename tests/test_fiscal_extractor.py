@@ -1,4 +1,4 @@
-"""Real Responses SDK over offline HTTP, separate from the legacy consumer."""
+"""Real Responses SDK and fiscal preparation over offline HTTP."""
 
 from base64 import b64decode
 from hashlib import sha256
@@ -44,7 +44,7 @@ def image_bytes(kind="PNG", size=(16, 16)):
 
 
 def snapshot(extra=(), images=0):
-    payload, bodies, _ = fixture()
+    payload, bodies = fixture()
     accession = payload["filing_id"]
     for name, raw, mime in [*extra, *[(f"page-{i:03}.png", image_bytes(), "image/png") for i in range(images)]]:
         artifact_id = accession + "/" + name
