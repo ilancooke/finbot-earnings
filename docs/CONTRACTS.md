@@ -5,7 +5,8 @@ Updated 2026-10-25 through Milestone 3. Input 1.0 remains unchanged. The
 the response, acceptance, identity and `earnings.extracted` contract below.
 [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) records physical storage and CLI.
 The documentation event schema checks runtime fixtures in tests; runtime acceptance
-uses the packaged fiscal schema. Legacy paths/records remain separately until cleanup.
+uses the packaged fiscal schema. Legacy runtime paths were removed in Milestone 4;
+historical records remain separate.
 
 ## FilingReady 1.0 — consumer expectations agreed 2026-10-14
 
@@ -15,8 +16,9 @@ in the sibling workspace checkout is authoritative. This document records the
 matching input expected by `finbot-earnings`; keep its fields and hashing rules
 aligned with that source.
 
-The producer source implements filing-level `FilingReady`; actual deployed state
-has not been inspected in this milestone. The target earnings subscription consumes only `filing.ready`
+The producer source implements filing-level `FilingReady`; Milestone 6 read-only
+inspection verifies a genuine saved 35-member snapshot and its stored objects
+(see [release evidence](RELEASE_RUNBOOK.md#observed-prerequisites)). The target earnings subscription consumes only `filing.ready`
 on the producer’s `finbot-prod-filing-ready` SNS topic (`FilingTopicArn` CDK
 output). Subscriptions to the old artifact-ready topic do not receive these events. Earnings owns the SQS subscription and the
 processing of the complete selected filing snapshot in one LLM request.

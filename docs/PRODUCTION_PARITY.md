@@ -166,3 +166,42 @@ actual release prerequisites. Keep the frozen config identity; preserve existing
 stored records/stateful resources and review the exact release artifact/diff
 before protected deployment and first activation. Live EPS receipt in inspection
 SQS remains required beyond an SNS acknowledgment.
+
+## Milestone 6 Linux packaging verification — 2026-10-25
+
+The earlier Milestone 5 statements about pending Nova packaging describe that
+milestone's historical state. Milestone 6 now prepares fiscal CDK/configuration and
+the complete pinned Linux dependency closure. The frozen extractor directory,
+prompt/schema/preparation, seven checked pins and configuration digest remain
+unchanged. Only the SQS handler adds safe queue/invocation timing logs.
+
+The exact built Lambda asset was checked in Linux x86_64 Python 3.13 with
+`public.ecr.aws/lambda/python@sha256:d8f9d8827e88acff4d606fc0a2c74cdf1e15286051f141e454e94756c9db9efe`.
+The target check passed asset-only SDK/parser/schema/native imports, frozen identity
+and JPEG/PNG/GIF decoding with networking disabled. Full saved parity replay also
+passed **50 cases, 189 members, 83 observations, 353 integrity files**, retaining the
+same 37 equivalent timestamp-spelling differences and all request maxima above.
+Linux mocked timings summed 18,690 ms preparation, 718 ms response handling and
+19,417 ms total under local amd64 emulation; these are not provider latency.
+
+Reproduce after `scripts/build_lambda.py --verify-target` from the package root:
+
+```bash
+docker run --rm --platform linux/amd64 --network none --read-only --tmpfs /tmp \
+  --entrypoint python \
+  -v "$PWD/build/lambda:/asset:ro" \
+  -v "$PWD/scripts/verify_production_parity.py:/scripts/audit.py:ro" \
+  -v "$PWD/docs/parity/v6-reference.json:/evidence.json:ro" \
+  -v "$(cd ../../data/filing-evals/runs/20261023T145725Z-9ff8c84b && pwd):/baseline:ro" \
+  public.ecr.aws/lambda/python:3.13 -I -S -c \
+  'import sys,runpy; sys.dont_write_bytecode=True; sys.path.insert(0,"/asset"); sys.argv=["/scripts/audit.py","--run","/baseline","--evidence","/evidence.json"]; runpy.run_path("/scripts/audit.py",run_name="__main__")'
+```
+
+Asset preview SHA-256:
+`ab614d29350eeae5ea2617f9bca3c680cde704908246353ba9fc0f8ab912a5dc`,
+61,804,440 uncompressed bytes including the generated marker. These are local
+uncommitted review identities, not a successful-CI release. Current full suite:
+**180 tests**. Paid calls/spend: zero; **USD 5 remains**. No extraction behavior
+mismatch requires a paid rerun. Protected release, populated credential/provider
+access and live enabled SQS delivery remain pending; see
+[RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).

@@ -1,7 +1,7 @@
 # finbot-earnings roadmap
 
 Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–5
-are complete; Milestone 6 has not started.** This document is the durable plan
+are complete; Milestone 6 is in progress.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
 in Milestone 1; Milestone 2 adds the frozen extractor; Milestone 3 integrates
@@ -55,45 +55,43 @@ Suggested new-session instruction:
 
 ## Current checkpoint
 
-- Date: 2026-10-25. All 24 D01–D12 decisions remain approved.
-- Completed: **Milestones 1–5**. See [Milestone 5 record](#milestone-5--complete--2026-10-25)
-  and [durable production parity evidence](docs/PRODUCTION_PARITY.md).
-- Repository: branch `main`, initially clean at
-  `e4aac9b0e15d5e10da706faed87b2dab74cd9ef1` (Milestone 4 committed).
-  This corrects the previous checkpoint's stale uncommitted-M4 description.
-  Milestone 5 documentation, reference fingerprints and read-only audit script
-  remain uncommitted; exact paths are in its record. No sibling or shared-data edits.
-- Parity: saved L5 run `20261023T145725Z-9ff8c84b`, reviewed 50-filing fiscal
-  revision `48b0b27aaae67b263b409a98e193dc65c7eeab21f8f717b1de816f5a42db275a`,
-  retains the approved 83/83 targets and 50/50 exact **development-sample** baseline.
-  Independent reference/production SDK captures compare all 50 complete requests;
-  37 differ only by equivalent fixed-width `filed_at` spelling. All 189 members,
-  83 saved observations, native bytes, normalized usage and acceptance pass.
-  Full 353-file saved inventory verified; no rescoring or new model predictions.
-- Compatibility: prompt/schema/preparation/settings and pinned dependencies remain
-  unchanged. Production bounds/strict parsing/retry/persistence differences and the
-  timestamp representation are documented as compatible. No material behavior
-  change or unresolved mismatch required paid parity checks or a new experiment.
-- Version/configuration: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
-  `fiscal-eps-acceptance-v1`; frozen `eps-openai-luna-v6-v1` digest remains
+- Date: 2026-10-25. All D01–D12 decisions remain approved. Milestones **1–5
+  complete; 6 in progress**, awaiting external release setup and protected rollout.
+- Repository: `main`, initially clean at `abc33ca2fd6b120f044fc0ce02b985353a439be5`
+  (Milestone 5 is committed; its historical uncommitted description is superseded).
+  This session's M6 work remains uncommitted; exact paths/checks are in the
+  [M6 handoff](#milestone-6--in-progress--2026-10-25). No sibling/shared-data edits.
+- Delivered locally: frozen fiscal CDK settings; complete pinned Linux bundle;
+  scoped dedicated-secret access; 14-day output inspection/subscription/DLQ;
+  unattached operator inspection/recovery policies; nine operational alarms/email;
+  queue/invocation timing logs; stronger release checks and protected-environment
+  preflight; separate repository-specific OIDC setup assembly; release runbook.
+- Parity/configuration unchanged: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
+  `fiscal-eps-acceptance-v1`; config `eps-openai-luna-v6-v1`, digest
   `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
-  All application source, frozen resources, pins, packaging/infra and workflows
-  remain unchanged from committed M4. Source/release identities are in the evidence.
-- Verification: **176 offline tests** pass; compilation, dependency consistency,
-  contract/example/local-link and diff checks pass. The opt-in parity audit passes
-  50 cases over real SDK/mocked HTTP with a socket ban; changed fingerprints fail.
-  Mock stage timing is recorded, not claimed as live provider or queue latency.
-- Next session: **Milestone 6 only**. Read its inputs and this completion record,
-  prepare fiscal Linux dependency assets/CDK configuration, and inspect actual
-  cloud/GitHub/provider prerequisites before the reviewed release workflow.
-- Release boundary: old CDK config/permissions and incomplete Linux dependencies
-  still require Milestone 6 changes; **do not deploy them as fiscal-ready**.
-  Consumption is disabled in source; actual cloud/GitHub/account state remains
-  unverified. Packaging/IAM/secret/inspection queue/alarms and enabled queue-triggered
-  EPS receipt proof remain M6. No release work was started in M5.
-- API ledger: prior USD 5, spent USD 0, no new unknown usage,
-  **USD 5 remaining** cumulatively. No provider/AWS/GitHub calls, credential access,
-  shared-data writes or catalog rebuild. Historical L5 cost is not charged again.
+  Host and exact Python 3.13 Linux asset replay all **50 cases / 189 members /
+  83 observations / 353 inventory files**, including 34 HON images. All request
+  fingerprints retain M5's documented timestamp exception. No paid calls.
+- Verification: **180 offline tests**, compilation, package build, dependency
+  consistency, documentation/contracts/links, target native imports/decoders,
+  strict offline application/access CDK synthesis and diff checks pass. Preview
+  assembly/asset/config/consumption verification passes, then correctly rejects
+  dirty source for deployment. No successful-CI artifact exists for these changes.
+- Observed read-only: no earnings stack/table/queues/secret/roles. Producer SNS and
+  source S3 exist; a saved genuine HON FilingReady and all 35 objects are present.
+  CDK bootstrap v32/GitHub OIDC exist. GitHub production lookup is 404 and Actions
+  variables are empty. Existing main CI succeeds only for the prior M5 commit.
+  Exact observed identities and limitations are in [RELEASE_RUNBOOK.md](docs/RELEASE_RUNBOOK.md).
+- Next action: resume **Milestone 6** at external setup. AWS owner reviews/applies
+  the separate `build/release-access` assembly with explicit bootstrap approval;
+  repository owner configures required production reviewer/main branch rule and
+  plan/deploy role variables. Review/commit/push implementation when authorized,
+  obtain exact successful CI, review its diff and use GitHub production approval
+  for the initial disabled deployment. Then secure key population, provider limits,
+  email confirmation, controlled smoke, backlog estimate, protected enabled release
+  and actual queue-triggered EPS receipt. No cloud mutation was attempted.
+- API ledger: previous USD 5, spent USD 0, no new unknown usage,
+  **USD 5 remaining cumulatively**. Normal production funding is user-managed.
 
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
@@ -107,7 +105,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
 | 5 — Production parity evidence | Complete | Milestone 4 complete | [2026-10-25 completion](#milestone-5--complete--2026-10-25) |
-| 6 — Reviewed release and activation | Not started | Milestone 5 complete | None |
+| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [2026-10-25 handoff](#milestone-6--in-progress--2026-10-25) |
 
 Use Not started, In progress, or Complete. Put a link to the durable completion
 record in the final column when complete. Keep this table and README in sync.
@@ -364,29 +362,35 @@ approval. Do local preparation before requesting approval of a concrete release.
 
 ### 6.1 Prepare the release and inspect prerequisites
 
-- [ ] Update Lambda runtime dependencies and Linux-compatible build assets for
+- [x] Update Lambda runtime dependencies and Linux-compatible build assets for
   the new OpenAI/input-preparation path. Remove obsolete Bedrock permissions and
   bundles only after verifying they are unused. Validate packaged imports and the
   Pillow decoder in the target Lambda environment as described in runtime docs.
-- [ ] Define the dedicated Secrets Manager secret, narrowly scoped worker access
+- [x] Define the dedicated Secrets Manager secret, narrowly scoped worker access
   and ARN-only runtime configuration. Arrange secure key population without
   embedding its value in source, templates, command output or handoff notes.
-- [ ] Define output SNS and D06b inspection SQS/subscription with 14-day retention,
+- [x] Define output SNS and D06b inspection SQS/subscription with 14-day retention,
   scoped delivery policies and operator inspection access.
-- [ ] Define D11b's operational alarm/email subscription to `ilancooke@gmail.com`
+- [x] Define D11b's operational alarm/email subscription to `ilancooke@gmail.com`
   and stage timing/usage observability. Do not implement application spend alerts.
-- [ ] Verify producer topic, source bucket, complete-snapshot contract and image
+- [x] Verify producer topic, source bucket, complete-snapshot contract and image
   compatibility; preserve producer ownership. Inspect existing stack/state before
   changing resource identities or applying any migration.
-- [ ] Check GitHub OIDC roles, successful main CI and protected production approval.
+- [x] Check GitHub OIDC roles, successful main CI and protected production approval.
   Prepare any missing bootstrap/operator setup as concrete reviewed work.
-- [ ] Complete operator instructions for secret setup, alert confirmation,
+- [x] Complete operator instructions for secret setup, alert confirmation,
   inspection, retry/redrive, new runs, pause and rollback.
 - [ ] Run offline checks, package build, Lambda asset build, CDK synthesis and
   release-manifest verification. Rebuild assets after source/dependency changes.
   Use the exact successful-CI artifact and its visible infrastructure diff.
   If packaging/dependency changes affect extraction behavior, update Milestone 5's
   parity evidence and perform the required verification before seeking approval.
+
+Preparation status: local builds/syntheses and payload verification pass. The
+last 6.1 checkbox remains open because the exact successful-CI artifact/reviewed
+cloud diff must follow an authorized commit/push and external setup. Checked setup
+tasks mean definitions/instructions/read-only checks, not provisioned resources or
+confirmed runtime access. See the M6 handoff and release runbook.
 
 ### 6.2 First deployment, with consumption disabled
 
@@ -417,7 +421,7 @@ approval. Do local preparation before requesting approval of a concrete release.
 - [ ] Verify a completed input's duplicate delivery reuses its result/event ID.
   Retain offline publication-recovery evidence and confirm saved-payload retry
   behavior without introducing unnecessary paid failure experiments.
-- [ ] Document normal updates: preserve consumption state, with no unconditional
+- [x] Document normal updates: preserve consumption state, with no unconditional
   disable/enable hook. Review consumption settings when choosing rollback artifacts
   so an older disabled configuration is not accidentally restored.
 - [ ] Update the cumulative live-test usage ledger, deployed-state record, README,
@@ -999,6 +1003,135 @@ Use this template (include actual paths/values, not just "tests passed"):
   actual prerequisites. Follow reviewed initial-disabled release, retained-backlog
   assessment and controlled activation; prove enabled queue-triggered EPS receipt
   in inspection SQS. Stop here; no M6 implementation or deployment was begun.
+
+
+### Milestone 6 — in progress — 2026-10-25
+
+- Scope delivered: deployable fiscal release preparation and read-only prerequisite
+  inspection. No deployment, AWS/GitHub mutation, secret read/population, paid model
+  call, commit/push, producer change or shared-data/catalog write. Milestone 6 is
+  **not complete**: protected releases and actual enabled queue-triggered EPS receipt
+  remain outstanding. Stop at this external-setup boundary and resume the same milestone.
+- Repository/version: `finbot-earnings`, `main`, initially clean at
+  `abc33ca2fd6b120f044fc0ce02b985353a439be5`, which commits M5. Preserve earlier
+  records as historical session evidence. Current work is **uncommitted** in
+  `README.md`, `ROADMAP.md`, `docs/{ARCHITECTURE,AWS_RUNTIME,CONTRACTS,EXTRACTOR,FUNCTIONAL_SCOPE,OFFLINE_PROCESSING,PRODUCTION_PARITY}.md`,
+  new `docs/RELEASE_RUNBOOK.md`, `requirements-lambda.txt`,
+  `infra/cdk/{config.prod.json,settings.py,stack.py}`, new `infra/cdk/access_app.py`,
+  `scripts/{build_lambda,release_manifest,verify_release}.py`, new
+  `scripts/check_lambda_asset.py`, `.github/workflows/{ci,deploy}.yml`,
+  `src/finbot_earnings/processing/lambda_handler.py` and
+  `tests/test_{earnings_infra,release_tools,lambda_handler}.py`.
+  Siblings remain clean/read-only: filings `c3c4839cfd79a3e331790a547fee2d59b806c2b3`,
+  evals `d105712812a3daaf0d958c0b9b180f41ca4703ce`.
+- Engineering choices: remove LegacyExtractionSettings/Nova environment and
+  Bedrock grant; require frozen fiscal digest in strict CDK settings. Keep existing
+  stateful construct IDs, output topic `ValidatedEarnings` / `-validated` physical
+  name, production alias and explicit consumption setting (initial false). Add
+  retained empty dedicated secret with exact-ARN worker GetSecretValue; no generated
+  credential or secret template value. Use service-managed secret encryption;
+  source S3 currently uses AES256. Add output raw-event inspection queue/subscription
+  with 14-day retention and its own delivery DLQ, scoped topic/account send policies,
+  approved alarm-email subscription and nine operational alarms. Partial batch
+  failures get log metrics because Lambda Errors alone misses acknowledged handler
+  responses containing failed records. Add safe invocation/queue/handler duration
+  fields; retain detailed stage/usage provenance in storage and CLI.
+- IAM: worker and unattached recovery policy include Query and DeleteItem in
+  addition to existing table writes/conditions. Transactional old-status deletion
+  needs DeleteItem; no non-existent TransactWriteItems IAM action is used. The
+  unattached inspection policy permits GetItem/Query and non-deleting output peeks,
+  without secret access. No source writes/Scan. AWS IAM Policy Autopilot 0.3.0
+  analyzed `aws_adapters.py`, `fiscal_runtime.py`, `fiscal_stores.py`, `operator.py`
+  with `--region us-east-1 --account 559007813222 --service-hints s3 sns sqs dynamodb secretsmanager --pretty`;
+  its broad baseline was reviewed for the deployed topology; no policies uploaded.
+  AWS MCP documentation verified SQS visibility guidance and DynamoDB transactional
+  action behavior. Installed CDK/IAM/serverless guidance was consulted.
+- Release access: separate `infra/cdk/access_app.py` assembly prepares earnings-only
+  plan/deploy roles importing the existing OIDC provider. Verified immutable GitHub
+  subject prefix is `repo:ilancooke@8453151/finbot-earnings@1350331204`, not the old
+  mutable name-only subject. Plan trust ends `:ref:refs/heads/main`; deploy ends
+  `:environment:production`. Deploy assumes existing bootstrap deploy/file roles;
+  bootstrap CFN execution already has AdministratorAccess (recorded explicitly,
+  not changed). Production preflight requires reviewers and exactly branch main.
+  Protected apply still reuses the successful-CI assembly without rebuilding.
+- Packaging/parity: fully pinned Python 3.13 Linux x86_64 binary dependency closure,
+  including OpenAI/httpx/parser/schema/native libraries. All seven frozen fiscal
+  pins, extractor source/resources and digest remain unchanged:
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
+  Container `public.ecr.aws/lambda/python:3.13` resolved to
+  `sha256:d8f9d8827e88acff4d606fc0a2c74cdf1e15286051f141e454e94756c9db9efe`.
+  Offline asset-only imports/config, HTML parsing and JPEG/PNG/GIF decoding pass.
+  The exact asset also replays **50 cases / 189 members / 83 observations / 353
+  integrity files** with M5's 37 timestamp spelling exceptions unchanged. No
+  inference/quality change requires paid reevaluation. Linux emulated mock timing:
+  18,690 ms preparation, 718 ms response handling, 19,417 ms total, not live latency.
+- Preview identities: asset SHA-256
+  `ab614d29350eeae5ea2617f9bca3c680cde704908246353ba9fc0f8ab912a5dc`,
+  61,804,440 uncompressed bytes including marker. Local application assembly
+  SHA-256 `a0920a5f059ba6ca92f945d45f60f0616e2c2ca3e2c73bd01410c5451c5b01e2`.
+  `build/release-manifest.json` explicitly has `source_dirty=true`, parent commit
+  M5. These are **local review previews**, not a successful-CI release identity;
+  source/assembly must be rebuilt by CI after an authorized commit/push.
+  Generated `build/`, `cdk.out/`, packages and logs stay ignored or temporary.
+- Checks on 2026-10-25, repo .venv Python 3.11.17 / target Python 3.13 Linux:
+  `.venv/bin/python -m pytest` passes **180 tests** (final 8.17 seconds); compilation via
+  `.venv/bin/python -m compileall -q src tests infra scripts` passes;
+  `.venv/bin/python -m build --no-isolation --outdir /tmp/finbot-earnings-m6-dist`
+  builds wheel/sdist; `.venv/bin/python -m pip check` passes.
+  `.venv/bin/python scripts/build_lambda.py --verify-target` rebuilds and passes
+  target imports/decoder checks. `JSII_RUNTIME_PACKAGE_CACHE=/tmp/finbot-earnings-jsii CDK_DISABLE_CLI_TELEMETRY=1 npm run synth`
+  passes strict offline synthesis; the same environment with
+  `node_modules/.bin/cdk synth --app '.venv/bin/python -m infra.cdk.access_app' --output build/release-access --strict --no-lookups`
+  passes separate access synthesis. `.venv/bin/python -m scripts.release_manifest`
+  writes the preview. Temporary directory linking that assembly/manifest passes
+  all payload/asset/template/config/consumption checks, then correctly rejects dirty
+  source for deployment. Clean fixture succeeds and tampered/wrong-commit/changed
+  consumption/asset fixtures fail in release tests. Host parity command from M5
+  passes; the exact offline Docker replay command is preserved in PRODUCTION_PARITY.
+  The docs/contracts README's Python block verifies schemas/examples/identities
+  and **100 local links/fragments across 12 Markdown files**; `git diff --check`
+  passes. Final wheel bytes match all **24 current application source/resource
+  files**. Frozen extractor directory has no diff.
+- Corrected check failures: first local synthesis attempted the read-only default
+  jsii cache; using `/tmp/finbot-earnings-jsii` passes. Initial container-check
+  socket replacement prevented ssl import; banning connect instead passes. First
+  Linux audit mount lacked its assumed parent depth; mounting at `/scripts/audit.py`
+  passes. No AWS/provider failure experiment was run.
+- Read-only live evidence: AWS principal `arn:aws:iam::559007813222:user/codex-readonly`
+  verified the target account. Earnings DescribeStacks returns stack-not-found;
+  no earnings table/queue/secret/release roles exist. Producer SNS exists with zero
+  subscriptions; source S3 region/encryption verified. Real HON filing
+  `0000773840-26-000143`, snapshot
+  `5e2356665a6b6d326eb81852e4d53fca331430c67ddfdfeb53be502d9cf9193e`
+  has a saved genuine FilingReady 1.0 and all **35** selected objects; HeadObject
+  lengths/content types agree. No source byte download/inference was needed for
+  that metadata check. The runbook records producer task-definition/image, known
+  limitations and exact upstream notification key. No producer runtime pin change.
+- GitHub inspection: production environment GET returns 404, repository variables
+  empty; immutable OIDC customization verified. Existing main push CI
+  [40267303486](https://github.com/ilancooke/finbot-earnings/actions/runs/40267303486)
+  succeeds for M5 only. No GitHub dispatch, environment/variable change or release
+  approval was requested against an unfinished/non-CI artifact.
+- Documentation: README status/table/commands/map, ROADMAP checkpoint/progress/task
+  boxes and runtime/parity/scope references updated. RELEASE_RUNBOOK covers secure
+  console key population, alert confirmation/test, operator access, genuine full
+  snapshot replay, smoke versus trigger proof, budget/usage reconciliation, backlog
+  estimates, duplicate checks, checkpoint retry/redrive/new runs and pause/rollback.
+  No production credential, configured ARN or enabled state is fabricated.
+- API test ledger: prior USD 5, known new spend USD 0, no unknown usage introduced,
+  **USD 5 remaining cumulatively**. AWS read-only inspection is separate from the
+  API inference allowance. Ongoing production/backlog funding remains user-managed.
+- External action/resume: AWS owner reviews and explicitly approves/applies the
+  separate release-access assembly; repository owner creates required protected
+  production reviewer/main restriction and role variables. Review/commit/push the
+  implementation when authorized; use exact successful CI and reviewed diff for
+  protected first disabled deployment. Then securely populate AWSCURRENT, verify
+  provider/model limits/funding and runtime object/key access, confirm/test alarm
+  email, run a budgeted genuine-filing smoke, measure retained backlog, prepare an
+  enabled successful-CI release and obtain its protected approval. Prove actual
+  SQS-triggered extraction on a fresh real snapshot and inspection receipt, then
+  duplicate reuse and record all deployed IDs/timings/usage. Keep M6 **In progress**
+  until those criteria pass. No subsequent milestone is started.
 
 
 ## Reference sources and implementation constraints

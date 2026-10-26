@@ -53,39 +53,43 @@ def test_state_is_retained_and_source_resources_are_not_owned(template):
             "PointInTimeRecoverySpecification": {"PointInTimeRecoveryEnabled": True}})})
     template.resource_count_is("AWS::S3::Bucket", 0)
     template.resource_count_is("AWS::SNS::Topic", 2)
-    template.resource_count_is("AWS::CloudWatch::Alarm", 4)
+    template.resource_count_is("AWS::CloudWatch::Alarm", 9)
 
 
-def test_runtime_permissions_are_scoped_to_nova_lite(template):
-    policies = template.find_resources("AWS::IAM::Policy")
-    statements = [statement for policy in policies.values() for statement in policy["Properties"]["PolicyDocument"]["Statement"]]
-    for statement in statements:
+def statements(template, kind="AWS::IAM::Policy"):
+    return [s for p in template.find_resources(kind).values()
+            for s in p["Properties"]["PolicyDocument"]["Statement"]]
+
+
+def test_fiscal_runtime_permissions_and_delivery_policies(template):
+    worker = statements(template)
+    for statement in worker:
         assert statement["Resource"] != "*"
-        if "bedrock:InvokeModel" in statement["Action"]:
-            assert statement["Resource"] == Settings.load(CONFIG).bedrock_resource_arns[0]
+        assert "bedrock" not in json.dumps(statement)
         assert "s3:PutObject" not in statement["Action"]
         assert "dynamodb:Scan" not in statement["Action"]
-    assert sum("bedrock:InvokeModel" in s["Action"] for s in statements) == 1
-    queue_policies = template.find_resources("AWS::SQS::QueuePolicy")
-    receive = [s for p in queue_policies.values() for s in p["Properties"]["PolicyDocument"]["Statement"] if s["Effect"] == "Allow"]
-    assert len(receive) == 2
-    for statement in receive:
-        assert statement["Condition"]["ArnEquals"]["aws:SourceArn"] == Settings.load(CONFIG).filing_topic_arn
-        assert statement["Condition"]["StringEquals"]["aws:SourceAccount"] == Settings.load(CONFIG).account
-    topic_policies = template.find_resources("AWS::SNS::TopicPolicy")
-    alarm_publish = [statement for policy in topic_policies.values()
-        for statement in policy["Properties"]["PolicyDocument"]["Statement"] if statement["Effect"] == "Allow"]
-    assert len(alarm_publish) == 4
-    assert all(statement["Principal"] == {"Service": "cloudwatch.amazonaws.com"} for statement in alarm_publish)
-    assert all("aws:SourceArn" in statement["Condition"]["ArnEquals"] for statement in alarm_publish)
+    table = next(s for s in worker if "dynamodb:PutItem" in s["Action"])
+    assert {"dynamodb:Query", "dynamodb:DeleteItem"} <= set(table["Action"])
+    secret = next(s for s in worker if s["Action"] == "secretsmanager:GetSecretValue")
+    assert isinstance(secret["Resource"], dict) and "Ref" in secret["Resource"]
+    queue = [s for s in statements(template, "AWS::SQS::QueuePolicy") if s["Effect"] == "Allow"]
+    assert len(queue) == 4
+    assert all(s["Principal"] == {"Service": "sns.amazonaws.com"} for s in queue)
+    assert all(s["Condition"]["StringEquals"]["aws:SourceAccount"] == Settings.load(CONFIG).account for s in queue)
+    assert sum(s["Condition"]["ArnEquals"]["aws:SourceArn"] == Settings.load(CONFIG).filing_topic_arn for s in queue) == 2
+    alarm = [s for s in statements(template, "AWS::SNS::TopicPolicy") if s["Effect"] == "Allow"]
+    assert len(alarm) == 9
+    assert all(s["Principal"] == {"Service": "cloudwatch.amazonaws.com"} for s in alarm)
+    assert all("aws:SourceArn" in s["Condition"]["ArnEquals"] for s in alarm)
 
 
 @pytest.mark.parametrize("change", [
-    lambda value: (value.update(consumption_enabled=True), value["extraction"].update(model_id="unselected")),
-    lambda value: value["extraction"].update(lease_seconds=300),
-    lambda value: value.update(filing_topic_arn="arn:aws:sns:us-west-2:559007813222:other"),
-    lambda value: value.update(bedrock_resource_arns=["*"]),
-    lambda value: value.update(bedrock_resource_arns=[]),
+    lambda v: v.update(fiscal_config_sha256="0" * 64),
+    lambda v: v.update(consumption_enabled="false"),
+    lambda v: v.update(filing_topic_arn="arn:aws:sns:us-west-2:559007813222:other"),
+    lambda v: v.update(openai_secret_name="shared-key"),
+    lambda v: v.update(bedrock_resource_arns=["*"]),
+    lambda v: v.update(alarm_email="other@example.com"),
 ])
 def test_invalid_activation_or_permissions_rejected(tmp_path, change):
     value = json.loads(CONFIG.read_text())
@@ -96,31 +100,52 @@ def test_invalid_activation_or_permissions_rejected(tmp_path, change):
         Settings.load(path)
 
 
-def test_selected_model_grants_only_explicit_resources(tmp_path):
-    value = json.loads(CONFIG.read_text())
-    arn = "arn:aws:bedrock:us-east-1::foundation-model/example-model"
-    value["extraction"]["model_id"] = "example-model"
-    value.update(bedrock_resource_arns=[arn], consumption_enabled=True)
-    path = tmp_path / "config.json"
-    path.write_text(json.dumps(value))
-    asset = tmp_path / "asset"
+def test_enabled_update_preserves_resource_identity(tmp_path, template):
+    app = App(outdir=str(tmp_path / "enabled"))
+    settings = replace(Settings.load(CONFIG), consumption_enabled=True)
+    asset = tmp_path / "code"
     asset.mkdir()
-    (asset / "handler.py").write_text("# fixture\n")
-    app = App(outdir=str(tmp_path / "out"))
-    settings = Settings.load(path)
-    stack = EarningsStack(app, "Selected", settings=settings, asset_path=asset,
-                          env=Environment(account=settings.account, region=settings.region))
-    synthesized = Template.from_stack(stack)
-    synthesized.has_resource_properties("AWS::IAM::Policy", {"PolicyDocument": Match.object_like({"Statement": Match.array_with([
-        Match.object_like({"Action": "bedrock:InvokeModel", "Resource": arn, "Effect": "Allow"})])})})
-    synthesized.has_resource_properties("AWS::Lambda::EventSourceMapping", {"Enabled": True})
+    (asset / "handler.py").write_text("# fixture")
+    enabled = Template.from_stack(EarningsStack(app, settings.stack_name, settings=settings, asset_path=asset,
+        env=Environment(account=settings.account, region=settings.region)))
+    enabled.has_resource_properties("AWS::Lambda::EventSourceMapping", {"Enabled": True})
+    for kind in ("AWS::DynamoDB::Table", "AWS::SQS::Queue", "AWS::SNS::Topic", "AWS::SecretsManager::Secret"):
+        assert enabled.find_resources(kind) == template.find_resources(kind)
 
 
-def test_committed_nova_configuration_stays_disabled(template):
+def test_empty_secret_operator_access_and_alarm_subscription(template):
+    secret = next(iter(template.find_resources("AWS::SecretsManager::Secret").values()))
+    assert secret["DeletionPolicy"] == "Retain"
+    assert "SecretString" not in secret["Properties"] and "GenerateSecretString" not in secret["Properties"]
+    assert secret["Properties"]["Name"] == Settings.load(CONFIG).openai_secret_name
+    template.has_resource_properties("AWS::SNS::Subscription", {"Protocol": "email", "Endpoint": "ilancooke@gmail.com"})
+    template.has_resource_properties("AWS::SNS::Subscription", {"Protocol": "sqs", "RawMessageDelivery": True})
+    policies = template.find_resources("AWS::IAM::ManagedPolicy")
+    assert len(policies) == 2
+    inspection = next(p for k, p in policies.items() if "OperatorInspection" in k)
+    assert "secretsmanager" not in json.dumps(inspection)
+    assert "DeleteMessage" not in json.dumps(inspection)
+    assert "Scan" not in json.dumps(policies)
+    template.has_resource_properties("AWS::SQS::Queue", {"QueueName": "finbot-earnings-prod-output", "MessageRetentionPeriod": 1209600})
+
+
+def test_committed_fiscal_configuration_starts_disabled(template):
     settings = Settings.load(CONFIG)
-    assert settings.extraction.model_id == "amazon.nova-lite-v1:0"
-    assert settings.extraction.prompt_version == "eps-nova-tool-v2"
-    assert settings.extraction.max_documents == 5
     assert not settings.consumption_enabled
-    template.has_resource_properties("AWS::Lambda::Function", {"Environment": {"Variables": Match.object_like({
-        "EARNINGS_EXTRACTION_CONFIG": Match.any_value()})}})
+    worker = next(iter(template.find_resources("AWS::Lambda::Function").values()))["Properties"]
+    env = worker["Environment"]["Variables"]
+    assert env["EARNINGS_FISCAL_CONFIG_SHA256"] == settings.fiscal_config_sha256
+    assert "EARNINGS_OPENAI_SECRET_ARN" in env
+    assert "EARNINGS_EXTRACTION_CONFIG" not in env
+
+
+def test_release_roles_use_verified_immutable_oidc_subjects(tmp_path):
+    from infra.cdk.access_app import ReleaseAccessStack
+    app = App(outdir=str(tmp_path / "access"))
+    t = Template.from_stack(ReleaseAccessStack(app, "access", env=Environment(account="559007813222", region="us-east-1")))
+    roles = t.find_resources("AWS::IAM::Role")
+    subjects = {r["Properties"]["AssumeRolePolicyDocument"]["Statement"][0]["Condition"]["StringEquals"]["token.actions.githubusercontent.com:sub"] for r in roles.values()}
+    assert subjects == {"repo:ilancooke@8453151/finbot-earnings@1350331204:ref:refs/heads/main",
+                        "repo:ilancooke@8453151/finbot-earnings@1350331204:environment:production"}
+    assert "finbot-filings" not in json.dumps(t.to_json())
+    assert "AdministratorAccess" not in json.dumps(t.to_json())

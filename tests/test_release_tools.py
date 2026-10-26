@@ -33,13 +33,39 @@ def test_tampered_or_wrong_commit_release_cannot_be_deployed(tmp_path):
     import json
     assembly = tmp_path / "cdk.out"
     assembly.mkdir()
-    (assembly / "manifest.json").write_text('{"version":"1"}')
-    (tmp_path / "release-manifest.json").write_text(json.dumps({"commit": "abc", "assembly_sha256": asset_hash(assembly)}))
+    asset = assembly / "asset.test"
+    asset.mkdir()
+    (asset / "worker.py").write_text("original")
+    (assembly / "stack.assets.json").write_text(json.dumps({"files": {"code": {
+        "source": {"path": "asset.test", "packaging": "zip"}}}}))
+    template = {"Resources": {"worker": {"Type": "AWS::Lambda::Function", "Properties": {
+        "Environment": {"Variables": {"EARNINGS_FISCAL_CONFIG_SHA256": "frozen"}}}},
+        "mapping": {"Type": "AWS::Lambda::EventSourceMapping", "Properties": {"Enabled": False}}}}
+    (assembly / "stack.template.json").write_text(json.dumps(template))
+    manifest = dict(commit="abc", source_dirty=False, stack_name="stack", consumption_enabled=False,
+                    fiscal_config_sha256="frozen", assembly_sha256=asset_hash(assembly), asset_sha256=asset_hash(asset))
+    path = tmp_path / "release-manifest.json"
+    path.write_text(json.dumps(manifest))
     assert verify(tmp_path, "abc")["commit"] == "abc"
     with pytest.raises(ValueError, match="commit mismatch"):
         verify(tmp_path, "different")
-    (assembly / "manifest.json").write_text('{"version":"tampered"}')
-    with pytest.raises(ValueError, match="checksum mismatch"):
+    manifest["source_dirty"] = True
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="source must be clean"):
+        verify(tmp_path, "abc")
+    manifest["source_dirty"] = False
+    manifest["consumption_enabled"] = True
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="consumption configuration mismatch"):
+        verify(tmp_path, "abc")
+    manifest["consumption_enabled"] = False
+    path.write_text(json.dumps(manifest))
+    (asset / "worker.py").write_text("tampered")
+    with pytest.raises(ValueError, match="assembly checksum mismatch"):
+        verify(tmp_path, "abc")
+    manifest["assembly_sha256"] = asset_hash(assembly)
+    path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="Lambda asset checksum mismatch"):
         verify(tmp_path, "abc")
 
 
@@ -57,6 +83,7 @@ def test_ci_has_no_cloud_credentials_and_produces_self_contained_release():
     commands = "\n".join(step.get("run", "") for step in steps)
     assert "python -m pytest" in commands and "npm run synth" in commands
     assert "cp -R cdk.out build/release/cdk.out" in commands
+    assert "scripts/build_lambda.py --verify-target" in commands
 
 
 def test_deployment_reuses_ci_artifact_and_requires_review_before_apply():
@@ -73,3 +100,4 @@ def test_deployment_reuses_ci_artifact_and_requires_review_before_apply():
     assert "--method template" in preparation and "--app release/cdk.out" in preparation
     assert "cdk deploy" not in preparation
     assert "--app release/cdk.out" in application and "build_lambda" not in application
+    assert 'required_reviewers' in preparation and 'deployment-branch-policies' in preparation

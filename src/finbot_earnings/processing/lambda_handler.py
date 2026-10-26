@@ -3,6 +3,7 @@
 from functools import lru_cache
 import logging
 import os
+import time
 
 from .contracts import json_value
 
@@ -20,6 +21,8 @@ def handler(event, context):
         raise ValueError("Expected nonempty SQS records")
     failures = []
     for record in event["Records"]:
+        started = time.monotonic()
+        invoked_ms = round(time.time() * 1000)
         # An invalid identifier cannot be expressed as a partial failure: reject
         # the whole invocation instead of accidentally acknowledging the batch.
         identifier = record.get("messageId")
@@ -35,8 +38,13 @@ def handler(event, context):
                 failures.append({"itemIdentifier": identifier})
                 continue
             result = runtime().process(wrapper)
+            attributes = record.get("attributes", {})
+            sent = attributes.get("SentTimestamp")
+            queue_delay = invoked_ms - int(sent) if isinstance(sent, str) and sent.isdigit() else None
             LOGGER.info("Filing message processed", extra={"message_id": identifier, "work_id": result.work_id,
-                "outcome": result.outcome, "exhausted": result.exhausted})
+                "event_id": result.event_id, "outcome": result.outcome, "exhausted": result.exhausted,
+                "invoked_at_epoch_ms": invoked_ms, "queue_to_invocation_ms": queue_delay,
+                "handler_processing_ms": round((time.monotonic() - started) * 1000)})
             if not result.acknowledge:
                 failures.append({"itemIdentifier": identifier})
         except Exception as exc:

@@ -37,7 +37,7 @@ jobs:
           git diff --check
       - name: Build and synthesize release
         run: |
-          .venv/bin/python scripts/build_lambda.py
+          .venv/bin/python scripts/build_lambda.py --verify-target
           npm run synth
           .venv/bin/python -m scripts.release_manifest
           mkdir -p build/release

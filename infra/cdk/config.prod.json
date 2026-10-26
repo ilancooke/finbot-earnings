@@ -5,16 +5,7 @@
   "filing_topic_arn": "arn:aws:sns:us-east-1:559007813222:finbot-prod-filing-ready",
   "source_bucket": "finbot-prod-state-artifacts82dd59a1-8gt63rcgmaua",
   "consumption_enabled": false,
-  "bedrock_resource_arns": [
-    "arn:aws:bedrock:us-east-1::foundation-model/amazon.nova-lite-v1:0"
-  ],
-  "extraction": {
-    "version": "eps-nova-lite-images-v1",
-    "model_id": "amazon.nova-lite-v1:0",
-    "max_input_bytes": 131072,
-    "max_output_tokens": 4096,
-    "lease_seconds": 360,
-    "prompt_version": "eps-nova-tool-v2",
-    "max_documents": 5
-  }
+  "fiscal_config_sha256": "e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097",
+  "openai_secret_name": "finbot-earnings-prod/openai-project-key",
+  "alarm_email": "ilancooke@gmail.com"
 }

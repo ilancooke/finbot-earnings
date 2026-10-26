@@ -41,6 +41,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           test "$DISPATCH_REF" = refs/heads/main
+          gh api "repos/$GH_REPO/environments/production" > /tmp/earnings-production-environment.json
+          jq -e 'any(.protection_rules[]; .type == "required_reviewers" and (.reviewers | length > 0)) and .deployment_branch_policy.custom_branch_policies == true' /tmp/earnings-production-environment.json
+          gh api "repos/$GH_REPO/environments/production/deployment-branch-policies" \
+            --jq '.branch_policies | map({name,type})' > /tmp/earnings-production-branches.json
+          jq -e '. == [{"name":"main","type":"branch"}]' /tmp/earnings-production-branches.json
           commit="${REQUESTED_COMMIT:-$DISPATCH_SHA}"
           [[ "$commit" =~ ^[0-9a-f]{40}$ ]]
           git merge-base --is-ancestor "$commit" origin/main

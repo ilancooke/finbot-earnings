@@ -1,4 +1,5 @@
 import json
+import logging
 from types import SimpleNamespace
 
 import pytest
@@ -87,3 +88,16 @@ def test_missing_message_id_rejects_whole_batch(runtime):
     del item["messageId"]
     with pytest.raises(ValueError):
         lambda_handler.handler({"Records": [item]}, CONTEXT)
+
+
+def test_queue_and_invocation_timing_is_logged_without_payload(runtime, monkeypatch, caplog):
+    monkeypatch.setattr(lambda_handler.time, "time", lambda: 1000)
+    caplog.set_level(logging.INFO, logger=lambda_handler.__name__)
+    item = record(attributes={"SentTimestamp": "990000"})
+    lambda_handler.handler({"Records": [item]}, CONTEXT)
+    log = caplog.records[-1]
+    assert log.queue_to_invocation_ms == 10000
+    assert log.invoked_at_epoch_ms == 1000000
+    assert log.handler_processing_ms >= 0
+    assert log.work_id == "work" and log.outcome == "accepted"
+    assert "Apple" not in caplog.text and "Message" not in caplog.text

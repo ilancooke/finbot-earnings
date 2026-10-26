@@ -1,17 +1,15 @@
 # AWS runtime and release setup
 
-Updated 2026-10-25 through Milestone 5. The SQS handler now selects the fiscal
-consumer. Its source wiring and SDK/Secrets Manager interactions are tested offline;
-**the committed CDK configuration, dependency bundle and permissions still describe
-Nova and are not ready to deploy this consumer**. Consumption remains disabled in
-source. No actual AWS/GitHub deployment state, credential or provider access has
-been inspected. Milestone 6 owns deployable packaging, IAM, resource setup and
-protected release/activation.
+Updated 2026-10-25 during **Milestone 6, in progress**. Fiscal CDK settings,
+scoped IAM, pinned Linux bundle, target-container verification, inspection queue,
+email/operational alarms and release-access templates are implemented locally.
+No earnings stack exists in AWS at read-only inspection. Deployment, secret
+population, provider readiness, confirmed email and enabled delivery remain pending.
+Follow [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md) for observed state and exact resume steps.
 
-[Production parity evidence](PRODUCTION_PARITY.md) verifies the source port against
-saved v6 run `20261023T145725Z-9ff8c84b`: 50 request/output replays and 176 offline
-tests pass. No live integration check was needed for that comparison; no test spend
-was incurred and USD 5 remains. This does not verify actual cloud/provider state.
+[Production parity evidence](PRODUCTION_PARITY.md) includes 50 saved request/output
+replays through the exact Python 3.13 Linux asset, preserving all 189 members and
+83 observations. No paid calls were made; USD 5 remains cumulatively.
 
 ## Implemented fiscal entry point
 
@@ -28,7 +26,7 @@ The dedicated secret is resolved only for a reserved extraction attempt through
 the plain OpenAI project credential**, not JSON. The provider client is scoped to
 that attempt, so redrive sees a rotated key. Credential values never enter config,
 receipts, errors or logs. Inspection/duplicate/publication recovery does not fetch
-the secret. Secure population and runtime permissions remain Milestone 6.
+the secret. CDK scopes runtime permission to that exact secret ARN; secure population remains pending.
 
 | Environment variable | Fiscal source runtime contract |
 | --- | --- |
@@ -44,8 +42,8 @@ the secret. Secure population and runtime permissions remain Milestone 6.
 Current frozen config `eps-openai-luna-v6-v1` digest:
 `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
 The fiscal path does not interpret legacy `EARNINGS_EXTRACTION_CONFIG` as its
-configuration. Deploying old CDK environment/bundles with this handler would fail;
-finish Milestone 6 before release. Actual quotas/access remain unverified.
+configuration. CDK now supplies the digest and dedicated secret ARN. Actual
+provider quotas/access remain unverified until the controlled release checks.
 
 ## Storage, formats, recovery and operations
 
@@ -79,90 +77,70 @@ have no valid work identity: safe handler diagnostics and the queue/DLQ retain t
 Read-only `earnings-ops inspect/event/list` uses table access without provider secret
 access. `retry` and `reprocess --run-id ...` can incur charges/publish; `output` peeks
 SQS without deletion. See exact commands and caveats in OFFLINE_PROCESSING. Output
-inspection retains queue send time separately from view time. The output queue is
-not deployed by this milestone. Timing records include receipt stages, first-claim
+inspection retains queue send time separately from view time. The output queue and operator policies are defined locally, pending deployment. Timing records include receipt stages, first-claim
 and outcome checkpoints, publication attempt count/start/ack, readiness-to-ack and
-last publication duration. Actual queue/invocation metrics and alert wiring remain
-release work. Separate catch-up delay from fresh steady-state latency; do not infer
+last publication duration. Handler logs additionally record queue delay and invocation/processing timing;
+nine alarms are defined in CDK, pending live verification. Separate catch-up delay from fresh steady-state latency; do not infer
 discovery time from SEC `filed_at`.
 
-## Remaining release work — Milestone 6
+## Local release implementation
 
 Retain producer SNS → earnings SQS → Python Lambda → earnings SNS → inspection SQS.
-Use account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`, producer topic
-`finbot-prod-filing-ready` and configured source bucket
-`finbot-prod-state-artifacts82dd59a1-8gt63rcgmaua`. Verify actual state read-only;
-source configuration is not evidence of deployed resources. Preserve stateful IDs.
+Target account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`; source
+bucket/topic remain producer-owned. Existing table/queue/topic construct IDs stay
+stable. `ValidatedEarnings` / `finbot-earnings-prod-validated` remains the physical
+output topic name for infrastructure compatibility; its payload is `earnings.extracted`.
+No old EPS records are migrated or republished.
 
-- Package pinned OpenAI/HTTP/parser/schema/Pillow dependencies for Python 3.13
-  Linux x86_64, test imports and Pillow decoding in the Lambda container, rebuild
-  source assets, synthesize and verify the release manifest. Remove unused Bedrock
-  permissions/bundles after Milestone 4 cleanup; update old CDK config to fiscal env.
-- Define a dedicated secret and scoped `secretsmanager:GetSecretValue` permission
-  (and KMS decrypt if applicable); securely populate plain SecretString. Never put
-  its value in Git, chat, commands, logs or release evidence.
-- Define earnings-owned output inspection SQS/subscription with 14-day retention,
-  scoped SNS delivery policy and operator access. Verify actual receipt beyond SNS
-  acknowledgment. Read-only inspection needs GetItem/Query, recovery additionally
-  needs writes/transactions, source reads, dedicated secret access and output publish;
-  queue peeking needs ReceiveMessage. Finalize least-privilege IAM in the release.
-- Complete processing/delivery/DLQ/input-delay/worker-error alarms and SNS email to
-  `ilancooke@gmail.com`; confirm subscription and delivery. No app spend caps/alerts.
-- Verify provider quotas, upstream image-compatible contract and object access,
-  GitHub OIDC roles, protected production environment and exact successful-CI
-  artifact/diff. Milestone 5 parity evidence precedes this release work.
+`Settings` rejects legacy model overrides and requires the packaged fiscal digest,
+earnings-owned secret name and approved email. `OpenAIProjectKey` creates a retained
+empty secret, with no SecretString/random value in the template. It uses the service
+managed key; the worker only gets GetSecretValue for its exact ARN. Optional source
+KMS decrypt remains scoped to the configured key and S3 service. Bedrock access is
+removed. Worker table access includes Query and transactional DeleteItem needed to
+remove old status rows; it has no Scan or source writes.
 
-First deployment starts disabled once; then verify provider/secret/alarm/output,
-inspect backlog age/size and estimated catch-up usage/time, and release enabled.
-Process all retained queued notifications: no silent purge/skip or historical S3
-scan. Protected GitHub production approval gates each concrete release. Ordinary
-updates preserve consumption state; no forced disable/enable cycle. Pauses are
-explicit. Rollback must be compatible with both stored versions and consumption
-state, preserving history. A completed release requires **real enabled SQS-triggered
-EPS processing and inspection-queue receipt**; direct invocation or publish ack
-alone is insufficient. Scoped live tests share USD 5 cumulatively; this milestone
-spent USD 0. Ongoing OpenAI funding is user-managed through its UI.
+OutputInspection retains raw EPS events for 14 days, with an SNS subscription,
+source-topic/account-scoped send policies and separate output delivery DLQ. The
+unattached OperatorInspection/OperatorRecovery managed policies distinguish table
+and output inspection from charged inference/publication access. The runbook lists
+separate administrative permissions needed for live replay and redrive.
 
-## Package and build boundary after cleanup
+Lambda remains Python 3.13/x86_64, 1024 MiB, 300 seconds, concurrency two, batch one,
+partial batch responses, 1800-second input visibility and five receives before DLQ.
+The 360-second work lease exceeds invocation timeout. These are initial bounded
+settings, pending actual provider RPM/TPM/traffic checks before activation. Do not
+claim a verified throughput estimate. Alarms cover work/input-delivery/output-delivery
+DLQs, SNS output delivery failure, input age, worker errors/throttles and caught
+processing failures. The email subscription requires user confirmation and a test.
+No spending alarms, caps or application funding automation are implemented.
 
-Only the filing consumer runs in Lambda. The evaluation endpoint, Nova adapter,
-old pipeline/repositories, NVDA watcher and local evaluation runner are removed.
-Raw FilingReady or `operation=evaluate` direct invocations without a nonempty
-SQS batch are rejected. Production fresh runs remain explicit through
-`earnings-ops reprocess`; they are not an evaluation mode. Use
-[finbot-filing-evals](../../finbot-filing-evals/README.md) for experiments, corpus
-review and quality reports. No historical operational data was deleted.
+## Packaging and release verification
 
-`pyproject.toml` pins the fiscal extractor dependencies and exposes only
-`earnings-ops`. The Lambda manifest currently contains the retained AWS SDK and
-Pillow dependency closure; none is exclusive to the removed paths. It still lacks
-the complete fiscal Linux dependency set. The builder copies only current source
-and performs a lazy handler-import check; that check alone does not establish
-that the frozen extractor or native image decoder works in Lambda. Milestone 6
-must finalize and verify the bundle before any deployment.
+Only the fiscal filing consumer runs in Lambda. Evaluation, acquisition and legacy
+Nova paths remain removed. requirements-lambda.txt pins the complete runtime closure;
+seven frozen fiscal pins are unchanged. build_lambda.py uses Linux x86_64 binary
+wheels with no dependency resolution; --verify-target checks asset-only imports,
+frozen identities, HTML and native JPEG/PNG/GIF decoding in the network-disabled
+Lambda Python 3.13 container. CI requires that check. Source/dependency changes
+require rebuilding before synthesis. See the runbook for commands.
 
-`infra/cdk/settings.py` temporarily owns `LegacyExtractionSettings`, a validation
-shape for the unchanged old CDK configuration. It has no inference or evaluation
-behavior and is not imported by the application. This preserves offline synthesis
-and stateful resource definitions during cleanup. Replace that compatibility shape,
-old model environment and Bedrock permissions with fiscal configuration in
-Milestone 6. No cloud resource or deployment configuration was changed here.
+CI packages the cloud assembly with its staged Lambda asset and distributions.
+release-manifest.json records source commit/dirty status, asset/assembly hashes,
+fiscal config/digest and consumption state. verify_release rejects dirty sources,
+wrong commits/hashes and asset/template/configuration/consumption inconsistencies.
+A local uncommitted manifest is a preview, never a successful-CI release.
 
-## Retained release tooling
+Deploy selects successful push CI for the exact main SHA, verifies the downloaded
+assembly, and shows its template diff/manifest. Preflight verifies the production
+environment has required reviewers and exactly the main branch rule. The protected
+environment gates apply of the same artifact. No rebuild occurs during deployment.
+The separate access_app.py prepares earnings-only OIDC roles using the verified
+GitHub immutable subject; it does not change producer access or apply itself.
 
-CI runs offline tests and package builds, then builds a Linux asset, synthesizes
-CDK without lookups and records a release manifest. The existing self-contained
-`earnings-release-<commit>` artifact contains the cloud assembly, Lambda asset,
-distributions and manifest. Current packaging/configuration is pending the
-Milestone 6 changes above; a successful synthesis alone is not fiscal readiness.
-
-The manually dispatched Deploy workflow requires successful push CI for the exact
-main commit, downloads and verifies that artifact, then shows its manifest and a
-read-only infrastructure diff. The protected GitHub `production` environment gates
-the job that deploys the same assembly. Deployments are serialized. Preserve this
-review flow and immutable Lambda version/production alias behavior.
-
-GitHub setup still needs repository-scoped OIDC plan/deploy roles, variables
-`EARNINGS_PLAN_ROLE_ARN` and `EARNINGS_DEPLOY_ROLE_ARN`, main-ref/environment trust
-and confirmed protected production approval. Inspect the actual setup during
-Milestone 6; neither workflow dispatch nor deployment occurred in cleanup.
+First deployment starts disabled, then secret/provider/email checks and controlled
+smoke precede backlog review and a protected enabled release. Routine updates preserve
+consumption state. A completed milestone requires enabled SQS-triggered extraction
+and actual inspection receipt. Deployment has not happened. Exact prerequisites,
+operator commands, secure setup, replay, pause and rollback are in the
+[release runbook](RELEASE_RUNBOOK.md).

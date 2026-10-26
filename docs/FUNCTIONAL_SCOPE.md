@@ -2,7 +2,8 @@
 
 Updated 2026-10-25 through Milestone 3. The fiscal consumer, acceptance,
 immutable storage/events, recovery and operator CLI now implement this approved
-scope offline. Deployable packaging/infrastructure remains Milestone 6. Legacy
+scope offline. Fiscal packaging/infrastructure is prepared locally; protected deployment remains
+Milestone 6. Legacy
 Milestone 4 removes Nova processing, the NVDA POC and the local evaluator. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and
 [AWS_RUNTIME.md](AWS_RUNTIME.md) distinguish current code from this target.
 [ROADMAP.md](../ROADMAP.md) governs the migration and approved D01–D12 decisions;
@@ -60,7 +61,7 @@ Milestone 2's isolated extractor freezes [finite numeric bounds](EXTRACTOR.md#fr
 16 HTML documents, 64 images, 64 MiB total source, 2 MiB prepared text, 96 MiB
 encoded request, a 900,000-token local estimate and a 2-MiB native response.
 The reference inputs, including HON's 34 images, pass these bounds offline; live
-account/provider checks remain release work. Old CDK settings are pending Milestone 6 migration.
+account/provider checks remain release work. Fiscal CDK settings are prepared; live activation is pending.
 [Review reasons](CONTRACTS.md#review-and-failure-reasons)
 identify the affected artifact/bound. Explicit reprocessing follows operator
 inspection and a reviewed fix; completed review outcomes do not retry inference.

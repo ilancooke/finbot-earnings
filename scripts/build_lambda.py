@@ -29,15 +29,14 @@ def build(output):
     with tempfile.TemporaryDirectory(prefix="earnings-asset-", dir=output.parent) as temporary:
         staged = Path(temporary) / "asset"
         subprocess.run([sys.executable, "-m", "pip", "install", "--disable-pip-version-check",
-            "--only-binary=:all:", "--platform", "manylinux_2_28_x86_64",
+            "--only-binary=:all:", "--no-deps", "--platform", "manylinux_2_28_x86_64",
             "--platform", "manylinux2014_x86_64", "--implementation", "cp",
             "--python-version", "3.13", "--no-compile", "--target", str(staged),
             "-r", str(ROOT / "requirements-lambda.txt")], check=True)
         shutil.copytree(ROOT / "src/finbot_earnings", staged / "finbot_earnings",
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-        # Isolated interpreter proves the asset imports without local site-packages
-        # (lazy fiscal imports do not validate the provider bundle). Finalize Linux
-        # dependencies and decoder checks in Milestone 6. Imports create no AWS clients.
+        # Native Linux wheels cannot load in a macOS host interpreter. The mandatory
+        # target-container check below validates the complete asset before release.
         program = "import sys; sys.path.insert(0," + repr(str(staged)) + "); import finbot_earnings.processing.lambda_handler"
         subprocess.run([sys.executable, "-I", "-S", "-c", program], cwd=temporary, check=True)
         for cache in staged.rglob("__pycache__"):
@@ -49,11 +48,23 @@ def build(output):
     return {"asset_directory": str(output), "asset_sha256": asset_hash(output), "runtime": "python3.13", "architecture": "x86_64"}
 
 
+def verify_target(output):
+    subprocess.run(["docker", "run", "--rm", "--platform", "linux/amd64", "--network", "none",
+        "--read-only", "--tmpfs", "/tmp", "--entrypoint", "python", "-e", "PYTHONDONTWRITEBYTECODE=1",
+        "-v", str(Path(output).resolve()) + ":/asset:ro",
+        "-v", str(ROOT / "scripts/check_lambda_asset.py") + ":/check.py:ro",
+        "public.ecr.aws/lambda/python:3.13", "-I", "-S", "/check.py", "/asset"], check=True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=ROOT / "build/lambda")
+    parser.add_argument("--verify-target", action="store_true", help="Verify imports/decoders in the offline Lambda container")
     args = parser.parse_args()
-    print(json.dumps(build(args.output), indent=2))
+    result = build(args.output)
+    if args.verify_target:
+        verify_target(args.output)
+    print(json.dumps(result, indent=2))
 
 
 if __name__ == "__main__":

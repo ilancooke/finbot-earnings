@@ -1,12 +1,11 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **Milestones 1–5 are complete.** The fiscal filing
-consumer, acceptance, filing-specific storage, publication recovery, Lambda source
-wiring, offline demo and operator CLI are implemented. Superseded acquisition,
-extraction and earnings-local evaluation paths have been removed.
-Production parity is recorded in [PRODUCTION_PARITY.md](docs/PRODUCTION_PARITY.md).
-Next is **Milestone 6 — reviewed release and activation** in [ROADMAP.md](ROADMAP.md).
-Each milestone is intended for a separate agentic session.
+Status updated 2026-10-25: **Milestones 1–5 are complete; Milestone 6 is in progress.**
+Fiscal release packaging/infrastructure and offline verification are prepared.
+Read-only checks confirm no earnings stack is deployed. GitHub release access,
+protected production setup, secure credential population, alert confirmation and
+live enabled delivery remain outstanding. Resume using the
+[release runbook](docs/RELEASE_RUNBOOK.md) and [checkpoint](ROADMAP.md#current-checkpoint).
 
 This package consumes complete stored FilingReady snapshots from `finbot-filings`,
 extracts reported and adjusted diluted EPS, persists all outcomes and publishes
@@ -21,15 +20,14 @@ and golden-data review belong to `finbot-filing-evals`.
 | Filing processing | `FiscalConsumer`: frozen direct OpenAI `gpt-6-luna` v6 extractor, schema/business acceptance, complete snapshot provenance; 50-case offline port parity verified | Milestone 6 verifies live processing and delivery |
 | Output | `earnings.extracted` / `1.0`, immutable per snapshot/config/run, EPS arrays directly in event | Live delivery verification in Milestone 6 |
 | Storage/recovery | SQLite and DynamoDB version-2 adapters, bounded receipt chunks, status queries, fenced writes, durable attempts, identical saved-payload recovery | Inspect actual stored cloud state before release |
-| AWS source wiring | SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Milestone 6 updates old CDK config, Linux dependencies, IAM, secret, inspection queue and alarms |
-| Operator commands | `earnings-ops` inspect/event/list/retry/reprocess/output | Production operator permissions and live setup in Milestone 6 |
+| AWS source wiring | SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Fiscal CDK/Linux bundle/IAM/secret/queue/alarms prepared; deployment pending |
+| Operator commands | `earnings-ops` inspect/event/list/retry/reprocess/output | Unattached inspection/recovery policies prepared; operator/live setup pending |
 | Package scope | Filing consumer and `earnings-ops`; obsolete watcher/evaluator/commands removed | Historical shared-data artifacts and legacy stored records remain preserved |
 
-**The committed production configuration and Lambda dependency bundle still select
-Nova and disable consumption. They cannot deploy the new source runtime as-is.**
-The fiscal runtime requires new digest/secret environment variables and dependencies;
-Milestone 6 finalizes these after cleanup and parity checks. No deployment or cloud
-state has been verified here. Source configuration is not proof of deployed state.
+**The local production configuration selects the frozen fiscal extractor and keeps
+consumption disabled for first deployment.** The Linux bundle passes target-container
+imports/decoders and all 50 saved parity cases. These are offline checks; no deployed
+worker, populated secret or live delivery is claimed.
 
 ## Start or resume a milestone
 
@@ -45,7 +43,7 @@ verify its exit criteria, update both documents and append the handoff, then sto
 | 3 | Integrate acceptance, filing-specific persistence, publication and CLI | Complete |
 | 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Complete |
 | 5 | Verify production port against existing quality evidence | Complete |
-| 6 | Prepare reviewed release, deploy and activate | Not started |
+| 6 | Prepare reviewed release, deploy and activate | In progress |
 
 ## Processing and limitations
 
@@ -121,7 +119,7 @@ With the saved baseline available, the read-only parity audit can also be rerun:
 
 It checks saved artifacts and replays all 50 native responses over mocked HTTP;
 no credentials, provider calls, scoring or operational writes. The full offline
-suite passes 176 tests. See the parity document for fingerprints and limitations.
+suite passes 180 tests. See the parity document for fingerprints and limitations.
 
 After updating an existing checkout, reinstall with the setup command above to
 refresh entry points and remove the retired `earnings` / `earnings-eval` scripts.
@@ -159,7 +157,7 @@ a changed manifest is a new snapshot. Use `reprocess WORK_ID --run-id UNUSED_ID`
 only when the saved complete snapshot is supported; repeating an unchanged
 unsupported snapshot produces review again.
 `output` peeks without deleting, can repeat messages, and increments receive count;
-SQS send time is separate from inspection time. The queue remains release work.
+SQS send time is separate from inspection time. The queue is defined in CDK and awaits deployment.
 
 The source runtime requires `EARNINGS_TABLE_NAME`, `EARNINGS_SOURCE_BUCKET`,
 `FILING_READY_TOPIC_ARN`, `EARNINGS_QUEUE_ARN`, `EARNINGS_TOPIC_ARN`,
@@ -167,8 +165,8 @@ The source runtime requires `EARNINGS_TABLE_NAME`, `EARNINGS_SOURCE_BUCKET`,
 `EARNINGS_OPENAI_SECRET_ARN` (dedicated plain SecretString project credential).
 `EARNINGS_OUTPUT_QUEUE_URL` is operator-only. Provider credentials are fetched
 lazily for extraction; inspection and saved publication recovery do not read them.
-See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for the source contract, offline SDK
-checks and pending CDK/packaging/IAM/release requirements.
+See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for runtime and packaging details, and
+[RELEASE_RUNBOOK.md](docs/RELEASE_RUNBOOK.md) for verified prerequisites and setup.
 
 The installed application command is `earnings-ops`. The old `earnings`,
 `earnings-eval`, top-level module command and Lambda evaluation endpoint are removed.
@@ -190,8 +188,8 @@ campaign or automatic paid 50-case rerun is required.
 
 Target release: account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`,
 existing producer topic/bucket, new dedicated provider secret, earnings-owned
-14-day output inspection queue and alarm email `ilancooke@gmail.com`. Setup and
-live readiness remain Milestone 6. Successful CI builds the exact release artifact;
+14-day output inspection queue and alarm email `ilancooke@gmail.com`. Local setup templates are prepared;
+protected deployment and live readiness remain Milestone 6. Successful CI builds the exact release artifact;
 review its infrastructure diff and use protected GitHub production approval.
 First deployment starts briefly disabled, then backlog checks precede activation.
 Routine updates preserve consumption state. Process all retained queued messages;
@@ -210,8 +208,9 @@ spend-alert system is implemented.
 | `processing/fiscal_contract.py`, `fiscal_consumer.py` | Fiscal acceptance, identity, event construction, processing |
 | `processing/fiscal_repository.py`, `fiscal_stores.py` | Shared v2 transitions, bounded blobs, SQLite/DynamoDB adapters |
 | `processing/fiscal_runtime.py`, `lambda_handler.py`, `operator.py`, `demo.py` | AWS wiring, SQS handler, operator CLI and offline demo |
-| `infra/cdk/`, `scripts/`, `.github/workflows/` | Existing Nova build/release assets; finalize for fiscal runtime in Milestone 6 |
+| `infra/cdk/`, `scripts/`, `.github/workflows/` | Fiscal Linux assets, CDK, OIDC setup templates and protected release workflow |
 | [ROADMAP.md](ROADMAP.md) | Approved decisions, milestone inputs and durable checkpoint/completion records |
+| [Release runbook](docs/RELEASE_RUNBOOK.md) | Observed AWS/GitHub state, secure setup, release/activation, recovery and rollback |
 | [Production parity](docs/PRODUCTION_PARITY.md), `scripts/verify_production_parity.py` | Saved v6 baseline identities, compatible differences and read-only offline replay |
 | [Scope](docs/FUNCTIONAL_SCOPE.md), [decisions](docs/V0_DECISIONS.md), [contracts](docs/CONTRACTS.md), [architecture](docs/ARCHITECTURE.md) | Approved fiscal semantics and implemented boundaries |
 | [Producer FilingReady](../finbot-filings/docs/FILING_READY.md) | Authoritative upstream contract, owned by filings |
