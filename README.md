@@ -1,221 +1,183 @@
 # finbot-earnings
 
-The agreed target for repurposing this package is recorded in
-[`docs/FUNCTIONAL_SCOPE.md`](docs/FUNCTIONAL_SCOPE.md): consume complete stored
-filing snapshots from `finbot-filings`, classify and extract earnings, validate
-evidence, persist canonical events, and publish validated event revisions.
-[`docs/V0_DECISIONS.md`](docs/V0_DECISIONS.md) defines the initial single-call EPS
-schema, validation criteria and event identity/revisions.
-[`docs/CONTRACTS.md`](docs/CONTRACTS.md) records the expected `FilingReady` input,
-with the authoritative contract and implemented producer owned by `finbot-filings`.
-Producer deployment is separate from the earnings implementation. Earnings must
-subscribe to the producer’s `filing-ready` topic, exported as `FilingTopicArn`.
-[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) records the working cloud architecture
-and agreed duplicate handling, retries, publication recovery, evaluation isolation
-and input bounds, plus GitHub Actions/CDK deployment and release ownership.
-The first implementation is an **offline filing-processing core** in
-`finbot_earnings.processing`: strict input validation, one mocked model call for
-all filing documents, conservative EPS evidence checks, durable SQLite processing
-records/event revisions, and recoverable publication.
+Status updated 2026-10-25: **migration decisions are complete; implementation of
+the six-milestone migration has not started.** Start with Milestone 1 in
+[ROADMAP.md](ROADMAP.md). Each milestone is intended for a separate agentic session.
 
-The AWS runtime now adds S3, Bedrock Converse, DynamoDB and SNS adapters, an SQS
-Lambda handler, Python CDK infrastructure and GitHub CI/deployment workflows.
-These are tested offline and **have not been deployed**. Queue consumption is
-disabled. The committed configuration selects **Amazon Nova Lite**
-(`amazon.nova-lite-v1:0`) with a required schema-defined tool response. HTML, TXT
-and PDF artifacts enter one filing request as original document bytes; PDF-sourced
-facts require review until independent PDF evidence validation is implemented.
-Supporting JPEG/PNG/GIF artifacts now enter that same request as labeled image
-blocks. They have separate limits: 20 images, 3,750,000 bytes each, 12 MiB total,
-at most 8000 pixels per side, and one frame. Invalid or excessive images produce
-review-required outcomes before inference; inputs are never silently truncated.
-Image-sourced facts also require review and are excluded from automatically
-accepted metrics. Original HTML remains the source of parent/page order.
-The committed configuration now selects `eps-nova-lite-images-v1` with prompt
-`eps-nova-tool-v2`; the legacy prompt remains available for image-free snapshots.
-Pillow validates rasters; Lambda bundles its pinned Linux wheel. No live model
-call or deployment is needed for the offline tests. Deploy this consumer support
-before activating upstream image acquisition/recovery.
-See [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) for configuration, build checks and release
-setup. The existing AWS producer remains owned by `finbot-filings`.
+This package is becoming a filing-level EPS extraction service. It will consume
+complete stored snapshots from `finbot-filings`, extract reported and adjusted
+diluted EPS, persist processing outcomes, and publish `earnings.extracted` events.
+The priority is low end-to-end discovery, extraction and reporting latency.
+Discovery and acquisition remain owned by `finbot-filings`; model experiments and
+golden-data review belong to `finbot-filing-evals`.
 
-Run the synthetic three-document filing without credentials or `.env` loading:
+## Implemented state versus approved target
+
+The repository currently contains three overlapping paths. The approved target
+below describes upcoming work, not functionality already available.
+
+| Area | Implemented now | Approved migration target |
+| --- | --- | --- |
+| Filing processing | Complete FilingReady manifest validation, bounded input, one combined classification/extraction call, conservative evidence checks | One EPS extraction call using the tested fiscal schema; schema/business-rule acceptance with filing provenance |
+| Model/input | Bedrock Nova Lite v1 (`amazon.nova-lite-v1:0`), original document bytes and supporting images | Direct OpenAI `gpt-6-luna`, v6 prompt, HTML-derived plain text plus original images; medium reasoning, 4,096 output tokens |
+| Output | `earnings.validated` company/period-end events and canonical revisions | Immutable `earnings.extracted` results for each filing snapshot/configuration/run; no cross-filing merging |
+| Persistence/recovery | SQLite reference store, DynamoDB adapter, leases, fenced writes, retries and saved-payload publication recovery | Adapt these guarantees to filing-specific event identity and preserve prior records |
+| AWS delivery | S3/SNS adapters, SQS Lambda handler, Python CDK and GitHub CI/Deploy workflows | Retain the architecture; add direct-provider secret access and an output inspection queue |
+| Operator commands | `earnings` still runs the original NVDA acquisition/watcher POC | Focused inspect/list/retry/reprocess/output-inspection CLI |
+| Evaluations | Older earnings-local runner and `earnings-eval` entry point still exist | Retire them; use `finbot-filing-evals` for quality work |
+
+The checked-in [production configuration](infra/cdk/config.prod.json) selects Nova
+and sets `consumption_enabled: false`. Existing deployment documentation records
+earnings as undeployed; **live AWS state has not been verified in this documentation
+session**. Source configuration is not proof of deployed resources or runtime state.
+
+The current v0 validator accepts a narrow explicit-prose subset of HTML/TXT.
+PDF and image inputs can reach the model, but facts sourced from them require
+review. The configured document budget is 128 KiB across at most five standalone
+documents, with separate bounds including 20 supporting images. These are current
+Nova implementation limits, not the approved limits for the OpenAI migration.
+
+## Start or resume a milestone
+
+Read [the roadmap session workflow and current checkpoint](ROADMAP.md#session-workflow),
+then implement **only the first incomplete milestone**. Resume partial work on that
+milestone before moving on. At its exit boundary, update both documents and leave a
+durable completion record for the next session.
+
+| Order | Milestone | Current status |
+| --- | --- | --- |
+| 1 | Formalize the approved contracts and documentation | Not started |
+| 2 | Implement the tested extractor behind a transition boundary | Not started |
+| 3 | Integrate filing-specific acceptance, storage, publication and CLI | Not started |
+| 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Not started |
+| 5 | Verify the production port against existing quality evidence | Not started |
+| 6 | Prepare the reviewed release, deploy and activate | Not started |
+
+The roadmap contains all approved decisions, per-milestone inputs, deliverables,
+checks and handoff requirements. Treat it as the source of truth for migration
+intent. Older documents under `docs/` describe the previous Nova/canonical-event
+design until Milestone 1 reconciles them. Updating those documents does not by
+itself mean that their target behavior has been implemented.
+
+## Approved launch behavior and limitations
+
+These rules are approved but are not yet implemented in the current filing core:
+
+- Publish accepted EPS directly in `earnings.extracted`, together with issuer,
+  filing/snapshot, processing and timing provenance. Independent per-fact evidence
+  verification is not required for launch.
+- Keep the tested reported/adjusted EPS arrays, decimal precision and disclosed
+  currencies. Use issuer fiscal year/quarter identity, choose one current period,
+  prefer Q4 over full-year figures when both are reported, and exclude YTD,
+  comparisons and guidance. Share denomination is unspecified; perform no conversions.
+- Publish each filing snapshot independently. Duplicate delivery reuses its saved
+  result/event ID; changed snapshots and explicit new runs remain distinguishable.
+- Publish when at least one observation is accepted. Empty arrays produce
+  `no_eps_extracted` without publication or an automatic inference retry.
+- Support **HTML plus original JPEG/PNG/GIF supporting images**. **TXT and PDF
+  are deferred.** Any unsupported selected member sends the entire snapshot to
+  review before inference, including a mixed HTML/PDF package.
+- Oversized complete snapshots also go to review. Never truncate documents or
+  discard selected attachments. Document actual verified OpenAI bounds during
+  implementation, accommodating the evaluated HON 34-image case.
+- Process retained queued notifications after activation. No automatic historical
+  S3 scan/backfill is part of launch.
+
+## Quality evidence and evaluation ownership
+
+The [experiment report](../finbot-filing-evals/docs/MODEL_EXPERIMENT_REPORT.md)
+records 83/83 fiscal EPS targets and 50/50 exact filings for the reviewed v6 Luna
+run. It is the approved launch quality baseline. The sample was used during
+development and does not establish unseen-filing accuracy.
+
+Milestone 5 verifies that the production port preserves that tested behavior.
+A new 20-filing study or automatic paid rerun of all 50 is not required.
+Evaluation datasets, label review, model comparisons and reports stay in
+[finbot-filing-evals](../finbot-filing-evals/README.md); material extraction changes
+must be evaluated there.
+
+The old local corpus instructions in [GOLDEN_DATASET.md](docs/GOLDEN_DATASET.md)
+and [LOCAL_EVALUATION.md](docs/LOCAL_EVALUATION.md) are superseded for the migration.
+They describe legacy tooling still present until Milestone 4 and should not be
+used to restart an earnings-local evaluation campaign.
+
+## Local setup and offline verification
+
+Use this repository's own virtual environment. The current package requires
+Python 3.11+; current CI and Lambda use Python 3.13. Node 24 is used for CDK tooling.
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
+
+.venv/bin/python -m compileall -q src tests infra scripts
+.venv/bin/python -m pytest
+git diff --check
+```
+
+The latest documentation-session check passed 171 tests. Normal tests use offline
+fixtures/mocks and do not require provider credentials or shared-data writes.
+
+The existing filing-core demo is also offline and does not load `.env`:
 
 ```bash
 .venv/bin/python -m finbot_earnings.processing.demo \
   --output-dir /tmp/finbot-earnings-filing-demo
 ```
 
-Choose a new output directory. The demo produces one model call, one event and a
-successfully acknowledged duplicate. Inspect `processing-record.json`,
-`published-events.jsonl` and `processing.sqlite3` there. See
-[OFFLINE_PROCESSING.md](docs/OFFLINE_PROCESSING.md) for the implemented policy,
-limits and recovery behavior.
+Choose a new output directory. It writes `processing-record.json`,
+`published-events.jsonl` and `processing.sqlite3`, demonstrating one fixture-model
+call, one v0 validated event and an acknowledged duplicate. This is the current
+Nova-era contract demonstration, not proof of the planned `earnings.extracted`
+runtime. Update the demo as the core changes in Milestone 3.
 
-For local filing evaluation, see [LOCAL_EVALUATION.md](docs/LOCAL_EVALUATION.md).
-The starter corpus contains eight fictional cases covering HTML, TXT, PDF,
-multiple attachments, losses, guidance, conflicting evidence and tables. Check the
-runner offline:
+## Existing commands and configuration
 
-```bash
-.venv/bin/python -m finbot_earnings.evaluation run \
-  --corpus evaluations/starter/corpus.json --offline \
-  --output-dir /tmp/finbot-earnings-eval-starter
-```
+- `earnings` / `python -m finbot_earnings` still enter the NVDA POC. Its
+  `watch`, `poll`, `list-artifacts`, `show-timeline` and `replay` commands
+  are legacy acquisition/inspection tools; they do not run the filing consumer.
+- The POC loads the nearest `.env`, overriding inherited values. It uses
+  `companies.toml`, `EARNINGS_DATA_DIR`, `SEC_USER_AGENT` and OpenAI settings.
+  This is separate from the filing runtime, which uses CDK-provided configuration.
+- `earnings-eval` / `python -m finbot_earnings.evaluation` is the legacy
+  local evaluator scheduled for removal. Use the separate evals package for work
+  on the approved baseline.
+- `infra/cdk/config.prod.json` and the `EARNINGS_*`/`FILING_READY_TOPIC_ARN`
+  runtime variables currently configure the Nova Lambda path.
+  [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) describes that existing implementation;
+  its model, secret, queue and release instructions will be revised before deployment.
 
-Omit `--offline` to make paid Nova Lite calls using local files and your normal AWS
-credentials (`--profile` is optional). Results, raw responses and processing records
-stay in the new output directory; no queue, S3, DynamoDB or SNS is accessed. The
-command does not load `.env`. It reports extraction and validator acceptance
-separately, token usage and latency; optional token prices produce USD estimates.
-The synthetic corpus tests the harness; meaningful baseline scores require reviewed
-real filings. Real draft labels use `agent_draft` until reviewed. Older filings can
-use evaluator metadata reconstructed from existing records; original SNS events
-and an extra freezing step are not required. `earnings-eval` is an equivalent
-command after installation.
+## Release destination and completion
 
-The active real corpus uses only finbot-filings output from the production S3
-bucket; older local collections with different filters are excluded. It is stored
-under the shared data root; see
-[GOLDEN_DATASET.md](docs/GOLDEN_DATASET.md) for its location, coverage and review step.
+The approved target is account `559007813222`, `us-east-1`, stack
+`finbot-earnings-prod`, using the existing filing-ready topic and source bucket.
+The future worker retrieves its OpenAI project credential from a new dedicated
+Secrets Manager secret. An earnings-owned SQS inspection queue retains output
+messages for 14 days; operational alerts go to `ilancooke@gmail.com`.
 
-The remainder of this README describes the preserved artifact-based POC; its
-`earnings` commands do not invoke the new filing-processing core.
+A successful-CI artifact, infrastructure diff and protected GitHub production
+approval govern releases. The first deployment briefly starts with consumption
+disabled for checks, then enables it. **Routine updates preserve consumption
+state and do not require a disable/enable cycle.**
 
-`finbot-earnings` is a low-latency, provenance-first Python pipeline for official public-company earnings artifacts. The MVP watches NVIDIA investor news and SEC submissions, saves every new source before analysis, extracts a compact earnings flash with OpenAI, and continuously records a UTC latency timeline.
+Scoped live integration tests have a USD 5 total API allowance, tracked in the
+roadmap. Ongoing API spend is monitored/funded by the user through OpenAI's UI;
+the app will not add a monthly spend cap or spend-alert system.
 
-The current implementation is intentionally optimized for the first NVDA live event. It does not try to discover every investor-relations site.
+Milestone 6 is complete when enabled queue-triggered processing produces a real
+EPS-bearing event received by the inspection queue. A disabled deployment, direct
+worker invocation or successful SNS publish acknowledgment alone does not meet
+that end state.
 
-## Architecture
+## Code and document map
 
-```text
-NVIDIA official RSS ─┐
-                     ├─ detect ─ download ─ immutable raw + SQLite registry
-SEC submissions ─────┘                              │
-                                                   parse (HTML/text/tables)
-                                                        │
-                                              explicit eligibility policy
-                                                        │ new + eligible only
-                                                OpenAI structured output
-                                                        │
-                                             versioned extraction + timeline
-```
-
-The source, parser, eligibility, extractor, and storage layers are separate. A source poll never calls an LLM by itself. On first startup, each live source establishes a persistent baseline of current discoveries; only later discoveries are downloaded and processed. Artifact registration provides a second idempotency barrier.
-
-Raw files are immutable. Replaying changes parser/extraction outputs but never the captured source.
-
-## Install
-
-Python 3.11 or newer is required.
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -e '.[dev]'
-```
-
-## Configuration and environment
-
-Watched companies live in [`src/finbot_earnings/companies.toml`](src/finbot_earnings/companies.toml). NVDA is configured with CIK `0001045810` and the `nvidia` IR adapter.
-
-Copy [`.env.example`](.env.example) to `.env`, then fill in the real contact and API key:
-
-```bash
-cp .env.example .env
-```
-
-The resulting `.env` contains:
-
-```bash
-EARNINGS_DATA_DIR=/Users/ilan/workspace/finbot/data/earnings
-SEC_USER_AGENT=finbot-earnings your-real-contact@example.com
-OPENAI_API_KEY=your-key
-OPENAI_MODEL=gpt-5.4-mini
-EARNINGS_POLL_INTERVAL=5
-```
-
-Every `earnings` command automatically loads the nearest `.env` found from the current working directory. Values in `.env` take precedence over variables inherited from the shell. `SEC_USER_AGENT` must identify the application and contain a contact email. `.env` is ignored by Git and must never be committed.
-
-## Safe offline demo and tests
-
-No normal test makes a network or paid API call.
-
-```bash
-python -m pytest
-
-# Full fixture IR → SEC → parse → fake extraction → timeline path:
-EARNINGS_DATA_DIR=/tmp/finbot-earnings-demo \
-  PYTHONPATH=src python -m finbot_earnings demo NVDA \
-  --data-dir /tmp/finbot-earnings-demo
-```
-
-The demo intentionally polls each fixture twice and asserts through its output that each of the four distinct eligible artifacts is extracted once.
-
-## NVDA live watcher
-
-Start this before the release is published:
-
-```bash
-earnings watch NVDA
-```
-
-The first successful poll records a baseline and logs its size. It does not backfill or extract old releases. Later new discoveries are printed immediately, persisted, parsed, and—if eligible—sent to OpenAI exactly once. `Ctrl-C` exits cleanly. Polls with no changes are quiet.
-
-If the process is first started only after publication, explicitly process the current feed/filing snapshot with:
-
-```bash
-earnings poll NVDA --include-existing
-```
-
-That flag can process several historical eligible artifacts on an empty data directory and may incur multiple OpenAI calls; use it deliberately.
-
-To observe acquisition without paid extraction:
-
-```bash
-earnings watch NVDA --no-extract
-```
-
-## Inspect and replay
-
-```bash
-earnings list-artifacts NVDA
-earnings show-timeline NVDA
-
-# Offline: reparses the immutable raw artifact, no network or API call.
-earnings replay <artifact-id>
-
-# Explicit paid run with the current prompt/model; persists a distinguishable run.
-earnings replay <artifact-id> --extract
-```
-
-## Storage and deduplication
-
-Under `$EARNINGS_DATA_DIR` (default `/Users/ilan/workspace/finbot/data/earnings`):
-
-```text
-registry.sqlite3
-artifacts/NVDA/<artifact-id>/
-  metadata.json
-  raw.html
-  parsed-html-v1.json
-  extraction-<prompt>-<model>-<timestamp>.json
-events/NVDA/<event-id>/
-  event.json
-  timeline.json
-```
-
-SEC identity is `CIK + accession number + document filename`. IR identity is canonical URL plus SHA-256 content hash, so identical polls deduplicate while genuinely changed content can be retained as another version. The SHA-256, source URL, HTTP metadata, accession/filename, source type, lifecycle timestamps, errors, retries, parser version, prompt version, schema version, model, and API usage are persisted.
-
-Events group artifacts whose reliable publication/detection anchor dates are within three days. This is explicit MVP logic, not fiscal-period inference.
-
-## Current live-test limitations
-
-- NVIDIA detection uses its official press-release RSS and recognizes titles matching “NVIDIA Announces Financial Results.” It does not yet poll the quarterly-results JavaScript application or parse PDF commentary.
-- SEC exhibit discovery handles explicit EX-99.1/99.2 names and NVIDIA's observed `q1fy27pr.htm` / `q1fy27cfocommentary.htm` convention. It does not parse the filing document table for arbitrary exhibit names.
-- HTML tables are preserved as rows plus readable text; there is no perfect financial-table or inline-XBRL parser.
-- 10-Q/10-K are eligible, but long-document chunking is not yet implemented. Very large filings may need the Milestone 7 parser before reliable live extraction.
-- A discovery is marked seen only after download/persistence processing returns, so acquisition failures retry on later polls. Final LLM failures require explicit `replay --extract` rather than endless automatic retries.
-- Company Facts enrichment and cross-source confirmation/conflict reconciliation remain roadmap work.
-
-See [`ROADMAP.md`](ROADMAP.md) for acceptance state and next milestones.
+| Location | Responsibility/status |
+| --- | --- |
+| `src/finbot_earnings/processing/` | Existing filing core, storage/adapters, validation and Lambda entry point; main migration starting point |
+| `src/finbot_earnings/evaluation/` | Legacy local evaluator; remove in Milestone 4 |
+| `cli.py`, `pipeline.py`, `sources/`, `extractors/` under the package | Original NVDA POC; replace/retire after the new core is covered |
+| `infra/cdk/`, `scripts/`, `.github/workflows/` | Infrastructure, bundle/release tools and CI/deployment |
+| [ROADMAP.md](ROADMAP.md) | Approved decisions, sequential implementation plan and durable session checkpoint |
+| [FUNCTIONAL_SCOPE.md](docs/FUNCTIONAL_SCOPE.md), [V0_DECISIONS.md](docs/V0_DECISIONS.md), [CONTRACTS.md](docs/CONTRACTS.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Previous target design; reconcile with approved decisions in Milestone 1 |
+| [OFFLINE_PROCESSING.md](docs/OFFLINE_PROCESSING.md), [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) | Existing processing/runtime behavior; retain accurate current-versus-planned status as milestones proceed |
+| [Producer FilingReady contract](../finbot-filings/docs/FILING_READY.md) | Authoritative upstream input contract; owned by `finbot-filings` |
