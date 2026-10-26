@@ -21,15 +21,23 @@ The raw response/full source manifest remains inspectable through processing ref
 | HTML with selected PDF supplement | Same whole-snapshot review; no partial HTML extraction/event |
 | Oversized complete snapshot | `review_required / snapshot_bound_exceeded`; no truncation, discarded attachment or multi-call split |
 
-Record artifact/filename and bound/actual/limit diagnostics. Numeric OpenAI input,
-image, encoded-request, token and response-storage bounds are **pending Milestone 2**
-and must support the evaluated HON 34-image case. The current Nova 128-KiB/five-doc/
+Record artifact/filename and bound/actual/limit diagnostics. Milestone 2's isolated
+extractor [freezes all bounds and dependency versions](EXTRACTOR.md): 16 HTML,
+64 images, 64 MiB source, 2 MiB text, 96 MiB encoded request, a 900,000-token local
+estimate and 2-MiB response, covering HON's 34-image case offline. Per-member
+byte/pixel limits and the estimate's limitations are documented there.
+The current Nova 128-KiB/five-doc/
 20-image limits below are not the new launch limits. Invalid/missing objects follow
 the contract's separate review/integrity-failure policy. Completed empty arrays
 produce `no_eps_extracted`, no event and no automatic inference retry. Neither
 empty nor review means definitive non-earnings.
 
-Milestone 2 implements an isolated extractor; Milestone 3 integrates storage,
+Milestone 2 has implemented the isolated extractor, with 120-second timeout and
+zero SDK retries. Milestone 3 must durably budget its three application attempts,
+store full receipts beyond a single DynamoDB item's capacity, and reconcile lease/
+worker timing. The current Lambda dependency manifest and handler are unchanged;
+Milestone 6 must package and import-test the new dependencies on Linux.
+Milestone 3 integrates storage,
 consumer/demo and CLI; Milestone 4 removes POC/evaluation commands; Milestone 5
 records parity with the saved checked 50-filing v6 baseline. No automatic paid
 50-filing rerun or new local evaluation framework. Quality work belongs to

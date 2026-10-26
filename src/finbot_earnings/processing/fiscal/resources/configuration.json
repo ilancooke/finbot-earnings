@@ -1,0 +1,70 @@
+{
+  "version": "eps-openai-luna-v6-v1",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "endpoint": "https://api.openai.com/v1",
+  "prompt_version": "eps-v6",
+  "prompt_sha256": "54158e06ec22a876acb0272bc1674bdd5dbf0f5a489eb7d9c8c3e65fdaf40237",
+  "response_schema_version": "earnings_eps.fiscal.v2",
+  "response_schema_sha256": "658af83969c4712a81c7a523fb79c0f56a2e9255a71b3ced3ed9441f3f312d94",
+  "transport_schema_version": "openai-fiscal-v2-union-v1",
+  "transport_schema_sha256": "137dec3a52ac17713243b92ccbe5fe16184617ef1bbe09915b132095408e08bb",
+  "preparation_version": "filing-html-text-images-v1",
+  "preparation_sha256": "5cfc53e8d4522b42d1ff69340c3861691839ae9e399fc53b32da7f56c4a6bd38",
+  "adapter_version": "openai-luna-fiscal-v1",
+  "implementation_sha256": "5bbf49eee3d17a97a64904a7af3177727c92da378fdab10168b33e9c1c12de75",
+  "sdk_versions": {
+    "openai": "2.54.0",
+    "httpx": "0.28.1",
+    "html5lib": "1.1",
+    "webencodings": "0.6.1",
+    "six": "1.17.0",
+    "Pillow": "12.3.0",
+    "jsonschema": "4.26.0"
+  },
+  "acceptance_policy": "fiscal-eps-acceptance-v1",
+  "request_settings": {
+    "max_output_tokens": 4096,
+    "reasoning_effort": "medium",
+    "image_detail": "high",
+    "store": false,
+    "truncation": "disabled",
+    "service_tier": "default",
+    "prompt_cache_options": {
+      "mode": "implicit",
+      "ttl": "30m"
+    },
+    "timeout_seconds": 120,
+    "sdk_max_retries": 0
+  },
+  "input_limits": {
+    "html_formats": [
+      "htm",
+      "html",
+      "xhtml"
+    ],
+    "image_formats": [
+      "jpeg",
+      "png",
+      "gif"
+    ],
+    "max_documents": 16,
+    "max_images": 64,
+    "max_document_bytes": 16777216,
+    "max_source_bytes": 67108864,
+    "max_text_bytes": 2097152,
+    "max_image_bytes": 8388608,
+    "max_image_total_bytes": 50331648,
+    "max_image_pixels": 16000000,
+    "max_image_dimension": 8192,
+    "max_encoded_request_bytes": 100663296,
+    "max_input_token_estimate": 900000,
+    "image_token_allowance": 8192,
+    "token_overhead_allowance": 16384
+  },
+  "persistence_limits": {
+    "max_response_bytes": 2097152,
+    "max_extraction_bytes": 65536,
+    "max_event_bytes": 245760
+  }
+}

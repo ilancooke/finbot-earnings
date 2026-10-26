@@ -44,10 +44,14 @@ bounds before inference. HTML becomes tested plain text; all original JPEG/PNG/G
 supporting images enter one request with identity/context/ordering retained.
 TXT/PDF or other unsupported members send the whole snapshot to review, including
 mixed HTML/PDF. No attachment omissions, text truncation or multiple-call split.
-Numeric bounds are Milestone 2 work and must support the HON 34-image case.
+The isolated extractor's [frozen bounds](EXTRACTOR.md#frozen-bounds-and-unsupported-inputs)
+cover the HON 34-image case; consumer integration follows in Milestone 3.
 
 A small injected extractor returns the fiscal v2 object, native response, usage
-and timing/request provenance. Exact Python API/module names are Milestone 2 work.
+and timing/request provenance. Milestone 2 implements
+`processing.fiscal.OpenAIFiscalExtractor.extract(filing, source, run_id=..., attempt=...)`
+returning a serializable receipt. Schema-valid `extracted` is distinct from
+business acceptance; the existing consumer has not been switched.
 Use tested prompt/schema/preparation/settings in V0_DECISIONS, traceably ported
 from evals without sibling imports or evaluation-app dependency. No invented
 classifier/evidence fields to fit old interfaces.

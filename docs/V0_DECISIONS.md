@@ -18,10 +18,10 @@ approved D01–D12 target **supersedes the 2026-10-14 v0 target**. Implemented
 | Acceptance policy | `fiscal-eps-acceptance-v1` |
 | Output | `earnings.extracted` / `1.0`, new event family |
 | Work/record namespaces | `earnings-work:v2` / `earnings-processing:v2` |
-| Configuration version | `eps-openai-luna-v6-v1`, reserved until Milestone 2 freezes bounds/dependencies |
+| Configuration version | `eps-openai-luna-v6-v1`, frozen in Milestone 2's isolated extractor |
 
-Preparation/transport names specify the intended port, not code already present.
-Milestone 2 records hashes, dependencies and numeric bounds. Milestone 3 selects
+The isolated port implements preparation/transport with [hashes, pins and bounds](EXTRACTOR.md).
+The consumer remains on v0 until Milestone 3, which selects
 physical keys/indexes and CLI syntax. No target version aliases a legacy record.
 
 ## One extraction call
@@ -31,8 +31,9 @@ with artifact/filing context and tested sequence. Preserve the checked Responses
 request: strict `earnings_eps` structured output, medium reasoning,
 `max_output_tokens=4096`, `store=false`, `truncation=disabled`,
 `service_tier=default`, implicit prompt cache with `ttl=30m`. The evals candidate
-uses a 120-second client timeout and one SDK retry; Milestone 2 must reconcile SDK
-attempts with persisted retry budgets explicitly. No model fallback/repair or
+uses a 120-second timeout and one SDK retry. The port retains that timeout but
+uses zero SDK retries and at most three application attempts, to be durably
+counted in Milestone 3. No model fallback/repair or
 fabricated legacy classification/evidence fields.
 
 These settings describe the checked local reference, not verified account access.

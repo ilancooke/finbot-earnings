@@ -1,0 +1,19 @@
+{
+  "source_repository": "finbot-filing-evals",
+  "source_commit": "d105712812a3daaf0d958c0b9b180f41ca4703ce",
+  "files": {
+    "__init__.py": "2fe4b123587471d44fa5cc59c1956860aecc652c6732088fa9035fc5a156acf3",
+    "adapter.py": "146c66518fbe6c154c2744c21dc7b7c31ac424e4d6c05811743b67ae0bfe89e7",
+    "config.py": "0bfba43399a3b5bad52e6c652be9eedb1c22b599e34d6a1150e0c72bee000444",
+    "errors.py": "f2c984e90d88ed5032e97291b8391270f847210e87bb7b90d2fe408c6a4da28a",
+    "html_text.py": "178b62b08045a51b747cf66c13fb940fdfd323523492937f764127dc407d0c11",
+    "output.py": "ac1776da285368f0796dc4cf96cd694f5cd489d1f91e86cccff12267df1b0f51",
+    "prepare.py": "e2c6914c639f429c5c954bcac884aa244809c95dd801cec1d2eabde52bf8dd62"
+  },
+  "reference_files": {
+    "evaluation/direct.py": "a08e31733c33967667899f8bbbff262fba17bc48524a2cd966c5c4f6bd9094c5",
+    "evaluation/bedrock.py": "20e36db48b95d56c14224d064fb1e77c999365633f79203d2e9f57cad6732b98",
+    "evaluation/contracts.py": "8af68f42844809a85cd528fdb2480aebb1aa1daa87cebd0c5709fc733e19f30d",
+    "review/viewer.py": "42c0cf3347b04072d5160dbc4f17d582845c5d8e3555c7aa9e62cc6107d45ab1"
+  }
+}

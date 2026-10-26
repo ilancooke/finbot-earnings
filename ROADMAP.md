@@ -1,10 +1,11 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestone 1
-is complete; Milestones 2–6 have not started.** This document is the durable plan
+Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–2
+are complete; Milestones 3–6 have not started.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
-in Milestone 1; runtime behavior remains unchanged. A decision approval is not a
+in Milestone 1; Milestone 2 adds an isolated extractor while the Nova consumer
+remains unchanged. A decision approval is not a
 completed implementation milestone.
 
 ## Required end state
@@ -56,21 +57,24 @@ Suggested new-session instruction:
 
 - Date: 2026-10-25.
 - Planning: all 24 entries under D01–D12 approved; none unanswered.
-- Completed: **Milestone 1 — contracts and documentation**. See its
-  [completion record](#milestone-1--complete--2026-10-25) for versions, files,
-  source hashes, checks and compatibility notes.
-- Current work: documentation/schema/example changes are uncommitted. Runtime,
-  dependencies, shared data, live inference and AWS resources are unchanged.
-  Nova core/adapters, legacy NVDA POC and local evaluator still coexist.
+- Completed: **Milestones 1–2 — contracts and isolated tested extractor**. See the
+  [Milestone 2 completion record](#milestone-2--complete--2026-10-25) for API,
+  frozen configuration/implementation hashes, bounds, dependencies and checks.
+- Current work: Milestone 1 is committed at `2fb3554`; Milestone 2 source,
+  dependency, test and documentation changes are uncommitted. The Nova consumer,
+  stores, demo, Lambda packaging, NVDA POC and local evaluator remain usable.
+  No consumer integration or Milestone 3 work has begun. Shared data is unchanged.
 - Source configuration disables consumption; actual cloud/GitHub state has not
   been inspected. No deployed-state claim follows from source configuration.
-- Verification: compilation, 171 offline tests, schema/example/identity checks
-  and documentation link/diff checks passed; exact commands below.
-- Next session: **Milestone 2**. Read the completion record and finalized contracts,
-  then implement the isolated tested extractor behind a transition boundary.
-  Freeze finite provider-specific bounds, dependencies and preparation hashes;
-  do not integrate the consumer/storage or begin Milestone 3 yet.
-- API test ledger: USD 5 previous balance, USD 0 used in Milestone 1, no unknown
+- Verification: compilation, 237 offline tests (66 new extractor tests), wheel/
+  sdist build, wheel-resource import, dependency and specification/link/diff checks
+  passed. All 50 saved inputs fit the frozen bounds, including HON's 34 images.
+  Tests use the real SDK with mocked HTTP; no live provider/account claim.
+- Next session: **Milestone 3**. Read the new receipt API and contracts, then adapt
+  acceptance and filing-specific persistence/publication. Choose bounded storage
+  splitting for receipts that exceed a DynamoDB item and durably count the three
+  application attempts; do not use the old prose validator or canonical merge.
+- API test ledger: USD 5 previous balance, USD 0 used in Milestone 2, no unknown
   usage from this session, **USD 5 remaining** cumulatively. No provider calls.
   Ongoing production funding is user-managed under D11e.
 - External setup remains Milestone 6: actual deployed-state inspection, GitHub/OIDC
@@ -84,7 +88,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | Milestone | Status | Required starting state | Completion record |
 | --- | --- | --- | --- |
 | 1 — Contracts and documentation | Complete | Approved decisions below | [2026-10-25 completion](#milestone-1--complete--2026-10-25) |
-| 2 — Tested extractor | Not started | Milestone 1 complete | None |
+| 2 — Tested extractor | Complete | Milestone 1 complete | [2026-10-25 completion](#milestone-2--complete--2026-10-25) |
 | 3 — Filing consumer integration | Not started | Milestone 2 complete | None |
 | 4 — Legacy cleanup | Not started | Milestone 3 complete | None |
 | 5 — Production parity evidence | Not started | Milestone 4 complete | None |
@@ -160,23 +164,23 @@ versioned module/configuration or explicit transition adapter is acceptable.
 Do not fabricate legacy classification/evidence fields to fit the old schema.
 Production Lambda packaging/infrastructure rollout is finalized in Milestone 6.
 
-- [ ] Implement the direct OpenAI Luna adapter using the tested v6 prompt,
+- [x] Implement the direct OpenAI Luna adapter using the tested v6 prompt,
   structured response schema and inference settings; do not reuse the old NVDA
   extractor as though it implements this contract.
-- [ ] Port the tested HTML-to-plain-text preparation and original-image handling,
+- [x] Port the tested HTML-to-plain-text preparation and original-image handling,
   preserving document identity, package membership and ordering context.
-- [ ] Use provider-specific document/image/request limits. Support HON's 34-image
+- [x] Use provider-specific document/image/request limits. Support HON's 34-image
   case; do not carry the Bedrock 20-image cap into the OpenAI path.
-- [ ] Replace the provisional 128 KiB production budget with bounded limits
+- [x] Replace the provisional 128 KiB production budget with bounded limits
   informed by observed filing sizes and the selected provider. Never silently
   truncate a filing or omit selected attachments; enforce D07b's review-before-
   inference policy for unsupported PDF/TXT and oversized complete snapshots.
   Document the actual limits and artifact/bound-specific review reasons.
-- [ ] Save the exact model, prompt/schema/preparation versions, request settings,
+- [x] Save the exact model, prompt/schema/preparation versions, request settings,
   response, token usage and timing with each distinguishable processing run.
-- [ ] Keep SDK retry behavior consistent with persisted application retry budgets
+- [x] Keep SDK retry behavior consistent with persisted application retry budgets
   and distinguish transient failures, invalid outputs and review outcomes.
-- [ ] Define how production and evals use the same versioned extraction behavior
+- [x] Define how production and evals use the same versioned extraction behavior
   without a direct sibling import or a dependency on the evaluation application.
   Start with a traceable port and offline parity fixtures; defer a shared library
   unless maintenance needs justify it.
@@ -419,7 +423,7 @@ the disabled stage is specific to this first rollout.
 
 ## Milestone completion records
 
-Milestone 1 is complete. Append one durable record at each session boundary;
+Milestones 1–2 are complete. Append one durable record at each session boundary;
 preserve earlier records. Link completed milestones from
 the progress table. For partial work, record which task is next and why exit
 criteria have not yet been met.
@@ -523,6 +527,124 @@ Use this template (include actual paths/values, not just "tests passed"):
   the legacy pipeline, verify complete input bounds including HON 34 images and
   mixed HTML/PDF review, and freeze traceable configuration/dependencies. Stop
   before consumer/storage/CLI integration.
+
+
+### Milestone 2 — complete — 2026-10-25
+
+- Scope delivered: isolated `finbot_earnings.processing.fiscal` extraction boundary,
+  with the direct OpenAI SDK, byte-exact v6 prompt/local fiscal schema, tested union
+  transport schema, traceable HTML text/original-image port, finite whole-snapshot
+  admission, strict native/fiscal response handling and serializable run receipts.
+  No consumer/storage/event/CLI integration or later milestone work.
+- Repository/version: `finbot-earnings`, branch `main`, starting clean HEAD
+  `2fb3554000f2af88c5680ec2bb114e6e34d8c6af` (committed Milestone 1). Changes remain
+  **uncommitted**: `pyproject.toml`, `README.md`, `ROADMAP.md`,
+  `docs/EXTRACTOR.md` (new), `docs/CONTRACTS.md`, `docs/FUNCTIONAL_SCOPE.md`,
+  `docs/V0_DECISIONS.md`, `docs/ARCHITECTURE.md`, `docs/AWS_RUNTIME.md`,
+  `docs/OFFLINE_PROCESSING.md`, `docs/contracts/README.md`,
+  `tests/test_fiscal_extractor.py`, `tests/fixtures/fiscal_html_parity.json`, and
+  `src/finbot_earnings/processing/fiscal/{__init__,adapter,config,errors,html_text,output,prepare}.py`
+  plus its four resources: `configuration.json`, `implementation.json`, `eps-v6.txt`,
+  `earnings_eps_fiscal_v2.schema.json`. Sibling evals/filings were read-only and clean;
+  no pre-existing user changes were overwritten. Generated build products stay ignored.
+- Exit evidence: 66 new offline tests exercise the actual SDK/HTTP serialization,
+  exact endpoint/settings/schema, public filing context, table text and all selected
+  attachments, 34 original images, JPEG/PNG/GIF, immutable source hashes, malformed
+  JSON/native/schema output, fiscal integer/annual rules, empty/partial outputs,
+  unsupported mixed snapshots, invalid/animated images, all bound categories,
+  unknown usage, source failures and transient/permanent provider failures. The
+  old 171 tests pass unchanged. Six preparation fixtures come from the reference
+  helper; normal tests do not import sibling code or require operational data.
+- API: `make_client(api_key, http_client=None)` and
+  `OpenAIFiscalExtractor(client).extract(filing, source, run_id="initial", attempt=1)`.
+  The extractor revalidates FilingReady and returns a JSON-compatible receipt with
+  the full manifest/config/digest, source identities/hashes, canonical request digest,
+  exact bounded response bytes plus native/parsed response, token usage/unknown flag,
+  timing, outcome, reasons and retry policy. No files are written. `extracted` means
+  schema-valid only; business acceptance/empty completion is explicitly Milestone 3.
+- Frozen configuration: `eps-openai-luna-v6-v1`, canonical SHA-256
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
+  Versions remain `eps-v6`, `earnings_eps.fiscal.v2`, `openai-fiscal-v2-union-v1`,
+  `filing-html-text-images-v1`, `fiscal-eps-acceptance-v1`; adapter
+  `openai-luna-fiscal-v1`. Prompt hash
+  `54158e06ec22a876acb0272bc1674bdd5dbf0f5a489eb7d9c8c3e65fdaf40237`;
+  local schema hash `658af83969c4712a81c7a523fb79c0f56a2e9255a71b3ced3ed9441f3f312d94`;
+  canonical transport hash `137dec3a52ac17713243b92ccbe5fe16184617ef1bbe09915b132095408e08bb`;
+  preparation inventory hash `5cfc53e8d4522b42d1ff69340c3861691839ae9e399fc53b32da7f56c4a6bd38`;
+  implementation inventory hash `5bbf49eee3d17a97a64904a7af3177727c92da378fdab10168b33e9c1c12de75`.
+  `load_config()` checks module/resource hashes and dependency versions to fail
+  closed on drift. The inventory retains exact reference helper hashes at evals
+  commit `d105712812a3daaf0d958c0b9b180f41ca4703ce`; no shared library dependency.
+- Dependencies: OpenAI `2.54.0`, httpx `0.28.1`, html5lib `1.1`, webencodings `0.6.1`,
+  six `1.17.0`, Pillow `12.3.0`, jsonschema `4.26.0`, declared/pinned in project
+  dependencies and configuration. html5lib/webencodings were installed into this
+  repo's `.venv`; no other repo's environment was changed. Prompt/schema/config
+  resources are included in the built wheel. Linux Lambda dependencies/build
+  remain unchanged until Milestone 6, so this is not a deployable consumer switch.
+- Numeric bounds (inclusive): 16 HTML, 64 images; 16 MiB per HTML, 64 MiB total
+  source, 2 MiB text, 8 MiB/image, 48 MiB total images, 16,000,000 pixels/image,
+  8,192 longest-side pixels, 96 MiB encoded request, 900,000 local estimated input
+  tokens, 2 MiB native response, 64 KiB extracted text; reserve 240 KiB for future
+  events. Estimate = UTF-8 text/instructions/schema bytes + 8,192 per image +
+  16,384 overhead; this is a heuristic, not provider token-count verification.
+  OpenAI's official image/model docs were read for payload/count/context limits;
+  live account quotas/access remain Milestone 6 checks. EXTRACTOR documents every
+  bound, whole-snapshot review, artifact/bound diagnostics and operator next steps.
+- Reference input measurement: a read-only inline Python check loaded each saved
+  `inputs/*/request.json` under L5 run `20261023T145725Z-9ff8c84b`, checked original
+  SHA-256s, then called the port's `prepare` and `check_request` with v6 settings.
+  **50/50 passed admission**, without inference, target labels or score computation.
+  Maxima: 5 HTML, 34 images, 5,312,094 source bytes, 5,300,624 single-HTML bytes,
+  521,300 text bytes, 456,017 single-image bytes, 1,440,075 pixels and 1,365 longest
+  side; complete request 5,189,881 bytes and token estimate 546,842. HON
+  `hon-0000773840-26-000143`: all 34 images, 4,081,818 source bytes, 190,985 text
+  bytes, 2,118,295 request bytes, estimate 496,362. This verifies input support,
+  not unseen-filing accuracy or the complete Milestone 5 production parity gate.
+- Deliberate port differences: production admission/format/encoding/streaming bounds,
+  safe typed outcomes and explicit receipts; no WEBP under approved D07b, no other
+  provider/evaluation framework. Preserve evals text semantics (including CSS-hidden
+  text retained by the reference helper), image-alt placeholders, complete
+  canonical artifact ordering and original image bytes. Undecodable HTML is review;
+  invalid native bytes remain inspectable as base64. A response over 2 MiB stops
+  reading and records an explicit terminal bound failure/unknown usage; it does not
+  retain a partial response as complete. SDK retries are **0**, versus evals' 1;
+  timeout stays 120 seconds. Max three application attempts must be durably claimed
+  and counted by Milestone 3; ordinals 1–3 are accepted and attempt 3 cannot retry.
+  No automatic invalid/empty/refused/incomplete-response retry or repair loop.
+- Checks on 2026-10-25, repo `.venv` Python 3.11.17:
+  `.venv/bin/python -m compileall -q src tests infra scripts` passed;
+  `.venv/bin/python -m pytest` passed **237 tests**, including **66 new**;
+  `.venv/bin/python -m build --no-isolation --outdir /tmp/finbot-earnings-m2-dist`
+  built wheel/sdist; a `.venv/bin/python -I` wheel-only import (wheel inserted at
+  `sys.path[0]`, module `__file__` asserted inside that wheel) verified all four
+  packaged resources and the frozen configuration digest independently of source;
+  `.venv/bin/python -m pip check` passed;
+  `.venv/bin/python -c 'from pathlib import Path; exec(Path("docs/contracts/README.md").read_text().split("```python\n", 1)[1].split("```", 1)[0])'`
+  passed two schemas, 16 response cases, six identity vectors, one event, three
+  input examples and **86 local links/fragments across 12 Markdown files**;
+  `git diff --check` passed.
+  No live provider calls are included in any check.
+- Documentation: README/checkpoint/progress/checkboxes updated; EXTRACTOR adds API,
+  exact limits, pins, differences, usage/retry and persistence handoff. Scope,
+  decisions/contracts/architecture/offline/runtime docs distinguish the isolated
+  implementation from unchanged Nova consumer and pending release work.
+- Compatibility/next engineering: existing v0 pipeline/interfaces/stores/demo,
+  commands, legacy records and infra remain untouched. No invented classification/
+  evidence/date fields. The full receipt (2-MiB body plus native/config/manifest)
+  exceeds one DynamoDB item: Milestone 3 must implement bounded durable splitting
+  or another explicit design, then enforce the event bound and fenced atomic
+  outcome/publication commits. Reconcile S3 exception normalization and persisted
+  attempt budgets with the new source API; do not assume the old store can accept it.
+- Live actions: none. No AWS/GitHub mutation, deployment, credential access, provider
+  calls, catalog rebuild or shared-data changes. API test ledger: prior USD 5,
+  spent USD 0, no unknown usage introduced, **USD 5 remaining** cumulatively.
+- External action needed now: none. Dedicated secret/credential population,
+  account quotas, alarm-email confirmation, Linux packaging and protected release/
+  activation remain Milestone 6.
+- Next session: **Milestone 3 only**. Read this record, EXTRACTOR API/configuration
+  and CONTRACTS, then implement fiscal acceptance, filing-specific storage/events,
+  consumer/CLI/demo integration and offline recovery/fencing tests. Preserve the
+  frozen extraction behavior and prior records. Stop before Milestone 4 cleanup.
 
 
 ## Reference sources and implementation constraints

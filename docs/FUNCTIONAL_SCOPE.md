@@ -55,10 +55,12 @@ even if HTML appears sufficient. Never truncate text, resize/re-encode images,
 drop selected files, or split extraction to fit bounds. Missing objects and
 stored-size mismatches are technical failures, not format review.
 
-Numeric source/text/image/request/response bounds are pending provider verification
-in **Milestone 2**, then frozen in configuration and documented here and in runtime
-and operator guidance. Existing Nova limits are not launch bounds. New limits must
-accommodate the evaluated HON 34-image case. [Review reasons](CONTRACTS.md#review-and-failure-reasons)
+Milestone 2's isolated extractor freezes [finite numeric bounds](EXTRACTOR.md#frozen-bounds-and-unsupported-inputs):
+16 HTML documents, 64 images, 64 MiB total source, 2 MiB prepared text, 96 MiB
+encoded request, a 900,000-token local estimate and a 2-MiB native response.
+The reference inputs, including HON's 34 images, pass these bounds offline; live
+account/provider checks remain release work. Existing Nova limits remain separate.
+[Review reasons](CONTRACTS.md#review-and-failure-reasons)
 identify the affected artifact/bound. Explicit reprocessing follows operator
 inspection and a reviewed fix; completed review outcomes do not retry inference.
 

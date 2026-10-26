@@ -3,10 +3,11 @@
 Updated 2026-10-25 for Milestone 1. **Everything under “Current implementation”
 below describes the unchanged Nova-era `eps-v0` core**, not the approved launch
 contract. The demo/tests still emit `earnings.validated` company-period revisions.
-The direct OpenAI extractor is Milestone 2; integration/demo/CLI is Milestone 3;
+The isolated direct OpenAI extractor is implemented in Milestone 2;
+integration/demo/CLI is Milestone 3;
 legacy evaluation removal is Milestone 4. No runtime code changed in Milestone 1.
 
-## Approved transition target — not implemented
+## Approved transition target — consumer integration pending
 
 [CONTRACTS.md](CONTRACTS.md) and [V0_DECISIONS.md](V0_DECISIONS.md) specify fiscal v2
 EPS arrays, one current fiscal period, `fiscal-eps-acceptance-v1` and immutable
@@ -21,9 +22,12 @@ feed fiscal v2 objects through the legacy prose validator or invent evidence fie
 | Mixed HTML/PDF snapshot | Whole-snapshot review; no HTML-only extraction/event |
 | Complete snapshot exceeds configured bound | Whole-snapshot review, `snapshot_bound_exceeded`; no truncation/drop/split |
 
-Numeric launch bounds are pending Milestone 2 provider verification, must cover
-HON's 34 images, and must replace the current Nova caps rather than copy them.
-Reasons identify member IDs/filenames or actual/limit/bound; see CONTRACTS.
+The isolated `processing.fiscal` boundary now enforces [frozen OpenAI limits](EXTRACTOR.md),
+including 16 HTML, 64 images, 64 MiB source, 2 MiB text, 96 MiB encoded request,
+900,000 local estimated input tokens and 2-MiB response. All saved reference
+inputs including HON's 34 images fit offline. This has not changed the Nova
+consumer's limits or persistence. Reasons identify member IDs/filenames or
+actual/limit/bound; see CONTRACTS and EXTRACTOR for API, pins and port differences.
 
 Target outcomes are `accepted`, `no_eps_extracted`, `review_required` and
 `processing_failed`. Empty/review results complete without automatic inference

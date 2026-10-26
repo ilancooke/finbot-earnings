@@ -1,0 +1,42 @@
+{
+  "source_commit": "d105712812a3daaf0d958c0b9b180f41ca4703ce",
+  "source_helper": "review.viewer.plain_text_preview",
+  "cases": [
+    {
+      "name": "table",
+      "source_base64": "PHRhYmxlPjx0cj48dGg+UGVyaW9kPC90aD48dGg+RlkyMDI2IFEzPC90aD48dGg+WVREPC90aD48L3RyPjx0cj48dGQ+RGlsdXRlZCBFUFM8L3RkPjx0ZD4tMS4yMzA8L3RkPjx0ZD42LjQwPC90ZD48L3RyPjwvdGFibGU+",
+      "source_sha256": "6add9ce956f5486daceae928b01c0d6f68c9e6afd95395dc93716b0e26407d21",
+      "expected_text": "Period | FY2026 Q3 | YTD |\nDiluted EPS | -1.230 | 6.40 |"
+    },
+    {
+      "name": "inline-and-hidden",
+      "source_base64": "PGhlYWQ+PHRpdGxlPkRST1A8L3RpdGxlPjwvaGVhZD48cD5VUyQ8c3Bhbj4xPC9zcGFuPi48Yj4yMDwvYj48L3A+PHNjcmlwdD5EUk9QPC9zY3JpcHQ+VGFpbDxpeDpoaWRkZW4+RFJPUDwvaXg6aGlkZGVuPjxwIHN0eWxlPSJkaXNwbGF5Om5vbmUiPmJhc2VsaW5lLWtlZXBzLWNzcy1oaWRkZW48L3A+",
+      "source_sha256": "3d1a17557238a2884ab8ad6da451873cdbedfd8853cc06d9e1e9935a47afb1e2",
+      "expected_text": "US$1.20\nTail\nbaseline-keeps-css-hidden"
+    },
+    {
+      "name": "images",
+      "source_base64": "PHA+UGFnZSBvbmU8L3A+PGltZyBzcmM9InBhZ2UxLmpwZyIgYWx0PSJFUFMgdGFibGUiPjxocj48aW1nIHNyYz0icGFnZTIuanBnIj48cD5QYWdlIHR3bzwvcD4=",
+      "source_sha256": "ecbf2985b3fa006a31ddfdc5f1b242eacf180fc3605bf089e8e1feeba9e2b549",
+      "expected_text": "Page one\n[Image: EPS table]\nPage two"
+    },
+    {
+      "name": "legacy-encoding",
+      "source_base64": "PG1ldGEgY2hhcnNldD0id2luZG93cy0xMjUyIj48cD5SZXN1bHRzIJcgQ2Fm6SAmYW1wOyBFUFMgMS4yMDwvcD4=",
+      "source_sha256": "b7b18464f958b8f001801aef3ded6a70b9cacd8392e900c91f7df624e95e0932",
+      "expected_text": "Results \u2014 Caf\u00e9 & EPS 1.20"
+    },
+    {
+      "name": "malformed-table",
+      "source_base64": "PHRhYmxlPjx0cj48dGg+RlkyMDI3PHRyPjx0ZD41LjEwMDx0ZD48L3RhYmxlPjwhLS1yZW1vdmVkLS0+RW5k",
+      "source_sha256": "2bd9dfc72011bbb9869aa8236802fd63f0a38b4c4b3b307e050aff1f01163b2d",
+      "expected_text": "FY2027 |\n5.100 |\nEnd"
+    },
+    {
+      "name": "empty",
+      "source_base64": "PHNjcmlwdD5Pbmx5IHNjcmlwdDwvc2NyaXB0Pg==",
+      "source_sha256": "7561ea44d834474f553e002aea4609a132686a54cc29a6bdb9b9ea2842cf0134",
+      "expected_text": ""
+    }
+  ]
+}

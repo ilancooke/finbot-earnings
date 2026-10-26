@@ -1,7 +1,7 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **Milestone 1 (contracts and documentation) is complete;
-runtime migration has not started.** Next is Milestone 2 in
+Status updated 2026-10-25: **Milestones 1–2 are complete. The isolated fiscal EPS
+extractor is implemented; consumer integration is next.** Next is Milestone 3 in
 [ROADMAP.md](ROADMAP.md). Each milestone is intended for a separate agentic session.
 
 This package is becoming a filing-level EPS extraction service. It will consume
@@ -19,7 +19,7 @@ below describes upcoming work, not functionality already available.
 | Area | Implemented now | Approved migration target |
 | --- | --- | --- |
 | Filing processing | Complete FilingReady manifest validation, bounded input, one combined classification/extraction call, conservative evidence checks | One EPS extraction call using the tested fiscal schema; schema/business-rule acceptance with filing provenance |
-| Model/input | Bedrock Nova Lite v1 (`amazon.nova-lite-v1:0`), original document bytes and supporting images | Direct OpenAI `gpt-6-luna`, v6 prompt, HTML-derived plain text plus original images; medium reasoning, 4,096 output tokens |
+| Model/input | Nova consumer unchanged; isolated, tested OpenAI `gpt-6-luna` v6 fiscal adapter is available | Wire the new plain-text/original-image extractor into the filing consumer |
 | Output | `earnings.validated` company/period-end events and canonical revisions | Immutable `earnings.extracted` results for each filing snapshot/configuration/run; no cross-filing merging |
 | Persistence/recovery | SQLite reference store, DynamoDB adapter, leases, fenced writes, retries and saved-payload publication recovery | Adapt these guarantees to filing-specific event identity and preserve prior records |
 | AWS delivery | S3/SNS adapters, SQS Lambda handler, Python CDK and GitHub CI/Deploy workflows | Retain the architecture; add direct-provider secret access and an output inspection queue |
@@ -29,7 +29,7 @@ below describes upcoming work, not functionality already available.
 The checked-in [production configuration](infra/cdk/config.prod.json) selects Nova
 and sets `consumption_enabled: false`. Existing deployment documentation records
 earnings as undeployed; **live AWS state has not been verified in this documentation
-session**. Source configuration is not proof of deployed resources or runtime state.
+or extractor session**. Source configuration is not proof of deployed resources or runtime state.
 
 The current v0 validator accepts a narrow explicit-prose subset of HTML/TXT.
 PDF and image inputs can reach the model, but facts sourced from them require
@@ -47,7 +47,7 @@ durable completion record for the next session.
 | Order | Milestone | Current status |
 | --- | --- | --- |
 | 1 | Formalize the approved contracts and documentation | Complete |
-| 2 | Implement the tested extractor behind a transition boundary | Not started |
+| 2 | Implement the tested extractor behind a transition boundary | Complete |
 | 3 | Integrate filing-specific acceptance, storage, publication and CLI | Not started |
 | 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Not started |
 | 5 | Verify the production port against existing quality evidence | Not started |
@@ -56,16 +56,41 @@ durable completion record for the next session.
 The roadmap contains all approved decisions, per-milestone inputs, deliverables,
 checks and handoff requirements. Treat it as the source of truth for migration
 intent. Milestone 1 reconciled scope, acceptance, contracts and architecture with
-D01–D12. Runtime/offline docs label the unchanged Nova implementation separately
-from the approved target. This documentation does not implement target behavior.
+D01–D12. Milestone 2 adds the isolated extractor described in
+[EXTRACTOR.md](docs/EXTRACTOR.md). Runtime/offline docs label the unchanged Nova
+consumer separately from the new boundary and the remaining target.
 
 The target [contract](docs/CONTRACTS.md) defines `earnings_eps.fiscal.v2`,
 `fiscal-eps-acceptance-v1`, `earnings.extracted` / `1.0` and new versioned work/record
 namespaces. It includes [documentation schemas and synthetic examples](docs/contracts/examples.json)
 for full/partial/empty outputs, fiscal/currency rules, conflicts and identity.
 The response has no period-end date, classification, quote or share-basis field;
-acceptance is distinct from independent per-fact verification. Numeric OpenAI
-bounds/dependency hashes remain Milestone 2 work; no runtime loads these schemas yet.
+acceptance is distinct from independent per-fact verification. The isolated
+extractor loads its packaged byte-exact fiscal schema; event/acceptance integration
+remains Milestone 3 work.
+
+## Implemented extractor boundary
+
+`finbot_earnings.processing.fiscal.OpenAIFiscalExtractor` takes validated FilingReady
+input and an injected bounded document source. It sends one complete snapshot to
+OpenAI and returns a serializable receipt with config/source/request hashes, exact
+response bytes, fiscal output, usage, timing and safe reasons. It does not write to
+the old stores or publish events. `extracted` means schema-valid, including empty
+arrays; business acceptance and `no_eps_extracted` completion belong to Milestone 3.
+
+The frozen `eps-openai-luna-v6-v1` configuration pins OpenAI 2.54.0, httpx 0.28.1,
+html5lib 1.1, webencodings 0.6.1, six 1.17.0, Pillow 12.3.0 and jsonschema 4.26.0.
+It retains the tested v6 request settings and 120-second timeout; SDK retries are
+zero, with at most three application attempts to be durably budgeted in Milestone 3.
+
+OpenAI admission bounds: 16 HTML documents, 64 original JPEG/PNG/non-animated GIF
+images, 16 MiB per HTML, 64 MiB total source, 2 MiB prepared text, 8 MiB per image,
+48 MiB total images, 16 million pixels/8,192 longest-side pixels per image, 96 MiB
+encoded request and a 900,000-token local estimate. Response/extraction bounds are
+2 MiB/64 KiB. The estimate is a local heuristic, not a guaranteed provider count.
+The port prepared all 50 saved reference inputs within these bounds, including
+HON's 34 original images, without provider calls. See [extractor API and limits](docs/EXTRACTOR.md)
+for exact identities, diagnostics, port differences and persistence handoff.
 
 ## Approved launch behavior and limitations
 
@@ -86,8 +111,8 @@ These rules are approved but are not yet implemented in the current filing core:
   are deferred.** Any unsupported selected member sends the entire snapshot to
   review before inference, including a mixed HTML/PDF package.
 - Oversized complete snapshots also go to review. Never truncate documents or
-  discard selected attachments. Document actual verified OpenAI bounds during
-  implementation, accommodating the evaluated HON 34-image case.
+  discard selected attachments. The isolated extractor enforces the bounds above;
+  consumer persistence of these outcomes follows in Milestone 3.
 - Process retained queued notifications after activation. No automatic historical
   S3 scan/backfill is part of launch.
 
@@ -123,7 +148,7 @@ python3 -m venv .venv
 git diff --check
 ```
 
-The Milestone 1 documentation-session check passed 171 tests. Normal tests use offline
+The Milestone 2 check passed 237 tests, including 66 isolated-extractor tests. Normal tests use offline
 fixtures/mocks and do not require provider credentials or shared-data writes.
 
 The existing filing-core demo is also offline and does not load `.env`:
@@ -181,6 +206,7 @@ that end state.
 
 | Location | Responsibility/status |
 | --- | --- |
+| `src/finbot_earnings/processing/fiscal/`, [EXTRACTOR.md](docs/EXTRACTOR.md) | Isolated OpenAI fiscal extractor, frozen configuration/resources and bounded preparation; not yet connected to the consumer |
 | `src/finbot_earnings/processing/` | Existing filing core, storage/adapters, validation and Lambda entry point; main migration starting point |
 | `src/finbot_earnings/evaluation/` | Legacy local evaluator; remove in Milestone 4 |
 | `cli.py`, `pipeline.py`, `sources/`, `extractors/` under the package | Original NVDA POC; replace/retire after the new core is covered |

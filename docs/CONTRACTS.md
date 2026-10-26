@@ -1,9 +1,10 @@
 # finbot-earnings event contracts
 
-Updated 2026-10-25 for Milestone 1. Input 1.0 remains unchanged. The extraction,
-work and `earnings.extracted` contracts below are approved **target specifications**,
-not implemented APIs. Runtime still uses legacy `earnings.validated` 1.0.
-Documentation schemas/examples are not loaded by current code.
+Updated 2026-10-25 through Milestone 2. Input 1.0 remains unchanged. The isolated
+[fiscal extractor](EXTRACTOR.md) implements response/schema/preparation checks with
+packaged resources. Work, acceptance, persistence and `earnings.extracted` below
+remain target specifications until Milestone 3. The consumer still uses legacy
+`earnings.validated` 1.0; it does not load the documentation schemas/examples.
 
 ## FilingReady 1.0 — consumer expectations agreed 2026-10-14
 
@@ -104,7 +105,7 @@ the producer's immutable-object contract.
 
 The exact tested local JSON Schema is copied byte-for-byte to
 [earnings_eps_fiscal_v2.schema.json](contracts/earnings_eps_fiscal_v2.schema.json).
-It is a documentation specification, not a runtime integration. Both required
+The isolated extractor loads a byte-exact packaged copy. Both required
 arrays are `reported_diluted_eps` and `adjusted_diluted_eps`; no additional keys.
 Each observation has exactly:
 
@@ -133,13 +134,14 @@ The provider transport schema `openai-fiscal-v2-union-v1` uses the evals
 conditionals with `anyOf` quarterly/annual variants, retain the local schema's
 other fields/constraints, and locally validate against the unchanged full schema.
 Do not silently weaken fiscal checks to satisfy provider schema restrictions.
-Milestone 2 ports and tests this compilation and request settings.
+Milestone 2 implements and tests this compilation and request settings.
 
 ## Configuration and processing record versions
 
-Reserve `eps-openai-luna-v6-v1` for the initial port; freeze it only after Milestone 2
-verifies finite bounds and dependencies. An immutable configuration document must
-include these keys (all names are target specification, not current dataclass fields):
+Milestone 2 freezes `eps-openai-luna-v6-v1` in the isolated extractor's
+`resources/configuration.json`; it is distinct from the legacy configuration
+dataclass. [EXTRACTOR.md](EXTRACTOR.md) specifies its bounds, receipt API and pins.
+An immutable configuration document includes these keys:
 
 | Key | Required content |
 | --- | --- |
@@ -151,9 +153,9 @@ include these keys (all names are target specification, not current dataclass fi
 | `preparation_version`, `preparation_sha256` | `filing-html-text-images-v1` and versioned preparation implementation/inventory digest |
 | `adapter_version`, `sdk_versions` | Traceable adapter version and exact SDK/parser/image dependency versions |
 | `acceptance_policy` | `fiscal-eps-acceptance-v1` |
-| `request_settings` | Tested model request settings, image detail, timeout and SDK retry count; exact fields/values frozen in Milestone 2 |
-| `input_limits` | Supported formats and finite document/source/text/image/encoded-request/token limits selected in Milestone 2 |
-| `persistence_limits` | Finite response/event bounds, reconciled with durable storage in Milestones 2–3 |
+| `request_settings` | Tested request settings, high image detail, 120-second timeout, zero SDK retries; application budgets attempts separately |
+| `input_limits` | Frozen finite limits in configuration and EXTRACTOR; whole-snapshot review, including 64-image cap supporting HON |
+| `persistence_limits` | 2-MiB native response, 64-KiB extracted text; 240-KiB event reservation; durable splitting/enforcement in Milestone 3 |
 
 Use exact strings/integers/booleans/arrays/objects; no floating-point numbers,
 nonfinite numbers or secret values in configuration. Operational destinations,
@@ -316,7 +318,7 @@ has `code` and `stage`; optional fields are omitted when inapplicable, never nul
 Include `artifact_id`/`filename` for member issues, `bound`/`actual`/`limit` for
 bounds, and `path` for response rows. Aggregate violations identify the whole
 snapshot plus contributing member IDs. Numeric limit values are populated from
-Milestone 2's frozen configuration, not invented here. Diagnostics contain no
+the frozen configuration. Diagnostics contain no
 credentials/provider error-body text. Preserve raw response separately.
 
 | Code | Stage / outcome / recovery |
