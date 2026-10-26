@@ -4,7 +4,7 @@
   "stack_name": "finbot-earnings-prod",
   "filing_topic_arn": "arn:aws:sns:us-east-1:559007813222:finbot-prod-filing-ready",
   "source_bucket": "finbot-prod-state-artifacts82dd59a1-8gt63rcgmaua",
-  "consumption_enabled": false,
+  "consumption_enabled": true,
   "fiscal_config_sha256": "e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097",
   "openai_secret_name": "finbot-earnings-prod/openai-project-key",
   "alarm_email": "ilancooke@gmail.com"

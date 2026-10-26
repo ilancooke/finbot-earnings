@@ -129,7 +129,7 @@ with this in Milestones 3/6.
 
 Pins in `pyproject.toml` and the config: OpenAI 2.54.0, httpx 0.28.1, html5lib 1.1,
 webencodings 0.6.1, six 1.17.0, Pillow 12.3.0 and jsonschema 4.26.0.
-Milestone 6 now pins and verifies the fiscal Linux dependency bundle; deployment
+Milestone 6 now pins and verifies the fiscal Linux dependency bundle; the disabled deployment/direct smoke have passed and protected activation
 remains pending. See [AWS_RUNTIME.md](AWS_RUNTIME.md). The 2-MiB response plus byte-exact body/manifest/config
 **will not fit one DynamoDB item**. Milestone 3 implements bounded immutable chunk splitting and atomic pointer/
 outcome/event commits in the new stores; see OFFLINE_PROCESSING. It enforces the
@@ -165,5 +165,5 @@ predictions, scores or shared files were changed. Milestone 5 completed the broa
 requests match the independent reference after only equivalent timestamp spelling
 in 37 contexts, and all saved native responses/83 observations pass unchanged.
 The verified token-estimate maximum is 546,849 with canonical timestamps. Live
-Linux packaging/parity pass offline; provider readiness and enabled queue-triggered
-delivery remain Milestone 6.
+Linux packaging/parity pass offline; initial provider access/direct delivery are verified; enabled queue-triggered
+delivery remains Milestone 6.

@@ -1,13 +1,16 @@
 # Reviewed release and initial activation
 
-Milestone 6 is **in progress**, updated 2026-10-26. Release access and protected
-GitHub setup are complete. The first disabled deployment rolled back after Lambda
-rejected its concurrency reservation. The source now omits the reservation and
-keeps SQS maximum concurrency two. Resume with a new reviewed release and a
-retained-resource recovery plan. All commands run from `finbot-earnings`. Never put
-provider credentials in command arguments, chat, workflow inputs or release evidence.
+Milestone 6 is **in progress**, updated 2026-10-26. Recovery/import and protected
+disabled deployment succeeded. Credential access, confirmed alarm-topic email,
+genuine HON extraction/persistence/publication and output SQS receipt are verified.
+The source now prepares consumption=true; the deployed queue trigger remains
+Disabled until a new protected release is approved/applied. Next is exact main CI,
+reviewed activation diff, enabled mapping and fresh queue-triggered EPS proof.
+[RELEASE_EVIDENCE.md](RELEASE_EVIDENCE.md) records exact releases/resources, smoke
+usage/cost/timings, backlog and provider limits. All commands run from this package.
+Keep provider credential values out of commands, chat, Git and release evidence.
 
-## Deployment attempt and concurrency decision — 2026-10-26
+## Historical failed attempt and concurrency decision — 2026-10-26
 
 The user deployed `finbot-earnings-release-access` successfully, stack ARN
 `arn:aws:cloudformation:us-east-1:559007813222:stack/finbot-earnings-release-access/243ad4e0-d145-11f1-83ab-0affd46b34d1`.
@@ -51,10 +54,9 @@ new protected release can succeed. Do not silently delete retained resources to
 avoid name collisions. Reconfirm the final alarm subscription after successful
 recovery rather than relying on the first attempt's email.
 
-Next: review/merge the no-reservation source fix, wait for successful main CI, then
-inspect the failed stack's retained logical/physical resource IDs and plan recovery
-before dispatching another protected deployment. Cloud recovery remains an operator
-step; no stack/resource deletion or import is authorized by this source edit.
+The subsequent reviewed import and protected disabled deployment completed this
+recovery. See RELEASE_EVIDENCE for the recovered stack, artifact and output IDs.
+The following initial inspection/setup notes are historical reference.
 
 ## Observed prerequisites
 
@@ -161,7 +163,7 @@ Lambda alias/version. First release must have `consumption_enabled=false`.
 ## Disabled deployment and secure provider setup
 
 After protected deployment, record actual stack outputs and verify the event source
-mapping is disabled. The retained empty secret is named
+mapping is disabled. The dedicated secret is named
 `finbot-earnings-prod/openai-project-key`; its full ARN is `OpenAISecretArn`.
 The AWS owner opens that exact secret in Secrets Manager, chooses a new secret
 value in **plaintext**, and securely supplies the dedicated OpenAI project key as
@@ -171,17 +173,18 @@ retrieve or print it for inspection. Runtime GetSecretValue access is tested thr
 the controlled worker check. Use the same secure console flow for rotation.
 
 The provider owner verifies project model access, funding and rate limits in the
-OpenAI UI. Concurrency starts at two; ensure RPM/TPM accommodate two complete
-requests and the actual issuer volume. Account limits have not been verified.
-Funding is user-managed. API tests share **USD 5 cumulatively**; no live calls have
-been made. Before each test reserve a conservative cost estimate including image
+OpenAI UI. SQS concurrency starts at two. The user reports 2M TPM, 5,000 RPM and 50,000 IPM
+for gpt-6-luna; the measured direct smoke fits these limits. Monitor actual issuer
+traffic and shared organization/project usage as described in RELEASE_EVIDENCE.
+Funding is user-managed. API tests share **USD 5 cumulatively**; one direct smoke used an estimated
+USD 0.007492175, with USD 4.992507825 estimated allowance remaining and no unknown usage. Before each test reserve a conservative cost estimate including image
 input/output and any remaining retry attempts. Inspect exact usage and reconcile
 unknown attempts before further dispatch; stop conservatively within the allowance.
 No application spend cap or spend alerts exist.
 
 The user confirms the SNS email to `ilancooke@gmail.com`. Verify the subscription
 ARN is confirmed, then test the alarm notification path with an authorized SNS
-publish and record receipt. An email subscription definition alone proves neither.
+publish and record receipt. The current subscription and successful topic-test receipt are recorded in RELEASE_EVIDENCE.
 
 Use actual outputs to set the operator environment: `AWS_REGION=us-east-1`,
 `EARNINGS_TABLE_NAME`, `EARNINGS_SOURCE_BUCKET`, `EARNINGS_TOPIC_ARN`,

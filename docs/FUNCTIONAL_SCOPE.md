@@ -1,11 +1,11 @@
 # finbot-earnings functional scope
 
-Updated 2026-10-25 through Milestone 3. The fiscal consumer, acceptance,
-immutable storage/events, recovery and operator CLI now implement this approved
-scope offline. Fiscal packaging/infrastructure is prepared locally; protected deployment remains
-Milestone 6. Legacy
-Milestone 4 removes Nova processing, the NVDA POC and the local evaluator. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and
-[AWS_RUNTIME.md](AWS_RUNTIME.md) distinguish current code from this target.
+Updated 2026-10-26 during Milestone 6. Fiscal consumer/storage/publication and
+operator inspection are deployed in a disabled rollout and passed a genuine-filing
+smoke with output SQS receipt. Protected activation and queue-triggered proof remain
+pending. Milestone 4 removed Nova processing, the NVDA POC and local evaluator.
+[OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and [AWS_RUNTIME.md](AWS_RUNTIME.md)
+distinguish implemented behavior from release state.
 [ROADMAP.md](../ROADMAP.md) governs the migration and approved D01–D12 decisions;
 [CONTRACTS.md](CONTRACTS.md) specifies exact fields, schemas and identity.
 

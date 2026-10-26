@@ -1,19 +1,18 @@
 # AWS runtime and release setup
 
-Updated 2026-10-26 during **Milestone 6, in progress**. Fiscal CDK settings,
-scoped IAM, pinned Linux bundle, target-container verification, inspection queue,
-email/operational alarms and release-access templates are implemented locally.
-The initial disabled deployment on 2026-10-26 failed to create the worker because
-the account cannot allocate its two reserved executions. The stack is
-ROLLBACK_COMPLETE with retained resources. The user chose no Lambda reservation;
-the source now uses shared account capacity and keeps SQS maximum concurrency two.
-Recovery/deployment, secret population, provider readiness, confirmed email and
-enabled delivery remain pending.
-Follow [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md) for observed state and exact resume steps.
+Updated 2026-10-26 during **Milestone 6, in progress**. The recovered production
+stack is deployed with its SQS trigger disabled; a genuine complete-filing smoke
+passed with accepted EPS, persisted usage/receipt and inspection SQS delivery.
+Secret access and confirmed alarm-topic email are verified. Source consumption=true
+is prepared for a protected activation release. Actual enabled SQS-triggered proof
+and duplicate verification remain outstanding. Exact resource/release/usage/timing
+identities are in [RELEASE_EVIDENCE.md](RELEASE_EVIDENCE.md); procedures are in
+[RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
 
-[Production parity evidence](PRODUCTION_PARITY.md) includes 50 saved request/output
-replays through the exact Python 3.13 Linux asset, preserving all 189 members and
-83 observations. No paid calls were made; USD 5 remains cumulatively.
+[Production parity evidence](PRODUCTION_PARITY.md) retains the 50 saved request/output
+Linux replays and 189 members/83 observations. That offline comparison cost USD 0.
+The live smoke estimated USD 0.007492175; USD 4.992507825 of the shared test allowance
+remains, with no unknown usage.
 
 ## Implemented fiscal entry point
 
@@ -30,7 +29,7 @@ The dedicated secret is resolved only for a reserved extraction attempt through
 the plain OpenAI project credential**, not JSON. The provider client is scoped to
 that attempt, so redrive sees a rotated key. Credential values never enter config,
 receipts, errors or logs. Inspection/duplicate/publication recovery does not fetch
-the secret. CDK scopes runtime permission to that exact secret ARN; secure population remains pending.
+the secret. CDK scopes runtime permission to that exact secret ARN; secure population and runtime retrieval are verified by the direct smoke.
 
 | Environment variable | Fiscal source runtime contract |
 | --- | --- |
@@ -46,8 +45,8 @@ the secret. CDK scopes runtime permission to that exact secret ARN; secure popul
 Current frozen config `eps-openai-luna-v6-v1` digest:
 `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
 The fiscal path does not interpret legacy `EARNINGS_EXTRACTION_CONFIG` as its
-configuration. CDK now supplies the digest and dedicated secret ARN. Actual
-provider quotas/access remain unverified until the controlled release checks.
+configuration. CDK now supplies the digest and dedicated secret ARN. The direct smoke verifies provider access; user-reported model limits and
+activation readiness are recorded in RELEASE_EVIDENCE.
 
 ## Storage, formats, recovery and operations
 
@@ -81,10 +80,10 @@ have no valid work identity: safe handler diagnostics and the queue/DLQ retain t
 Read-only `earnings-ops inspect/event/list` uses table access without provider secret
 access. `retry` and `reprocess --run-id ...` can incur charges/publish; `output` peeks
 SQS without deletion. See exact commands and caveats in OFFLINE_PROCESSING. Output
-inspection retains queue send time separately from view time. The output queue and operator policies are defined locally, pending deployment. Timing records include receipt stages, first-claim
+inspection retains queue send time separately from view time. The output queue/operator policies are deployed and direct-smoke receipt is verified. Timing records include receipt stages, first-claim
 and outcome checkpoints, publication attempt count/start/ack, readiness-to-ack and
 last publication duration. Handler logs additionally record queue delay and invocation/processing timing;
-nine alarms are defined in CDK, pending live verification. Separate catch-up delay from fresh steady-state latency; do not infer
+nine alarms are deployed; the confirmed SNS email path was tested successfully. Separate catch-up delay from fresh steady-state latency; do not infer
 discovery time from SEC `filed_at`.
 
 ## Local release implementation
@@ -118,10 +117,11 @@ can delay processing when that pool is exhausted. Other invocation paths do not
 inherit the SQS cap. Removing the reservation does not mean setting it to zero,
 which would throttle all worker invocations.
 The 360-second work lease exceeds invocation timeout. These are initial bounded
-settings, pending actual provider RPM/TPM/traffic checks before activation. Do not
+settings. The user reports 2M TPM and 5,000 RPM for the chosen model; the
+observed complete smoke is within these limits. Real traffic will guide tuning. Do not
 claim a verified throughput estimate. Alarms cover work/input-delivery/output-delivery
 DLQs, SNS output delivery failure, input age, worker errors/throttles and caught
-processing failures. The email subscription requires user confirmation and a test.
+processing failures. The email subscription is confirmed and its controlled topic test was received.
 No spending alarms, caps or application funding automation are implemented.
 
 ## Packaging and release verification
@@ -150,6 +150,6 @@ GitHub immutable subject; it does not change producer access or apply itself.
 First deployment starts disabled, then secret/provider/email checks and controlled
 smoke precede backlog review and a protected enabled release. Routine updates preserve
 consumption state. A completed milestone requires enabled SQS-triggered extraction
-and actual inspection receipt. Deployment has not happened. Exact prerequisites,
+and actual inspection receipt. The disabled deployment and direct smoke have succeeded; activation remains pending. Exact prerequisites,
 operator commands, secure setup, replay, pause and rollback are in the
 [release runbook](RELEASE_RUNBOOK.md).

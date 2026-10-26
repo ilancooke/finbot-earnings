@@ -173,8 +173,8 @@ confirming that the complete saved snapshot is supported by the selected configu
 repeat the same messages, increments receive count, and may return fewer than the
 requested limit. It reports SQS `SentTimestamp` separately from the inspected SNS
 body; this is not a permanent archive or a claim of subscriber processing time.
-The inspection queue and unattached operator IAM policies are defined in CDK;
-deployment/setup remain Milestone 6. See [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
+The inspection queue and operator policies are deployed; direct-smoke inspection
+is verified. Protected activation and queue-triggered proof remain Milestone 6. See [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
 
 Timing provenance includes first claim/readiness delay, reservations, receipt-save
 and outcome timestamps, receipt preparation/extraction durations, last publication

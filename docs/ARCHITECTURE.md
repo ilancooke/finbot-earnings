@@ -1,9 +1,10 @@
 # finbot-earnings target architecture and processing behavior
 
-Updated 2026-10-25 through Milestone 4. Fiscal consumer, acceptance, stores,
-publication recovery and CLI are implemented offline. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md)
-and [AWS_RUNTIME.md](AWS_RUNTIME.md) document source behavior and pending
-packaging/infrastructure release. Read-only inspection finds no earnings stack deployed; see the release runbook.
+Updated 2026-10-26 during Milestone 6. Fiscal consumer, stores, publication and CLI
+are deployed in the initial disabled rollout and passed a genuine-filing direct
+smoke with output SQS receipt. Source activation is prepared; actual enabled
+queue-triggered proof remains pending. [AWS_RUNTIME.md](AWS_RUNTIME.md) and
+[release evidence](RELEASE_EVIDENCE.md) distinguish source settings from live state.
 [FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md) owns scope, [V0_DECISIONS.md](V0_DECISIONS.md)
 acceptance, [CONTRACTS.md](CONTRACTS.md) fields/identity, and [ROADMAP.md](../ROADMAP.md)
 sequence and approvals.

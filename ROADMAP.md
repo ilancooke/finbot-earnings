@@ -55,41 +55,49 @@ Suggested new-session instruction:
 
 ## Current checkpoint
 
-- Date: 2026-10-26. Milestones **1–5 complete; 6 in progress**. Release access is
-  set up; the first disabled application deployment rolled back. Resume M6 only.
-- Repository: `main`, initially clean at `43b7aab673bed212b9283bcf6eae35b59ed384bd`
-  (merged release preparation). Current uncommitted fix removes the Lambda function
-  reservation, keeps SQS maximum concurrency two, and updates its assertion/docs.
-  No extractor/runtime/dependency/identity change. See the
-  [latest handoff](#milestone-6--in-progress--2026-10-26).
-- User-completed setup: release-access stack and plan/deploy roles created; role
-  variables configured; GitHub production requires reviewer `ilancooke` and branch
-  main. Exact role/stack ARNs and rule ID are in RELEASE_RUNBOOK. The user runs
-  cloud/GitHub mutation commands step by step and pastes their output.
-- Release: successful main CI `40330825407` for `43b7aab...`; protected Deploy
-  `40393601425` had clean source, matching frozen fiscal config, consumption false
-  and only resource additions. User approved it. Lambda creation failed because
-  reserving two executions left fewer than the account's required 10 unreserved.
-  Actual regional total/unreserved limits are **10 / 10** from user CLI output.
-- Stack: `finbot-earnings-prod` is **ROLLBACK_COMPLETE**, termination protection true.
-  Rollback retained table, five queues, secret and log group. Worker never became
-  available. Policies/subscriptions/topics rolled back; pending alarm email was
-  detached. Inventory retained IDs and plan preservation/import before retrying.
-- Decision: on 2026-10-26 the user chose **no Lambda reservation** to simplify the
-  setup. Shared account capacity can delay earnings under contention; the SQS
-  source remains capped at two concurrent invocations. This does not mean reserve
-  zero. No quota-increase request or cloud concurrency edit was made.
-- Verification: **180 offline tests**, compilation, strict offline CDK synthesis,
-  documentation/contracts/links and diff checks pass. Synthesized worker has no
-  ReservedConcurrentExecutions property; the SQS maximum stays two. Frozen fiscal
-  directory/dependencies remain unchanged, so prior 50-case Linux parity applies.
-- Next action: review/merge this fix and wait for a new exact successful main CI
-  artifact. Continue guided read-only inventory of the rolled-back stack and its
-  retained resources, then review a recovery plan before any destructive/import
-  action or protected redeployment. After recovery: secure provider setup, confirmed
-  alarm email, budgeted smoke, backlog review, enabled release and real SQS EPS receipt.
-- API ledger: previous USD 5, spent USD 0, no new unknown usage,
-  **USD 5 remaining cumulatively**. No live inference or shared-data/catalog change.
+- Date: 2026-10-26. Milestones **1–5 complete; 6 in progress**. Recovery and the
+  disabled release/direct smoke passed. Source activation is prepared, not deployed.
+- Repository: clean starting `main` at `829d1a98a36e36e68cac6b8f3939b0f29fc584f7`.
+  Current uncommitted changes set consumption_enabled=true, assert the activated
+  default while retaining explicit-pause coverage, and reconcile release/evidence
+  docs. No extractor/runtime/dependency/identity change. The user commits/pushes
+  directly to main and runs cloud/GitHub mutation commands step by step.
+- Recovery: the failed stack record was removed while preserving all eight Retain
+  resources. Reviewed import completed; recovered stack
+  `finbot-earnings-prod/936a6ac0-d180-11f1-a965-12ffd3ec13f5`, termination protection
+  true. Protected Deploy **40402075873** succeeded from successful main CI
+  **40397320222** for `829d1a9...`. Exact release/artifact/resource identities are in
+  [RELEASE_EVIDENCE.md](docs/RELEASE_EVIDENCE.md).
+- Actual deployed state: production alias version **1**, SQS mapping
+  `7d94af68-1f22-4d3b-b9e9-aac774412007` **Disabled**, batch one, source maximum two,
+  no Lambda reservation. The next protected release must enable this mapping;
+  routine updates retain enabled consumption. Source true is not live activation.
+- Setup: dedicated secret AWSCURRENT populated securely, runtime secret/source/
+  provider access verified. Alarm email confirmed and controlled SNS test received.
+  User-reported model limits: 2M TPM, 5,000 RPM, 50,000 IPM and 20M TPD as displayed.
+  SQS counts visible/in-flight/delayed were **0/0/0** before activation preparation;
+  no retained catch-up work/cost observed. Recheck for arrivals before approval.
+- Smoke: genuine HON filing `0000773840-26-000143`, all **35** selected originals
+  including **34 images**, accepted reported USD **2.08**, FY2026 Q3; adjusted empty.
+  Work/event suffix `ea14fccac9f3736edbef289158d689af195b5f818f822c744096800011ac87d2`.
+  One provider attempt and publication; SNS acknowledgment and actual inspection
+  SQS receipt verified. This synchronous operator replay does **not** prove the
+  enabled queue trigger. Persisted receipt/full IDs/usage/timings are in the evidence.
+- Verification: **180 tests** pass, compilation and strict offline CDK synthesis
+  pass. Template comparison finds only mapping Enabled=false to true and its
+  ConsumptionEnabled output false to true. Resource identities/settings, no-reserve
+  policy and frozen fiscal bytes/pins/digest remain unchanged; prior Linux parity
+  applies. Explicit pause still preserves stateful resources.
+- API ledger: 59,518 input tokens (59,515 cache write + 3 ordinary), 105 output,
+  complete usage, estimated spend **USD 0.007492175**; estimated remaining
+  **USD 4.992507825**, no unknown attempts. Provider UI displayed USD 0.01 decrease.
+  This estimate is separate from the invoice and user-managed production funding.
+- Next action: user reviews/commits/pushes activation to main, waits for exact
+  successful CI, reviews the prepared diff and approves the protected enabled
+  release. Recheck backlog, verify actual Enabled state, then prove fresh genuine
+  queue-triggered EPS extraction/output receipt and duplicate reuse. Record final
+  deployed identities and cumulative usage, mark M6 complete only after those pass.
+  Latest [handoff](#milestone-6--in-progress--activation-prepared--2026-10-26).
 
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
@@ -103,7 +111,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
 | 5 — Production parity evidence | Complete | Milestone 4 complete | [2026-10-25 completion](#milestone-5--complete--2026-10-25) |
-| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [2026-10-26 handoff](#milestone-6--in-progress--2026-10-26) |
+| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [Activation handoff](#milestone-6--in-progress--activation-prepared--2026-10-26) |
 
 Use Not started, In progress, or Complete. Put a link to the durable completion
 record in the final column when complete. Keep this table and README in sync.
@@ -378,32 +386,31 @@ approval. Do local preparation before requesting approval of a concrete release.
   Prepare any missing bootstrap/operator setup as concrete reviewed work.
 - [x] Complete operator instructions for secret setup, alert confirmation,
   inspection, retry/redrive, new runs, pause and rollback.
-- [ ] Run offline checks, package build, Lambda asset build, CDK synthesis and
+- [x] Run offline checks, package build, Lambda asset build, CDK synthesis and
   release-manifest verification. Rebuild assets after source/dependency changes.
   Use the exact successful-CI artifact and its visible infrastructure diff.
   If packaging/dependency changes affect extraction behavior, update Milestone 5's
   parity evidence and perform the required verification before seeking approval.
 
-Preparation status: local builds/syntheses and payload verification pass. The
-last 6.1 checkbox remains open because the exact successful-CI artifact/reviewed
-cloud diff must follow an authorized commit/push and external setup. Checked setup
-tasks mean definitions/instructions/read-only checks, not provisioned resources or
-confirmed runtime access. See the M6 handoff and release runbook.
+Preparation status: exact successful-CI artifact checks and protected disabled
+release passed in Deploy 40402075873. Setup, recovery and real direct-smoke evidence
+are in RELEASE_EVIDENCE. Activation preparation has its own uncommitted source
+change and must use new exact main CI/protected approval.
 
 ### 6.2 First deployment, with consumption disabled
 
-- [ ] Obtain the release's required GitHub production approval, then deploy the
+- [x] Obtain the release's required GitHub production approval, then deploy the
   reviewed artifact with consumption disabled. Record the release/commit, artifact
   identity, actual stack outputs, alias/version, resource ARNs and consumption state.
-- [ ] Securely populate the new secret and verify runtime access/provider readiness.
+- [x] Securely populate the new secret and verify runtime access/provider readiness.
   The user confirms the alarm email subscription; verify the alert path.
-- [ ] Perform a controlled real-filing worker/integration smoke check within the
+- [x] Perform a controlled real-filing worker/integration smoke check within the
   remaining API test allowance and inspect the persisted result/output receipt.
   This direct check does not by itself verify the SQS trigger or complete Milestone 6.
 
 ### 6.3 Activate and prove queue-triggered delivery
 
-- [ ] Inspect and record input backlog size/age and estimated catch-up time/usage.
+- [x] Inspect and record input backlog size/age and estimated catch-up time/usage.
   Apply D09b: process all retained notifications, do not silently purge or skip
   them, and resolve readiness/funding concerns with the operator before enablement.
 - [ ] Prepare the enabled configuration, successful-CI artifact and reviewed
@@ -1194,6 +1201,85 @@ Use this template (include actual paths/values, not just "tests passed"):
   artifact or delete retained operational state. After recovery, continue secret/
   provider/email checks, budgeted smoke/backlog assessment and protected enabled
   SQS-triggered EPS receipt proof. No later milestone or live recovery is complete.
+
+
+### Milestone 6 — in progress — activation prepared — 2026-10-26
+
+- Scope: recovered the failed first deployment through reviewed import of all
+  eight retained resources; protected disabled release, secure key population,
+  confirmed/tested email, real deployed HON smoke and actual inspection SQS receipt
+  are verified. This session prepares consumption=true for protected activation;
+  **M6 is not complete** until fresh enabled queue-triggered EPS and duplicate reuse
+  are proven. No later milestone started.
+- Source: initially clean main `829d1a98a36e36e68cac6b8f3939b0f29fc584f7`. Current
+  uncommitted edits in `infra/cdk/config.prod.json`, `tests/test_earnings_infra.py`,
+  `README.md`, `ROADMAP.md`, `docs/{AWS_RUNTIME,ARCHITECTURE,FUNCTIONAL_SCOPE,OFFLINE_PROCESSING,EXTRACTOR,RELEASE_RUNBOOK}.md`
+  and new `docs/RELEASE_EVIDENCE.md`. User uses direct main commit/push. No provider
+  credential, generated dataset, operational JSON or ignored build helper is staged.
+- Actual live state: user-executed import change set contained eight Import actions,
+  then IMPORT_COMPLETE with termination protection true. New recovered stack ARN,
+  original survivor IDs and import change-set ARN are in RELEASE_EVIDENCE. Main CI
+  40397320222 produced the exact artifact for user-approved Deploy 40402075873,
+  which succeeded with source clean and consumption disabled. Asset SHA-256
+  `e8e970ffa074829acd9b61e13610d01c9341d22728a049bbf14252ec66da7201`, assembly
+  `18ca13a6a2e3d6c03e2f7414efe751b1a770016ec3ba564f80456a6772b16a9d`.
+  Production alias version 1; actual queue mapping Disabled, batch 1, max 2,
+  no function reservation. All AWS mutations were performed explicitly by the
+  user from reviewed commands; AWS MCP was documentation/read-only inspection.
+- Secure setup/alerts: secret name/ARN/AWSCURRENT version only recorded in evidence;
+  hidden prompt sent the plain key directly to its dedicated secret. Runtime
+  inference proves retrieval/access. Alarm email subscription confirmed and user
+  received controlled topic test `283917a8-4c83-5958-b264-74f1853004a4`. This is
+  SNS/email path evidence; no synthetic CloudWatch alarm transition was induced.
+- Real smoke: unchanged genuine producer FilingReady for HON
+  `0000773840-26-000143`, snapshot
+  `5e2356665a6b6d326eb81852e4d53fca331430c67ddfdfeb53be502d9cf9193e`;
+  all 35 original selected members/34 JPEGs read. Operator direct RequestResponse
+  invocation returned 200/no FunctionError/version 1/empty batch failures. Accepted
+  reported diluted EPS USD 2.08, FY2026 Q3, adjusted empty. One attempt/publication.
+  Exact work/event IDs, durable outcome/native receipt/usage, SNS acknowledgment,
+  output SQS ID/SentTimestamp and inspection time are in RELEASE_EVIDENCE. Repeated
+  zero-visibility reads have the same SQS message ID; do not count them as new
+  inference/publications. This is not yet actual SQS event-source execution proof.
+- Timings: preparation 5,219 ms, extraction 6,524 ms, successful extractor total
+  11,743 ms, first claim to publication acknowledgment 12.277659 seconds,
+  last publication 109 ms. Readiness is a genuine four-day-old stored snapshot;
+  its 371,235,021-ms ready-to-ack interval is explicit replay age, not normal queue
+  delay. Missing discovery/initial receive times are not invented.
+- Budget: prior USD 5; complete receipt 59,518 input tokens (59,515 30m cache write,
+  3 ordinary) plus 105 output (47 reasoning included). GPT-6 Luna published pricing
+  checked 2026-10-26 yields estimated **USD 0.007492175**, remaining estimated
+  **USD 4.992507825**, no unknown attempts. User billing UI showed USD 0.01 decrease.
+  The proposed USD 0.50 test buffer is released after reconciliation. No repeated
+  paid campaign/failure experiments. Normal production funding remains user-managed.
+- Readiness: input visible/in-flight/delayed counts 0/0/0; no observed backlog or
+  catch-up work/cost, age inapplicable to empty queue. Recheck before activation.
+  User reports model limits 2M TPM / 5,000 RPM / 50,000 IPM / 20M TPD as displayed.
+  Measured HON-sized processing at two workers implies about 0.58M input TPM,
+  below reported TPM, without guaranteeing every supported input or shared load.
+- Verification: `.venv/bin/python -m pytest` passes **180 tests** (8.84 seconds);
+  `.venv/bin/python -m compileall -q src tests infra scripts` passes;
+  `JSII_RUNTIME_PACKAGE_CACHE=/tmp/finbot-earnings-jsii CDK_DISABLE_CLI_TELEMETRY=1 node_modules/.bin/cdk synth --strict --no-lookups --output build/activation-review`
+  passes offline. Inline comparison with `build/no-reservation-review` finds only
+  mapping Enabled false-to-true and ConsumptionEnabled output false-to-true.
+  All logical IDs/other resources/settings are identical and no reservation appears.
+  Explicit-pause test verifies disabled mapping while preserving stateful identities.
+  `git diff --exit-code -- src requirements-lambda.txt pyproject.toml`, dependency
+  consistency, docs/contracts schema/examples/identity/local-link checks and
+  `git diff --check` pass. Runtime/assets are unchanged; new main CI rebuilds the
+  release as usual. No new parity rerun or provider behavior change is needed.
+- Documentation/handoff: current checkpoint/table/M6 boxes, README/runtime/runbook
+  and scope references distinguish prepared source true from actual live Disabled.
+  RELEASE_EVIDENCE is the durable curated deployment/smoke/usage record; ignored
+  build/recovery helpers/data remain local operator aids.
+- Next: user reviews/commits/pushes these activation changes directly to main,
+  waits for new successful CI, reviews exact artifact/diff and backlog, then uses
+  required GitHub production approval. Confirm actual Enabled state. Prefer a new
+  real producer notification, or explicitly submit a different genuine complete
+  stored snapshot with no existing work, for fresh EPS extraction/output receipt.
+  Sending the already completed HON snapshot only proves duplicate reuse. Verify
+  both, reconcile further test usage and final deployed state, update docs and only
+  then mark M6 complete. No live activation has been performed by this source edit.
 
 
 ## Reference sources and implementation constraints

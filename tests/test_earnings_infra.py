@@ -31,7 +31,7 @@ def template(tmp_path):
 
 def test_queue_subscription_alias_and_limits(template):
     template.has_resource_properties("AWS::Lambda::EventSourceMapping", {
-        "BatchSize": 1, "Enabled": False, "FunctionResponseTypes": ["ReportBatchItemFailures"],
+        "BatchSize": 1, "Enabled": True, "FunctionResponseTypes": ["ReportBatchItemFailures"],
         "ScalingConfig": {"MaximumConcurrency": 2}, "FunctionName": {"Fn::Join": ["", Match.array_with([":production"])]}})
     template.has_resource_properties("AWS::Lambda::Function", {
         "Runtime": "python3.13", "Architectures": ["x86_64"], "Timeout": 300,
@@ -100,17 +100,17 @@ def test_invalid_activation_or_permissions_rejected(tmp_path, change):
         Settings.load(path)
 
 
-def test_enabled_update_preserves_resource_identity(tmp_path, template):
-    app = App(outdir=str(tmp_path / "enabled"))
-    settings = replace(Settings.load(CONFIG), consumption_enabled=True)
+def test_deliberate_pause_preserves_resource_identity(tmp_path, template):
+    app = App(outdir=str(tmp_path / "paused"))
+    settings = replace(Settings.load(CONFIG), consumption_enabled=False)
     asset = tmp_path / "code"
     asset.mkdir()
     (asset / "handler.py").write_text("# fixture")
-    enabled = Template.from_stack(EarningsStack(app, settings.stack_name, settings=settings, asset_path=asset,
+    paused = Template.from_stack(EarningsStack(app, settings.stack_name, settings=settings, asset_path=asset,
         env=Environment(account=settings.account, region=settings.region)))
-    enabled.has_resource_properties("AWS::Lambda::EventSourceMapping", {"Enabled": True})
+    paused.has_resource_properties("AWS::Lambda::EventSourceMapping", {"Enabled": False})
     for kind in ("AWS::DynamoDB::Table", "AWS::SQS::Queue", "AWS::SNS::Topic", "AWS::SecretsManager::Secret"):
-        assert enabled.find_resources(kind) == template.find_resources(kind)
+        assert paused.find_resources(kind) == template.find_resources(kind)
 
 
 def test_empty_secret_operator_access_and_alarm_subscription(template):
@@ -129,9 +129,9 @@ def test_empty_secret_operator_access_and_alarm_subscription(template):
     template.has_resource_properties("AWS::SQS::Queue", {"QueueName": "finbot-earnings-prod-output", "MessageRetentionPeriod": 1209600})
 
 
-def test_committed_fiscal_configuration_starts_disabled(template):
+def test_committed_fiscal_configuration_preserves_enabled_consumption(template):
     settings = Settings.load(CONFIG)
-    assert not settings.consumption_enabled
+    assert settings.consumption_enabled
     worker = next(iter(template.find_resources("AWS::Lambda::Function").values()))["Properties"]
     env = worker["Environment"]["Variables"]
     assert env["EARNINGS_FISCAL_CONFIG_SHA256"] == settings.fiscal_config_sha256
