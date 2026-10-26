@@ -1,10 +1,11 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **Milestones 1–4 are complete.** The fiscal filing
+Status updated 2026-10-25: **Milestones 1–5 are complete.** The fiscal filing
 consumer, acceptance, filing-specific storage, publication recovery, Lambda source
 wiring, offline demo and operator CLI are implemented. Superseded acquisition,
 extraction and earnings-local evaluation paths have been removed.
-Next is **Milestone 5 — production parity evidence** in [ROADMAP.md](ROADMAP.md).
+Production parity is recorded in [PRODUCTION_PARITY.md](docs/PRODUCTION_PARITY.md).
+Next is **Milestone 6 — reviewed release and activation** in [ROADMAP.md](ROADMAP.md).
 Each milestone is intended for a separate agentic session.
 
 This package consumes complete stored FilingReady snapshots from `finbot-filings`,
@@ -17,7 +18,7 @@ and golden-data review belong to `finbot-filing-evals`.
 
 | Area | Implemented now | Remaining work |
 | --- | --- | --- |
-| Filing processing | `FiscalConsumer`: frozen direct OpenAI `gpt-6-luna` v6 extractor, schema/business acceptance, complete snapshot provenance | Milestone 5 verifies production-port parity evidence |
+| Filing processing | `FiscalConsumer`: frozen direct OpenAI `gpt-6-luna` v6 extractor, schema/business acceptance, complete snapshot provenance; 50-case offline port parity verified | Milestone 6 verifies live processing and delivery |
 | Output | `earnings.extracted` / `1.0`, immutable per snapshot/config/run, EPS arrays directly in event | Live delivery verification in Milestone 6 |
 | Storage/recovery | SQLite and DynamoDB version-2 adapters, bounded receipt chunks, status queries, fenced writes, durable attempts, identical saved-payload recovery | Inspect actual stored cloud state before release |
 | AWS source wiring | SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Milestone 6 updates old CDK config, Linux dependencies, IAM, secret, inspection queue and alarms |
@@ -43,7 +44,7 @@ verify its exit criteria, update both documents and append the handoff, then sto
 | 2 | Implement tested extractor behind transition boundary | Complete |
 | 3 | Integrate acceptance, filing-specific persistence, publication and CLI | Complete |
 | 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Complete |
-| 5 | Verify production port against existing quality evidence | Not started |
+| 5 | Verify production port against existing quality evidence | Complete |
 | 6 | Prepare reviewed release, deploy and activate | Not started |
 
 ## Processing and limitations
@@ -110,7 +111,18 @@ HTTP: two mocked calls produce an accepted event and a separate empty run;
 a duplicate is acknowledged without another read/call/send, and mixed HTML/PDF
 is reviewed before inference. Inspect JSON records, `published-events.jsonl` and
 `processing.sqlite3`. No credentials, provider calls or shared-data writes.
-Milestone 4 verification results are recorded in the roadmap completion record.
+Milestone 5 verification results are recorded in the roadmap completion record.
+With the saved baseline available, the read-only parity audit can also be rerun:
+
+```bash
+.venv/bin/python scripts/verify_production_parity.py \
+  --run ../../data/filing-evals/runs/20261023T145725Z-9ff8c84b
+```
+
+It checks saved artifacts and replays all 50 native responses over mocked HTTP;
+no credentials, provider calls, scoring or operational writes. The full offline
+suite passes 176 tests. See the parity document for fingerprints and limitations.
+
 After updating an existing checkout, reinstall with the setup command above to
 refresh entry points and remove the retired `earnings` / `earnings-eval` scripts.
 
@@ -169,8 +181,12 @@ corpora, source artifacts, run results and old processing/event records are pres
 The [experiment report](../finbot-filing-evals/docs/MODEL_EXPERIMENT_REPORT.md)
 records 83/83 fiscal targets and 50/50 exact filings for saved v6 Luna run
 `20261023T145725Z-9ff8c84b`. This is the approved launch baseline on a development
-sample, not held-out/unseen-filing accuracy. Milestone 5 verifies production-port
-parity; no new 20-filing campaign or automatic paid 50-case rerun is required.
+sample, not held-out/unseen-filing accuracy. [Milestone 5 parity evidence](docs/PRODUCTION_PARITY.md)
+verifies all 50 production requests and saved outputs, including 189 selected
+members and 83 observations. Thirty-seven requests differ only in equivalent
+fixed-width timestamp spelling. This is offline compatibility evidence; live
+provider readiness and actual delivery remain Milestone 6. No new 20-filing
+campaign or automatic paid 50-case rerun is required.
 
 Target release: account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`,
 existing producer topic/bucket, new dedicated provider secret, earnings-owned
@@ -182,7 +198,7 @@ Routine updates preserve consumption state. Process all retained queued messages
 no automatic historical S3 backfill. Completion requires a real enabled
 queue-triggered EPS event received in inspection SQS, beyond SNS acknowledgment.
 
-Scoped API tests share USD 5 cumulatively; Milestone 4 used USD 0 and USD 5
+Scoped API tests share USD 5 cumulatively; Milestone 5 used USD 0 and USD 5
 remains. Ongoing funding is user-managed through OpenAI's UI; no app spend cap or
 spend-alert system is implemented.
 
@@ -196,5 +212,6 @@ spend-alert system is implemented.
 | `processing/fiscal_runtime.py`, `lambda_handler.py`, `operator.py`, `demo.py` | AWS wiring, SQS handler, operator CLI and offline demo |
 | `infra/cdk/`, `scripts/`, `.github/workflows/` | Existing Nova build/release assets; finalize for fiscal runtime in Milestone 6 |
 | [ROADMAP.md](ROADMAP.md) | Approved decisions, milestone inputs and durable checkpoint/completion records |
+| [Production parity](docs/PRODUCTION_PARITY.md), `scripts/verify_production_parity.py` | Saved v6 baseline identities, compatible differences and read-only offline replay |
 | [Scope](docs/FUNCTIONAL_SCOPE.md), [decisions](docs/V0_DECISIONS.md), [contracts](docs/CONTRACTS.md), [architecture](docs/ARCHITECTURE.md) | Approved fiscal semantics and implemented boundaries |
 | [Producer FilingReady](../finbot-filings/docs/FILING_READY.md) | Authoritative upstream contract, owned by filings |

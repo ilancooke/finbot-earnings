@@ -1,7 +1,7 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–4
-are complete; Milestones 5–6 have not started.** This document is the durable plan
+Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–5
+are complete; Milestone 6 has not started.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
 in Milestone 1; Milestone 2 adds the frozen extractor; Milestone 3 integrates
@@ -56,43 +56,44 @@ Suggested new-session instruction:
 ## Current checkpoint
 
 - Date: 2026-10-25. All 24 D01–D12 decisions remain approved.
-- Completed: **Milestones 1–4**. See [Milestone 4 record](#milestone-4--complete--2026-10-25).
-  The focused fiscal consumer, stores, publication recovery, Lambda source wiring,
-  demo and operator CLI remain covered after legacy cleanup.
-- Repository: branch `main`, starting clean HEAD `1cd63d2` (Milestone 3 committed).
-  This corrects the previous checkpoint's stale uncommitted-M3 description.
-  Milestone 4 changes are uncommitted; exact paths/groups are listed in its record.
-  No sibling repository or shared operational data was changed.
-- Removed: NVDA watcher, SEC/IR acquisition, old extraction/grouping/latency commands,
-  Nova/canonical runtime/stores, earnings-local evaluator/starter corpus and its
-  instructions, `earnings` / `earnings-eval`, POC config/dependency/assets and
-  Lambda `operation=evaluate` mode. The installed command is **`earnings-ops`**.
-  Historical corpora, sources, runs and stored records are preserved.
-- Retained: shared FilingReady/contracts/errors, S3/SNS adapters, frozen extractor,
-  fiscal consumer/stores, production tests and release tooling. The old extraction
-  configuration validator is now `infra.cdk.settings.LegacyExtractionSettings`,
-  an infrastructure-only bridge until Milestone 6, with no runtime/evaluation path.
+- Completed: **Milestones 1–5**. See [Milestone 5 record](#milestone-5--complete--2026-10-25)
+  and [durable production parity evidence](docs/PRODUCTION_PARITY.md).
+- Repository: branch `main`, initially clean at
+  `e4aac9b0e15d5e10da706faed87b2dab74cd9ef1` (Milestone 4 committed).
+  This corrects the previous checkpoint's stale uncommitted-M4 description.
+  Milestone 5 documentation, reference fingerprints and read-only audit script
+  remain uncommitted; exact paths are in its record. No sibling or shared-data edits.
+- Parity: saved L5 run `20261023T145725Z-9ff8c84b`, reviewed 50-filing fiscal
+  revision `48b0b27aaae67b263b409a98e193dc65c7eeab21f8f717b1de816f5a42db275a`,
+  retains the approved 83/83 targets and 50/50 exact **development-sample** baseline.
+  Independent reference/production SDK captures compare all 50 complete requests;
+  37 differ only by equivalent fixed-width `filed_at` spelling. All 189 members,
+  83 saved observations, native bytes, normalized usage and acceptance pass.
+  Full 353-file saved inventory verified; no rescoring or new model predictions.
+- Compatibility: prompt/schema/preparation/settings and pinned dependencies remain
+  unchanged. Production bounds/strict parsing/retry/persistence differences and the
+  timestamp representation are documented as compatible. No material behavior
+  change or unresolved mismatch required paid parity checks or a new experiment.
 - Version/configuration: fiscal v2 / `earnings.extracted` 1.0 / record 2 /
   `fiscal-eps-acceptance-v1`; frozen `eps-openai-luna-v6-v1` digest remains
   `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`.
-  All frozen extractor module/resource bytes and dependency pins remain unchanged.
-  Storage/identity/retry contracts remain as recorded in Milestone 3.
-- Verification: **176 offline tests** pass, including retained fiscal/recovery/SDK/
-  handler/operator/infra/release coverage, explicit evaluation-request rejection,
-  both-store historical-record preservation and the extracted fiscal demo test.
-  Compilation, wheel/sdist build, all 19 wheel-only module imports, exact 24-file
-  source/resource inventories, installed command/dependency, contract/example/link
-  and diff checks pass. The demo publishes one synthetic event over mocked HTTP.
-- Next session: **Milestone 5 only**. Read its inputs and this completion record;
-  compare the focused production port with the saved v6 50-filing experiment and
-  write durable parity evidence. No parity campaign or release work was started here.
-- Release boundary: old CDK config/permissions and incomplete Linux dependency
-  manifest still require Milestone 6 changes; **do not deploy them as fiscal-ready**.
-  The lazy handler-import check is not full provider/native-decoder verification.
-  Consumption is disabled in source; actual cloud/GitHub state remains unverified.
-  Packaging/IAM/secret/inspection queue/alarms and reviewed activation remain M6.
-- API ledger: previous USD 5, spent USD 0, no unknown usage introduced,
-  **USD 5 remaining** cumulatively. No provider or AWS/GitHub calls this session.
+  All application source, frozen resources, pins, packaging/infra and workflows
+  remain unchanged from committed M4. Source/release identities are in the evidence.
+- Verification: **176 offline tests** pass; compilation, dependency consistency,
+  contract/example/local-link and diff checks pass. The opt-in parity audit passes
+  50 cases over real SDK/mocked HTTP with a socket ban; changed fingerprints fail.
+  Mock stage timing is recorded, not claimed as live provider or queue latency.
+- Next session: **Milestone 6 only**. Read its inputs and this completion record,
+  prepare fiscal Linux dependency assets/CDK configuration, and inspect actual
+  cloud/GitHub/provider prerequisites before the reviewed release workflow.
+- Release boundary: old CDK config/permissions and incomplete Linux dependencies
+  still require Milestone 6 changes; **do not deploy them as fiscal-ready**.
+  Consumption is disabled in source; actual cloud/GitHub/account state remains
+  unverified. Packaging/IAM/secret/inspection queue/alarms and enabled queue-triggered
+  EPS receipt proof remain M6. No release work was started in M5.
+- API ledger: prior USD 5, spent USD 0, no new unknown usage,
+  **USD 5 remaining** cumulatively. No provider/AWS/GitHub calls, credential access,
+  shared-data writes or catalog rebuild. Historical L5 cost is not charged again.
 
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
@@ -105,7 +106,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 2 — Tested extractor | Complete | Milestone 1 complete | [2026-10-25 completion](#milestone-2--complete--2026-10-25) |
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
-| 5 — Production parity evidence | Not started | Milestone 4 complete | None |
+| 5 — Production parity evidence | Complete | Milestone 4 complete | [2026-10-25 completion](#milestone-5--complete--2026-10-25) |
 | 6 — Reviewed release and activation | Not started | Milestone 5 complete | None |
 
 Use Not started, In progress, or Complete. Put a link to the durable completion
@@ -314,20 +315,20 @@ approved v6 config/prompt/schema and saved 50-case run/report references.
 evidence. This is not a new earnings-local evaluation framework or an obligatory
 fresh model benchmark. Keep quality experiments in finbot-filing-evals.
 
-- [ ] Reference the existing checked 50-filing v6 result (83/83 targets, 50/50 exact)
+- [x] Reference the existing checked 50-filing v6 result (83/83 targets, 50/50 exact)
   as the D10a launch quality baseline; preserve its run and reviewed-data identity.
-- [ ] Compare the production port's prompt, schema, input preparation, provider
+- [x] Compare the production port's prompt, schema, input preparation, provider
   request settings and output handling to that measured configuration. Use
   traceable code/configuration comparisons and offline parity fixtures.
-- [ ] Pass offline acceptance, empty-result, unsupported-input, retry, duplicate
+- [x] Pass offline acceptance, empty-result, unsupported-input, retry, duplicate
   and publication-recovery checks, retaining the tested EPS/fiscal semantics.
-- [ ] Perform only justified targeted live integration/parity checks within D10b's
+- [x] Perform only justified targeted live integration/parity checks within D10b's
   approved test scope/budget. A complete paid repeat of the 50 filings or a new
   20-filing study is not required solely to implement the migration.
-- [ ] Evaluate any material prompt/schema/input/provider behavior change through
+- [x] Evaluate any material prompt/schema/input/provider behavior change through
   `finbot-filing-evals` before treating the saved quality result as applicable.
   Keep prompt and provider/input changes separate so results remain attributable.
-- [ ] Record production-port verification and source run IDs in release docs.
+- [x] Record production-port verification and source run IDs in release docs.
   Capture stage timing and test usage/cost; prove actual event receipt in Milestone 6.
 
 Acceptance: the production extraction path demonstrably preserves the checked
@@ -437,7 +438,7 @@ the disabled stage is specific to this first rollout.
 
 ## Milestone completion records
 
-Milestones 1–3 are complete. Append one durable record at each session boundary;
+Milestones 1–5 are complete. Append one durable record at each session boundary;
 preserve earlier records. Link completed milestones from
 the progress table. For partial work, record which task is next and why exit
 criteria have not yet been met.
@@ -889,6 +890,115 @@ Use this template (include actual paths/values, not just "tests passed"):
   validation/tests and listed v6 experiment/run references, then produce durable
   production-port parity evidence against saved run `20261023T145725Z-9ff8c84b`.
   Do not automatically repeat the paid 50-filing campaign or start release work.
+
+
+### Milestone 5 — complete — 2026-10-25
+
+- Scope delivered: production-port parity evidence in
+  [PRODUCTION_PARITY.md](docs/PRODUCTION_PARITY.md), with immutable baseline/data/
+  implementation identities, every intentional difference and its compatibility,
+  exact reference fingerprints and a read-only offline replay check. No runtime,
+  prompt/schema, dependency, packaging, infrastructure or workflow change; no M6 work.
+- Repository/version: `finbot-earnings`, branch `main`, initially clean at
+  `e4aac9b0e15d5e10da706faed87b2dab74cd9ef1` (committed Milestone 4).
+  Changes remain **uncommitted** in `README.md`, `ROADMAP.md`,
+  `docs/{EXTRACTOR,AWS_RUNTIME,PRODUCTION_PARITY}.md`,
+  `docs/parity/{REFERENCE_EXPORT.md,v6-reference.json}` and
+  `scripts/verify_production_parity.py`. No unrelated changes, sibling edits,
+  shared operational writes or generated build assets. Evals was read-only/clean
+  at `d105712812a3daaf0d958c0b9b180f41ca4703ce`.
+- Baseline: saved L5 run `20261023T145725Z-9ff8c84b` under
+  `$FINBOT_DATA_ROOT/filing-evals/runs/`, source bundle `earnings-eps-50-v1`,
+  reviewed revision `1ba92bb772114407fe4000c9d6dd29f253df81c814db82cbc1cc4d9d922cd2c7`,
+  projected fiscal revision `48b0b27aaae67b263b409a98e193dc65c7eeab21f8f717b1de816f5a42db275a`.
+  Preserved `earnings_eps.fiscal.v2` / `eps_fiscal_exact.v2` report: **83/83 targets,
+  50/50 exact**, 52 reported/31 adjusted, no extraction errors, historical cost
+  USD 0.159437190 complete and 164.13145787734538 summed extractor seconds.
+  This remains development-set evidence, not held-out/unseen accuracy or new spend.
+- Exit evidence: both environments verified the complete **353-file** saved run
+  SHA-256/size inventory (including reviewed data, sources, requests/responses and
+  reports). Reference source modules matched the saved implementation hashes.
+  Prompt and source schema bytes match; compiled transport, preparation and pins
+  retain frozen identity. The evals adapter/real SDK captured independent request
+  fingerprints over mocked HTTP. The production adapter/real SDK replay matched
+  **50/50** complete requests with only the documented timestamp exception;
+  **189/189** source members were read in canonical order, including HON's 34
+  original images. All **83** saved observations, exact native bodies, normalized
+  usage and business acceptance survived unchanged. No scoring or fresh predictions.
+- Compatibility decisions: 37 saved contexts use `...Z` without fractional digits;
+  production's FilingReady requires `...000000Z`. These denote identical instants,
+  do not define issuer fiscal period and are treated as a nonmaterial context
+  representation difference. Both raw and canonical-timestamp request digests
+  are retained; reversing that field alone must reproduce the exact reference
+  request. Do not claim byte-identical requests or tested model invariance for
+  those 37 cases. Saved schema pretty-print whitespace is likewise immaterial;
+  the actual instruction/schema strings match the captured request. Synthetic
+  storage/readiness fields supply valid offline envelopes and never enter the
+  request. This does not prove producer/cloud readiness.
+- Other differences assessed: stricter production admission/MIME/encoding/native
+  parsing and finite bounds reject whole unsupported/oversized snapshots; all
+  baseline members/responses fit. SDK retries are zero versus reference one;
+  durable three-attempt/fencing recovery remains tested. Bounded HTTP-body reading,
+  explicit receipt/outcome/event storage, single-period acceptance and removal of
+  evaluation-only features preserve valid baseline behavior. Python 3.14.8 evals
+  and 3.11.17 earnings match with all seven dependency pins. No material behavior
+  change or unresolved mismatch required a new evals experiment or paid parity
+  check. Linux Python 3.13/import/decoder and provider access checks remain M6.
+- Configuration remains `eps-openai-luna-v6-v1`, SHA-256
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`;
+  prompt `54158e06ec22a876acb0272bc1674bdd5dbf0f5a489eb7d9c8c3e65fdaf40237`,
+  local schema `658af83969c4712a81c7a523fb79c0f56a2e9255a71b3ced3ed9441f3f312d94`,
+  canonical transport `137dec3a52ac17713243b92ccbe5fe16184617ef1bbe09915b132095408e08bb`,
+  preparation inventory `5cfc53e8d4522b42d1ff69340c3861691839ae9e399fc53b32da7f56c4a6bd38`.
+  Saved inventory hash `7c7d5df3a791fe96a9919ddb2ade91a9fb5a2638d023c74d5038a490325867e5`;
+  reference fingerprint file hash
+  `1a3b0c28c18c1db411259fd1ed0357d30e4273870b4cbc3cd656cb30eac0b289`.
+  Complete source/resource/reference hashes and reproduction are linked in the evidence.
+- Checks on 2026-10-25 using repository-local environments:
+  evals `.venv/bin/python /tmp/finbot-m5-export-reference.py ../../data/filing-evals/runs/20261023T145725Z-9ff8c84b /tmp/finbot-m5-reference.json`
+  exported **50** independent fingerprints with a socket ban; the exact script is
+  preserved in `docs/parity/REFERENCE_EXPORT.md` and runs only in evals' own environment.
+  Earnings `.venv/bin/python scripts/verify_production_parity.py --run ../../data/filing-evals/runs/20261023T145725Z-9ff8c84b`
+  passed **50 cases / 189 files / 83 observations** over real SDK/mocked HTTP with
+  a socket ban and synthetic key. An inline `.venv/bin/python` import of the audit
+  changed the first expected request digest and integrity digest separately to
+  64 zeroes in memory; both failed closed with the expected `ValueError` before
+  accepting a replay. No saved artifact was altered.
+  `.venv/bin/python -m compileall -q src tests infra scripts` passed;
+  `.venv/bin/python -m pytest` passed **176 tests** (final run 7.94 seconds), including
+  acceptance/empty/unsupported/retry/duplicate/publication recovery on both stores;
+  `.venv/bin/python -m pip check` passed;
+  `.venv/bin/python -c 'from pathlib import Path; exec(Path("docs/contracts/README.md").read_text().split("```python\n", 1)[1].split("```", 1)[0])'`
+  passed schemas, examples, identities and 91 local links/fragments across 11
+  existing Markdown documents. An inline `.venv/bin/python` check passed all six
+  new-document links/fragments, exact export-recipe/fingerprint identity and
+  byte-exact reference prompt/schema plus current/saved candidate-config equality;
+  `git diff --exit-code -- src pyproject.toml requirements-lambda.txt infra .github` and
+  `git diff --check` passed. No package build is needed for unchanged runtime/assets.
+- Timing/usage: first successful local replay summed 11,145 ms preparation,
+  448 ms mocked response handling and 11,593 ms total. These are local audit times,
+  not fresh provider or queue latency. Maxima: 34 images, 521,300 text bytes,
+  5,189,881 encoded request bytes and 546,849 estimated tokens. The latter is seven
+  above the M2 record due to canonical timestamp spelling, below the frozen bound.
+  Production stage provenance remains unchanged; real queue/invocation/readiness/
+  publication/receipt and backlog delay remain M6 measurements. No discovery
+  timestamp is fabricated from SEC filing time or synthetic readiness.
+- Documentation: README/checkpoint/progress/M5 checkboxes updated; EXTRACTOR and
+  AWS_RUNTIME link durable parity evidence. No deployment readiness is claimed.
+- Live actions: none. No inference, credentials, AWS/GitHub access or mutation,
+  secret setup, release/activation, shared-data edits or catalog rebuild. Official
+  OpenAI model/structured-output documentation was checked as context, not account
+  readiness or quality evidence. No new AWS SDK code was written.
+- API test ledger: previous USD 5, known new spend USD 0, no new unknown usage,
+  **USD 5 remaining** cumulatively. Historical run cost is not charged again.
+- External actions needed now: none for M5. M6 must verify actual cloud/GitHub
+  prerequisites, Linux assets, secure credential population/provider access,
+  inspection queue/alarms/email confirmation and exact protected release approval.
+- Next session: **Milestone 6 only**. Read this record, PRODUCTION_PARITY and M6
+  inputs, then prepare fiscal dependencies/build/CDK configuration and inspect
+  actual prerequisites. Follow reviewed initial-disabled release, retained-backlog
+  assessment and controlled activation; prove enabled queue-triggered EPS receipt
+  in inspection SQS. Stop here; no M6 implementation or deployment was begun.
 
 
 ## Reference sources and implementation constraints

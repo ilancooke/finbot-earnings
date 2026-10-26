@@ -1,12 +1,17 @@
 # AWS runtime and release setup
 
-Updated 2026-10-25 through Milestone 4. The SQS handler now selects the fiscal
+Updated 2026-10-25 through Milestone 5. The SQS handler now selects the fiscal
 consumer. Its source wiring and SDK/Secrets Manager interactions are tested offline;
 **the committed CDK configuration, dependency bundle and permissions still describe
 Nova and are not ready to deploy this consumer**. Consumption remains disabled in
 source. No actual AWS/GitHub deployment state, credential or provider access has
 been inspected. Milestone 6 owns deployable packaging, IAM, resource setup and
 protected release/activation.
+
+[Production parity evidence](PRODUCTION_PARITY.md) verifies the source port against
+saved v6 run `20261023T145725Z-9ff8c84b`: 50 request/output replays and 176 offline
+tests pass. No live integration check was needed for that comparison; no test spend
+was incurred and USD 5 remains. This does not verify actual cloud/provider state.
 
 ## Implemented fiscal entry point
 

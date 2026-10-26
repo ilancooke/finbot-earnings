@@ -160,5 +160,9 @@ documents, 34 images, 5,312,094 source bytes, 5,300,624 bytes in one HTML file,
 1,365 pixels on the longest side. All 50 were prepared by this port and passed
 the frozen input bounds; original file hashes were checked. See ROADMAP's
 Milestone 2 completion record for request/token maxima and HON details. No labels,
-predictions, scores or shared files were changed; Milestone 5's broader production
-parity/recovery gate remains outstanding.
+predictions, scores or shared files were changed. Milestone 5 completed the broader
+[production parity/recovery gate](PRODUCTION_PARITY.md): all 50 serialized SDK
+requests match the independent reference after only equivalent timestamp spelling
+in 37 contexts, and all saved native responses/83 observations pass unchanged.
+The verified token-estimate maximum is 546,849 with canonical timestamps. Live
+provider readiness, Linux packaging and queue-triggered delivery remain Milestone 6.
