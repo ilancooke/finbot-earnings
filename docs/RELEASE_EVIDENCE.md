@@ -1,10 +1,10 @@
 # Milestone 6 release evidence
 
-Updated 2026-10-26. **Milestone 6 remains in progress.** The production worker is
-deployed with its queue trigger disabled. A genuine-filing direct smoke test passed,
-including stored EPS and output SQS receipt. Source configuration now prepares
-consumption=true for a protected release; enabled queue-triggered extraction and
-duplicate-delivery verification are still required.
+Updated 2026-10-26. **Milestone 6 is complete.** The production queue trigger is
+Enabled. Protected activation, fresh genuine TSM extraction through SQS, persisted
+EPS/native receipt, output SQS delivery and duplicate reuse are verified. The HON
+direct smoke additionally covered all 34 original supporting images. The sections
+below distinguish historical disabled rollout from current enabled operation.
 
 ## Recovery and disabled release
 
@@ -113,7 +113,7 @@ inspect/event using the IDs above. Temporary operational copies are under ignore
 smoke-output-inspection-started-at.txt, smoke-preflight.json and api-test-ledger.json.
 They contain no provider credential and are not committed as generated datasets.
 
-## API ledger and activation readiness
+## API ledger and pre-activation readiness
 
 The saved receipt has complete usage: **59,518 input tokens**, comprising 3 ordinary
 and 59,515 30-minute cache-write tokens; **105 output tokens**, including 47 reasoning
@@ -125,8 +125,8 @@ tokens; no cached reads. Total **59,623 tokens**, usage_unknown=false. Using
 
 The user's billing UI showed a USD 0.01 balance change. That display is separate
 from this attributable receipt-based estimate and is not treated as a precise invoice.
-Previous allowance USD 5; known new estimated spend USD 0.007492175; **USD 4.992507825
-estimated allowance remains**, no unknown attempts. The pre-test USD 0.50 buffer
+After the HON check, estimated spend was USD 0.007492175 and estimated allowance
+remaining was USD 4.992507825, with no unknown attempts. The pre-test USD 0.50 buffer
 can be released. No complete paid 50-case repeat or failure experiment was run.
 Normal production/backlog funding remains user-managed through OpenAI's UI; no app
 spend cap, spend alerts or funding automation was added.
@@ -134,17 +134,123 @@ spend cap, spend alerts or funding automation was added.
 Input queue inspection returned visible/in-flight/delayed **0/0/0**. No retained
 backlog was observed, so estimated catch-up work/cost at that inspection is zero;
 oldest-message age is inapplicable to an empty queue. These are approximate live
-counts, not a guarantee about future arrivals. Recheck before protected activation.
+counts, not a guarantee about future arrivals. The pre-approval recheck also returned 0/0/0.
 The user reports `gpt-6-luna` limits: **2,000,000 TPM, 5,000 RPM, 50,000 IPM** and
 **20,000,000 TPD** as displayed. At the measured HON duration, two continuously busy
 workers imply approximately 0.58M input tokens/minute for HON-sized requests. This
 is illustrative capacity evidence for this filing, not a throughput guarantee for
 all admitted inputs or other projects sharing organization limits.
 
-Next: merge the prepared enabled configuration directly to main when authorized,
-wait for its exact successful CI, review its infrastructure diff, and approve the
-protected production release. Verify the mapping is actually Enabled. Then observe
-fresh genuine SQS-triggered EPS extraction and inspection receipt, verify duplicate
-reuse without another provider attempt, reconcile any additional test usage, and
-only then mark Milestone 6 complete. Replaying the already completed HON input
-alone would prove deduplication rather than fresh extraction.
+## Protected activation
+
+Main commit `3e1949bf5047862698be7c3650463f498c30993f` passed
+[CI 40410334898](https://github.com/ilancooke/finbot-earnings/actions/runs/40410334898).
+The user reviewed the exact artifact and approved
+[Deploy 40411219737](https://github.com/ilancooke/finbot-earnings/actions/runs/40411219737),
+which succeeded. Manifest: source_dirty=false, consumption_enabled=true, the same
+frozen fiscal config and Lambda asset listed above, assembly SHA-256
+`d6e211a45b7970b723d32d00693cfb1bf8f859faf56ba9729bf7fe8916483488`.
+The reviewed diff changes only event-source Enabled false-to-true and the
+ConsumptionEnabled output. No worker code, version, resource identity or stateful
+property changed. Artifact: `reviewed-release-40411219737`; deployed output artifact:
+`deployed-release-40411219737`.
+
+Post-deploy AWS inspection confirms mapping
+`7d94af68-1f22-4d3b-b9e9-aac774412007` **Enabled**, batch size **1**, maximum
+concurrency **2**. Production alias version remains **1**, without a function
+reservation. Resource ARNs/URLs and recovered stack identity above remain valid.
+Keep consumption_enabled=true in routine releases; pause only deliberately.
+
+## Genuine TSM queue-triggered extraction
+
+The operator fetched the complete immutable producer event for filing
+`0001046179-26-000726`, snapshot
+`7e3b6b2b65b7589e0e3c2c4be64b4ce6118a97c5127fa487c8322d557aa60b3a`,
+from `finbot-prod-filings`. Original ready_at is `2026-10-20T23:48:32.616527Z`.
+Both selected HTML members (47,113 source bytes) were read and validated, with no
+images or omissions. Preflight: 5,618 prepared text bytes, 15,609 encoded request
+bytes, 31,238 locally estimated tokens. Strongly consistent preflight found no
+existing work for this identity. The saved event_json and complete manifest were
+preserved and wrapped with the configured producer topic ARN.
+
+The operator explicitly submitted that wrapper to the earnings input SQS queue,
+not to the shared producer topic. This is a stored-snapshot operator replay through
+the **actual enabled SQS trigger**, not a newly discovered filing or direct invoke.
+The local pre-submission timestamp (`22:35:27Z`) precedes the actual send and is
+not used as queue enqueue time. The handler log links the returned SQS message ID
+to the accepted work/event and records a real SentTimestamp-derived queue delay.
+
+| Evidence | Value |
+| --- | --- |
+| Work | `earnings-work:v2:207d43321a2f623d82546ceff9ba31548e4083110b4032367bf63f2f49ba6b62` |
+| Event | `earnings.extracted:1.0:207d43321a2f623d82546ceff9ba31548e4083110b4032367bf63f2f49ba6b62` |
+| Config / run | Same frozen digest above / `initial` |
+| Outcome / EPS | accepted, no reasons; reported FY2026 Q3 TWD `29.43` and USD `4.60`; adjusted empty |
+| Input SQS message | `e589ffd3-5126-43d9-b102-93adb75548cb` |
+| Input enqueue (derived from logged invocation minus queue delay) | `2026-10-26T22:36:23.961Z` |
+| Lambda request ID | `149624cf-37aa-5cfb-9656-4796efb50b4e` |
+| Invocation / queue delay | `2026-10-26T22:36:24.842Z` / 881 ms |
+| First claim | `2026-10-26T22:36:29.792210Z` |
+| Preparation / extraction | 361 ms / 5,819 ms |
+| Extraction start/end | `2026-10-26T22:36:30.481534Z` / `2026-10-26T22:36:36.300501Z` |
+| Outcome committed | `2026-10-26T22:36:36.366551Z` |
+| Publication acknowledgment | `2026-10-26T22:36:36.484379Z` |
+| SNS acknowledgment | `f5b019e4-d95b-506b-bd5e-7abd016f808f` |
+| Provider calls / publication attempts | 1 / 1 |
+| Handler / last publication duration | 11,674 ms / 92 ms |
+| Output SQS message | `609ffba9-a7a5-4172-b1d0-cacadad94b69` |
+| Output SQS SentTimestamp | `1793054196508` = `2026-10-26T22:36:36.508Z` |
+| Operator output inspection started | `2026-10-26T22:38:09Z` |
+
+Measured input enqueue to SNS acknowledgment: **12.523379 seconds**; input enqueue
+to output SQS enqueue: **12.547 seconds**. First claim to publication acknowledgment
+is 6.692169 seconds. Invocation-to-first-claim setup is approximately 4.95 seconds;
+it is not included in extractor preparation time and was not separately profiled.
+The 514,083,872-ms original-readiness-to-ack interval includes the explicit replay
+of an old snapshot; it is not ordinary queue latency. No numeric SLA or upstream
+discovery latency is inferred from this check.
+
+Output inspection returned the expected issuer, event ID and both EPS values.
+The same output message ID appeared at receive counts 1/2/3 because the peek uses
+zero visibility; these are repeated reads, not separate publications. SentTimestamp
+is queue enqueue time, while the saved inspection timestamp marks the operator's
+later check, not a precisely measured first subscriber receive time.
+
+## Duplicate delivery and final test ledger
+
+The identical message body (MD5 `73fbb71ca0000500e8afbeb98a0dd988`) was sent once
+more, receiving input SQS ID `0b04de27-9022-4f4f-bf09-0cde867b8745`.
+CloudWatch records request `d9f41990-b5c7-5b85-a641-7ac96d782bf4` handling that
+second transport ID for the **same work/event**, accepted, exhausted=false.
+Invocation `2026-10-26T22:39:05.549Z`, queue delay **81 ms**, handler **49 ms**.
+The later strongly consistent inspection retains **one provider call and one
+publication attempt**, identical event ID and published_at. This verifies actual
+duplicate processing rather than assuming delivery from unchanged counts alone.
+No duplicate inference or new publication occurred. Saved-publication failure
+recovery remains covered by offline tests; no paid failure experiment was needed.
+
+TSM usage is complete: **3,519 input tokens** (3 ordinary + 3,516 30-minute cache
+write), **157 output tokens** (including 68 reasoning), no cache reads, total
+**3,676**, usage_unknown=false. At the same checked rates:
+
+`(3 * 0.10 + 3516 * 0.125 + 157 * 0.50) / 1000000 = USD 0.0005183`.
+
+| Scoped API test | Provider calls | Estimated USD |
+| --- | --- | --- |
+| HON direct smoke | 1 | 0.007492175 |
+| TSM actual queue extraction | 1 | 0.0005183 |
+| TSM duplicate | 0 additional | 0 additional |
+| Total / remaining USD 5 allowance | 2 total | **0.008010475 / 4.991989525** |
+
+No unknown attempts remain; the conservative TSM USD 1.50 attempt buffer is released.
+These receipt-based estimates are separate from invoices, AWS infrastructure costs
+and user-managed production/backlog funding. No new model experiment or paid full
+baseline rerun was performed.
+
+Ignored `build/recovery/` retains queue-test-preflight.json, source inventory and
+original notification, queue-test-send.json, queue-test-processing.json,
+queue-test-output-receipt.json and inspection timestamp,
+queue-test-duplicate-send.json, queue-test-after-duplicate.json,
+queue-test-worker-logs.json and the cumulative api-test-ledger.json. The original
+model response/event are durably available through earnings-ops inspect/event.
+Milestone 6 exit criteria are met. No further milestone or paid test is started.

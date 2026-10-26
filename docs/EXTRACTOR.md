@@ -129,8 +129,9 @@ with this in Milestones 3/6.
 
 Pins in `pyproject.toml` and the config: OpenAI 2.54.0, httpx 0.28.1, html5lib 1.1,
 webencodings 0.6.1, six 1.17.0, Pillow 12.3.0 and jsonschema 4.26.0.
-Milestone 6 now pins and verifies the fiscal Linux dependency bundle; the disabled deployment/direct smoke have passed and protected activation
-remains pending. See [AWS_RUNTIME.md](AWS_RUNTIME.md). The 2-MiB response plus byte-exact body/manifest/config
+Milestone 6 pins and verifies the fiscal Linux dependency bundle; disabled rollout,
+protected activation, actual queue-triggered delivery and duplicate reuse passed.
+See [AWS_RUNTIME.md](AWS_RUNTIME.md). The 2-MiB response plus byte-exact body/manifest/config
 **will not fit one DynamoDB item**. Milestone 3 implements bounded immutable chunk splitting and atomic pointer/
 outcome/event commits in the new stores; see OFFLINE_PROCESSING. It enforces the
 240-KiB event reservation before publication. Do not use the old small-item store.

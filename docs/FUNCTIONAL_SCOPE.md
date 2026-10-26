@@ -1,9 +1,9 @@
 # finbot-earnings functional scope
 
-Updated 2026-10-26 during Milestone 6. Fiscal consumer/storage/publication and
-operator inspection are deployed in a disabled rollout and passed a genuine-filing
-smoke with output SQS receipt. Protected activation and queue-triggered proof remain
-pending. Milestone 4 removed Nova processing, the NVDA POC and local evaluator.
+Updated 2026-10-26 after Milestone 6 completion. Fiscal consumer/storage/publication
+and operator inspection are deployed with queue consumption enabled. Genuine TSM
+SQS-triggered EPS delivery and duplicate reuse passed; the HON direct smoke covered
+34 original images. Milestone 4 removed Nova processing, the NVDA POC and local evaluator.
 [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and [AWS_RUNTIME.md](AWS_RUNTIME.md)
 distinguish implemented behavior from release state.
 [ROADMAP.md](../ROADMAP.md) governs the migration and approved D01–D12 decisions;
@@ -61,7 +61,7 @@ Milestone 2's isolated extractor freezes [finite numeric bounds](EXTRACTOR.md#fr
 16 HTML documents, 64 images, 64 MiB total source, 2 MiB prepared text, 96 MiB
 encoded request, a 900,000-token local estimate and a 2-MiB native response.
 The reference inputs, including HON's 34 images, pass these bounds offline; live
-account/provider checks remain release work. Fiscal CDK settings are prepared; live activation is pending.
+provider access, full HON smoke and protected queue activation are verified.
 [Review reasons](CONTRACTS.md#review-and-failure-reasons)
 identify the affected artifact/bound. Explicit reprocessing follows operator
 inspection and a reviewed fix; completed review outcomes do not retry inference.

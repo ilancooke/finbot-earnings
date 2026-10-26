@@ -1,6 +1,6 @@
 # Offline filing processing
 
-Updated 2026-10-25 through Milestone 4. `FiscalConsumer` now connects the frozen
+Updated 2026-10-26 after Milestone 6 completion. `FiscalConsumer` connects the frozen
 OpenAI boundary to fiscal acceptance, durable storage and `earnings.extracted`
 publication. Normal tests and the demo are offline. Superseded acquisition, Nova and evaluation code is removed; historical records
 and shared-data artifacts remain preserved separately.
@@ -173,8 +173,10 @@ confirming that the complete saved snapshot is supported by the selected configu
 repeat the same messages, increments receive count, and may return fewer than the
 requested limit. It reports SQS `SentTimestamp` separately from the inspected SNS
 body; this is not a permanent archive or a claim of subscriber processing time.
-The inspection queue and operator policies are deployed; direct-smoke inspection
-is verified. Protected activation and queue-triggered proof remain Milestone 6. See [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
+The inspection queue and operator policies are deployed. Direct-smoke and actual
+enabled queue-triggered output receipts are verified, as is duplicate reuse without
+another provider call/publication. Milestone 6 is complete; see
+[RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
 
 Timing provenance includes first claim/readiness delay, reservations, receipt-save
 and outcome timestamps, receipt preparation/extraction durations, last publication

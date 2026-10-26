@@ -1,10 +1,11 @@
 # finbot-earnings target architecture and processing behavior
 
-Updated 2026-10-26 during Milestone 6. Fiscal consumer, stores, publication and CLI
-are deployed in the initial disabled rollout and passed a genuine-filing direct
-smoke with output SQS receipt. Source activation is prepared; actual enabled
-queue-triggered proof remains pending. [AWS_RUNTIME.md](AWS_RUNTIME.md) and
-[release evidence](RELEASE_EVIDENCE.md) distinguish source settings from live state.
+Updated 2026-10-26 after Milestone 6 completion. Fiscal consumer, stores, publication
+and CLI are deployed with the SQS trigger enabled. A genuine TSM snapshot passed
+queue-triggered extraction and output SQS receipt; duplicate delivery reused its
+result without another provider call or publication. The earlier HON direct smoke
+also covered 34 original images. [AWS_RUNTIME.md](AWS_RUNTIME.md) and
+[release evidence](RELEASE_EVIDENCE.md) record deployed settings and live checks.
 [FUNCTIONAL_SCOPE.md](FUNCTIONAL_SCOPE.md) owns scope, [V0_DECISIONS.md](V0_DECISIONS.md)
 acceptance, [CONTRACTS.md](CONTRACTS.md) fields/identity, and [ROADMAP.md](../ROADMAP.md)
 sequence and approvals.

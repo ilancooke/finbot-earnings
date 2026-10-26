@@ -1,7 +1,7 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestones 1–5
-are complete; Milestone 6 is in progress.** This document is the durable plan
+Updated 2026-10-26. **All migration decisions D01–D12 are approved. All six
+milestones are complete.** This document is the durable plan
 and checkpoint for separate agentic sessions. README describes implemented status; the approved
 decision register below governs the target. Design documents were reconciled
 in Milestone 1; Milestone 2 adds the frozen extractor; Milestone 3 integrates
@@ -55,49 +55,47 @@ Suggested new-session instruction:
 
 ## Current checkpoint
 
-- Date: 2026-10-26. Milestones **1–5 complete; 6 in progress**. Recovery and the
-  disabled release/direct smoke passed. Source activation is prepared, not deployed.
-- Repository: clean starting `main` at `829d1a98a36e36e68cac6b8f3939b0f29fc584f7`.
-  Current uncommitted changes set consumption_enabled=true, assert the activated
-  default while retaining explicit-pause coverage, and reconcile release/evidence
-  docs. No extractor/runtime/dependency/identity change. The user commits/pushes
-  directly to main and runs cloud/GitHub mutation commands step by step.
-- Recovery: the failed stack record was removed while preserving all eight Retain
-  resources. Reviewed import completed; recovered stack
-  `finbot-earnings-prod/936a6ac0-d180-11f1-a965-12ffd3ec13f5`, termination protection
-  true. Protected Deploy **40402075873** succeeded from successful main CI
-  **40397320222** for `829d1a9...`. Exact release/artifact/resource identities are in
+- Date: 2026-10-26. **All six milestones complete.** The protected enabled release,
+  fresh genuine SQS-triggered extraction/output receipt and duplicate reuse passed.
+- Repository: `main` at deployed commit
+  `3e1949bf5047862698be7c3650463f498c30993f`. Current uncommitted work updates only
+  release evidence, README, roadmap and reference documentation. No runtime,
+  dependency, configuration or identity changes. The user commits/pushes directly
+  to main and ran all cloud/GitHub mutations step by step.
+- Release: successful main CI **40410334898**, reviewed/approved Deploy
+  **40411219737** succeeded. Frozen config digest
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097` and Lambda
+  asset unchanged; only mapping Enabled/output changed false-to-true. Exact artifact
+  checksums, recovered stack, outputs and setup are in
   [RELEASE_EVIDENCE.md](docs/RELEASE_EVIDENCE.md).
-- Actual deployed state: production alias version **1**, SQS mapping
-  `7d94af68-1f22-4d3b-b9e9-aac774412007` **Disabled**, batch one, source maximum two,
-  no Lambda reservation. The next protected release must enable this mapping;
-  routine updates retain enabled consumption. Source true is not live activation.
-- Setup: dedicated secret AWSCURRENT populated securely, runtime secret/source/
-  provider access verified. Alarm email confirmed and controlled SNS test received.
-  User-reported model limits: 2M TPM, 5,000 RPM, 50,000 IPM and 20M TPD as displayed.
-  SQS counts visible/in-flight/delayed were **0/0/0** before activation preparation;
-  no retained catch-up work/cost observed. Recheck for arrivals before approval.
-- Smoke: genuine HON filing `0000773840-26-000143`, all **35** selected originals
-  including **34 images**, accepted reported USD **2.08**, FY2026 Q3; adjusted empty.
-  Work/event suffix `ea14fccac9f3736edbef289158d689af195b5f818f822c744096800011ac87d2`.
-  One provider attempt and publication; SNS acknowledgment and actual inspection
-  SQS receipt verified. This synchronous operator replay does **not** prove the
-  enabled queue trigger. Persisted receipt/full IDs/usage/timings are in the evidence.
-- Verification: **180 tests** pass, compilation and strict offline CDK synthesis
-  pass. Template comparison finds only mapping Enabled=false to true and its
-  ConsumptionEnabled output false to true. Resource identities/settings, no-reserve
-  policy and frozen fiscal bytes/pins/digest remain unchanged; prior Linux parity
-  applies. Explicit pause still preserves stateful resources.
-- API ledger: 59,518 input tokens (59,515 cache write + 3 ordinary), 105 output,
-  complete usage, estimated spend **USD 0.007492175**; estimated remaining
-  **USD 4.992507825**, no unknown attempts. Provider UI displayed USD 0.01 decrease.
-  This estimate is separate from the invoice and user-managed production funding.
-- Next action: user reviews/commits/pushes activation to main, waits for exact
-  successful CI, reviews the prepared diff and approves the protected enabled
-  release. Recheck backlog, verify actual Enabled state, then prove fresh genuine
-  queue-triggered EPS extraction/output receipt and duplicate reuse. Record final
-  deployed identities and cumulative usage, mark M6 complete only after those pass.
-  Latest [handoff](#milestone-6--in-progress--activation-prepared--2026-10-26).
+- Actual deployed state: production alias version **1**, mapping
+  `7d94af68-1f22-4d3b-b9e9-aac774412007` **Enabled**, batch one, maximum concurrency
+  two, no Lambda reservation. Eight retained resources survived reviewed import;
+  termination protection restored. Routine releases preserve enabled consumption.
+- Setup: dedicated secret populated securely; runtime secret/source/provider access
+  verified. Confirmed alarm email received the controlled SNS test. User-reported
+  model limits and empty pre-activation backlog (0/0/0, rechecked before approval)
+  are recorded. No purge or automatic historical backfill occurred.
+- Live proof: complete TSM filing `0001046179-26-000726`, snapshot
+  `7e3b6b2b65b7589e0e3c2c4be64b4ce6118a97c5127fa487c8322d557aa60b3a`, two HTML
+  originals, explicitly submitted through input SQS. Accepted reported Q3 FY2026
+  EPS TWD `29.43` and USD `4.60`; adjusted empty. Work/event suffix
+  `207d43321a2f623d82546ceff9ba31548e4083110b4032367bf63f2f49ba6b62`.
+  One provider call and publication; actual output SQS receipt verified. Input
+  enqueue to output enqueue **12.547 seconds**. Historical readiness age is separate.
+- Duplicate proof: different SQS transport ID, same body/work/event; actual second
+  worker invocation completed in **49 ms**. Strongly consistent inspection retains
+  one provider call/publication and identical published_at. Earlier HON direct
+  smoke additionally covered 34 original images. No paid failure experiment added.
+- Verification: **180 offline tests**, compilation and documentation checks pass;
+  prior exact-CI Linux packaging, strict CDK synthesis, pause identity coverage and
+  50-case saved parity remain applicable. See the final completion record below.
+- API ledger: two provider calls with complete usage, cumulative estimated
+  **USD 0.008010475**, estimated remaining **USD 4.991989525**, no unknown attempts.
+  This estimate is separate from invoices and user-managed production funding.
+- Next action: review and commit the documentation handoff directly on main.
+  No incomplete milestone remains; stop here. Future changes need their own scope.
+  Latest [handoff](#milestone-6--complete--2026-10-26).
 
 
 Replace this checkpoint after each milestone; preserve historical evidence below.
@@ -111,7 +109,7 @@ Replace this checkpoint after each milestone; preserve historical evidence below
 | 3 — Filing consumer integration | Complete | Milestone 2 complete | [2026-10-25 completion](#milestone-3--complete--2026-10-25) |
 | 4 — Legacy cleanup | Complete | Milestone 3 complete | [2026-10-25 completion](#milestone-4--complete--2026-10-25) |
 | 5 — Production parity evidence | Complete | Milestone 4 complete | [2026-10-25 completion](#milestone-5--complete--2026-10-25) |
-| 6 — Reviewed release and activation | In progress | Milestone 5 complete | [Activation handoff](#milestone-6--in-progress--activation-prepared--2026-10-26) |
+| 6 — Reviewed release and activation | Complete | Milestone 5 complete | [2026-10-26 completion](#milestone-6--complete--2026-10-26) |
 
 Use Not started, In progress, or Complete. Put a link to the durable completion
 record in the final column when complete. Keep this table and README in sync.
@@ -393,9 +391,9 @@ approval. Do local preparation before requesting approval of a concrete release.
   parity evidence and perform the required verification before seeking approval.
 
 Preparation status: exact successful-CI artifact checks and protected disabled
-release passed in Deploy 40402075873. Setup, recovery and real direct-smoke evidence
-are in RELEASE_EVIDENCE. Activation preparation has its own uncommitted source
-change and must use new exact main CI/protected approval.
+release passed in Deploy 40402075873; protected activation passed in Deploy
+40411219737. Setup, recovery, full artifact identities and live delivery evidence
+are in RELEASE_EVIDENCE.
 
 ### 6.2 First deployment, with consumption disabled
 
@@ -413,23 +411,23 @@ change and must use new exact main CI/protected approval.
 - [x] Inspect and record input backlog size/age and estimated catch-up time/usage.
   Apply D09b: process all retained notifications, do not silently purge or skip
   them, and resolve readiness/funding concerns with the operator before enablement.
-- [ ] Prepare the enabled configuration, successful-CI artifact and reviewed
+- [x] Prepare the enabled configuration, successful-CI artifact and reviewed
   release. Enable consumption through the normal protected release workflow.
   Keep the enabled setting in subsequent releases.
-- [ ] Demonstrate actual enabled SQS-triggered processing of a real complete
+- [x] Demonstrate actual enabled SQS-triggered processing of a real complete
   producer-compatible snapshot and receipt of its EPS-bearing event in inspection
   SQS. A suitable stored real snapshot can be explicitly submitted through the
   documented operator path if needed; preserve its genuine source identity.
-- [ ] Record filing/snapshot, work/event IDs, extraction configuration, persisted
+- [x] Record filing/snapshot, work/event IDs, extraction configuration, persisted
   outcome, SNS acknowledgment and queue receipt, plus available stage timings.
   Distinguish actual receipt time/metadata from the time an operator inspected it.
-- [ ] Verify a completed input's duplicate delivery reuses its result/event ID.
+- [x] Verify a completed input's duplicate delivery reuses its result/event ID.
   Retain offline publication-recovery evidence and confirm saved-payload retry
   behavior without introducing unnecessary paid failure experiments.
 - [x] Document normal updates: preserve consumption state, with no unconditional
   disable/enable hook. Review consumption settings when choosing rollback artifacts
   so an older disabled configuration is not accidentally restored.
-- [ ] Update the cumulative live-test usage ledger, deployed-state record, README,
+- [x] Update the cumulative live-test usage ledger, deployed-state record, README,
   runtime/runbook instructions, progress table and final completion record.
 
 **Exit criteria and handoff:** all six milestones are complete only when
@@ -447,7 +445,7 @@ the disabled stage is specific to this first rollout.
 
 ## Milestone completion records
 
-Milestones 1–5 are complete. Append one durable record at each session boundary;
+All six milestones are complete. Append one durable record at each session boundary;
 preserve earlier records. Link completed milestones from
 the progress table. For partial work, record which task is next and why exit
 criteria have not yet been met.
@@ -1282,6 +1280,93 @@ Use this template (include actual paths/values, not just "tests passed"):
   then mark M6 complete. No live activation has been performed by this source edit.
 
 
+### Milestone 6 — complete — 2026-10-26
+
+- Scope delivered: completed the reviewed production-only rollout, secure provider
+  setup, confirmed alert path, actual enabled SQS-triggered EPS delivery and
+  duplicate-delivery verification. Only Milestone 6 was completed; no new feature,
+  evaluation campaign or subsequent milestone was started.
+- Repository/version: only `finbot-earnings`, `main` at deployed commit
+  `3e1949bf5047862698be7c3650463f498c30993f`. Current uncommitted handoff changes:
+  README.md, ROADMAP.md, docs/RELEASE_EVIDENCE.md, docs/RELEASE_RUNBOOK.md,
+  docs/AWS_RUNTIME.md, docs/ARCHITECTURE.md, docs/FUNCTIONAL_SCOPE.md,
+  docs/OFFLINE_PROCESSING.md and docs/EXTRACTOR.md. Source/config/dependencies and
+  shared data are unchanged. Ignored build/recovery evidence/helpers remain local.
+  The user commits/pushes directly to main; no branch or PR is required.
+- Release/exit criteria: protected Deploy
+  [40411219737](https://github.com/ilancooke/finbot-earnings/actions/runs/40411219737)
+  succeeded from exact successful main
+  [CI 40410334898](https://github.com/ilancooke/finbot-earnings/actions/runs/40410334898).
+  Clean manifest, consumption_enabled=true; assembly SHA-256
+  `d6e211a45b7970b723d32d00693cfb1bf8f859faf56ba9729bf7fe8916483488`;
+  asset SHA-256 `e8e970ffa074829acd9b61e13610d01c9341d22728a049bbf14252ec66da7201`.
+  The reviewed diff only enables the mapping and updates its consumption output.
+  Actual AWS inspection confirms Enabled, batch 1 and SQS maximum concurrency 2
+  for UUID `7d94af68-1f22-4d3b-b9e9-aac774412007`, production alias version 1,
+  no Lambda reservation. Normal releases keep consumption enabled; deliberate
+  pause/rollback instructions preserve records and review older artifacts' state.
+- Earlier rollout: the failed reserved-concurrency deployment was recovered by
+  importing all eight retained resources; termination protection was restored.
+  Disabled Deploy 40402075873, secure secret population and runtime access, confirmed
+  alarm-topic email delivery, and the complete 35-member HON direct smoke passed.
+  Empty input backlog was rechecked before activation approval. Exact recovered
+  stack, secret metadata, resources and historical rollout evidence are in
+  [RELEASE_EVIDENCE.md](docs/RELEASE_EVIDENCE.md); no credentials are recorded.
+- Fresh live proof: complete immutable producer TSM filing `0001046179-26-000726`,
+  snapshot `7e3b6b2b65b7589e0e3c2c4be64b4ce6118a97c5127fa487c8322d557aa60b3a`,
+  two original HTML members, no prior work. The operator submitted its unchanged
+  notification wrapper to input SQS, preserving genuine source identity. Input ID
+  `e589ffd3-5126-43d9-b102-93adb75548cb` is tied by the actual Lambda handler log
+  to work `earnings-work:v2:207d43321a2f623d82546ceff9ba31548e4083110b4032367bf63f2f49ba6b62`
+  and event `earnings.extracted:1.0:207d43321a2f623d82546ceff9ba31548e4083110b4032367bf63f2f49ba6b62`.
+  Accepted reported Q3 FY2026 EPS TWD `29.43` and USD `4.60`, adjusted empty,
+  complete persisted native receipt/usage. SNS acknowledgment
+  `f5b019e4-d95b-506b-bd5e-7abd016f808f`, published_at
+  `2026-10-26T22:36:36.484379Z`; actual output SQS message
+  `609ffba9-a7a5-4172-b1d0-cacadad94b69` contains the expected issuer, ID and EPS.
+- Latency: logged real queue delay 881 ms; preparation 361 ms; extraction 5,819 ms;
+  handler 11,674 ms; last publication 92 ms. Input enqueue to output enqueue
+  **12.547 seconds**, with output SentTimestamp `2026-10-26T22:36:36.508Z`.
+  Operator inspection began `2026-10-26T22:38:09Z`; that is distinct from queue
+  enqueue/initial receipt time. Historical ready_at and local pre-send timestamps
+  are not substituted for actual input queue enqueue time. No numeric SLA inferred.
+- Duplicate proof: input `0b04de27-9022-4f4f-bf09-0cde867b8745` had the same body
+  MD5 and distinct actual handler request ID. Same accepted work/event, queue delay
+  81 ms, handler 49 ms; post-delivery strongly consistent inspection preserves
+  **one provider call and one publication attempt**, identical published_at and
+  saved attempts. No further provider charge/publication. Offline saved-payload
+  publication recovery remains covered; no paid failure injection was needed.
+- Frozen behavior: `eps-openai-luna-v6-v1`, digest
+  `e871d66c10ec2be3458efd113617e19b4e53726de68791c5053a4bb8cae15097`, direct
+  gpt-6-luna v6, tested fiscal schema/settings and complete-snapshot policy unchanged.
+  Prior 50-case/189-member/83-observation offline Linux parity remains applicable;
+  no new quality claim or blanket paid baseline repeat is made.
+- Checks on 2026-10-26: `.venv/bin/python -m pytest` **180 passed in 8.96 seconds**;
+  `.venv/bin/python -m compileall -q src tests infra scripts` passes;
+  `.venv/bin/python -m pip check` reports no broken requirements. Local read-only
+  assertions verify original/duplicate SQS IDs and body MD5, actual accepted handler
+  logs, unchanged durable attempts/publication, output event/EPS and exact Decimal
+  ledger reconciliation. All 106 local links/anchors across 14 Markdown files, complete checklist and
+  `git diff --check` pass. Prior exact-CI asset/container/CDK checks passed; this
+  final change edits documentation only and does not rebuild the deployed artifact.
+- API ledger: previous remaining estimate USD 4.992507825 after HON; TSM input
+  3,519 (3 ordinary + 3,516 30-minute cache-write), output 157 (including 68
+  reasoning), total 3,676, usage_unknown=false. New estimate **USD 0.0005183**;
+  cumulative **USD 0.008010475**, remaining **USD 4.991989525** of USD 5.
+  Duplicate adds zero calls. No unknown attempts; release the unused USD 1.50
+  conservative attempt buffer. Updated ignored api-test-ledger.json and committed
+  curated evidence record estimates separately from invoices/production funding.
+- Documentation/handoff: M6 task boxes, progress row, current checkpoint and
+  README all complete; runtime/runbook/architecture/scope/extractor/operator docs
+  reflect actual enabled consumption and verified delivery. Historical partial
+  handoffs remain unchanged as dated evidence.
+- External actions needed: review/commit these documentation changes directly on
+  main. No remaining cloud setup, activation approval, paid test or milestone work.
+  Normal production funding/monitoring remains user-managed as approved.
+- Next session: all six milestones are complete. Stop at this boundary; obtain a
+  new scoped objective before beginning further implementation or experiments.
+
+
 ## Reference sources and implementation constraints
 
 Existing defaults to retain unless a decision above changes them: at-least-once
@@ -1334,9 +1419,11 @@ extraction and evaluation code after replacement coverage passed.
 Milestone 1 reconciled the scope/acceptance/contract/architecture documents and
 labeled current offline/AWS behavior separately from target semantics. The approved
 roadmap still takes precedence; Milestone 3 now implements the fiscal consumer in a new namespace; legacy
-NVDA/Nova/canonical code was removed in Milestone 4. Deployment is pending.
+NVDA/Nova/canonical code was removed in Milestone 4. Protected deployment and
+enabled queue-triggered delivery completed in Milestone 6.
 
-Operational setup is still required; it is not an unresolved design choice:
+The following operational setup was completed in Milestone 6; retain these
+requirements when changing or recovering the service:
 
 - Inspect actual AWS stack/source-topic/bucket state and producer compatibility
   read-only. Preserve existing stateful resources/logical IDs unless a deliberate
@@ -1453,9 +1540,9 @@ repeats.
 - [x] Offline tests for processing, adapters, concurrency and publication recovery.
 
 Milestone 4 removed the legacy NVDA watcher and earnings-local evaluation runner
-from this core. Repository documentation records the earnings service as undeployed;
-committed production configuration disables consumption. Recheck actual cloud
-state before release work.
+from this core. Milestone 6 deployed and activated the fiscal service; committed
+production configuration and actual mapping both enable consumption. Recheck actual
+cloud state before future release work.
 
 ## Decision register — D01–D12 approved
 

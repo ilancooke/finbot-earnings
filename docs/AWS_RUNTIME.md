@@ -1,18 +1,18 @@
 # AWS runtime and release setup
 
-Updated 2026-10-26 during **Milestone 6, in progress**. The recovered production
-stack is deployed with its SQS trigger disabled; a genuine complete-filing smoke
-passed with accepted EPS, persisted usage/receipt and inspection SQS delivery.
-Secret access and confirmed alarm-topic email are verified. Source consumption=true
-is prepared for a protected activation release. Actual enabled SQS-triggered proof
-and duplicate verification remain outstanding. Exact resource/release/usage/timing
+Updated 2026-10-26: **Milestone 6 is complete.** The recovered production
+stack has its SQS trigger Enabled, batch size one and maximum concurrency two,
+without a Lambda reservation. Protected activation and genuine TSM queue-triggered
+EPS extraction, persistence and inspection SQS receipt passed. Duplicate processing
+reused the saved result with no additional provider call or publication. Secret
+access and confirmed alarm-topic email are verified. Exact resource/release/usage/timing
 identities are in [RELEASE_EVIDENCE.md](RELEASE_EVIDENCE.md); procedures are in
 [RELEASE_RUNBOOK.md](RELEASE_RUNBOOK.md).
 
 [Production parity evidence](PRODUCTION_PARITY.md) retains the 50 saved request/output
 Linux replays and 189 members/83 observations. That offline comparison cost USD 0.
-The live smoke estimated USD 0.007492175; USD 4.992507825 of the shared test allowance
-remains, with no unknown usage.
+The HON direct and TSM queue tests total an estimated USD 0.008010475;
+USD 4.991989525 of the shared test allowance remains, with no unknown usage.
 
 ## Implemented fiscal entry point
 
@@ -150,6 +150,7 @@ GitHub immutable subject; it does not change producer access or apply itself.
 First deployment starts disabled, then secret/provider/email checks and controlled
 smoke precede backlog review and a protected enabled release. Routine updates preserve
 consumption state. A completed milestone requires enabled SQS-triggered extraction
-and actual inspection receipt. The disabled deployment and direct smoke have succeeded; activation remains pending. Exact prerequisites,
+and actual inspection receipt. All these rollout checks passed, including live
+duplicate reuse. Keep the committed enabled state in ordinary releases. Exact prerequisites,
 operator commands, secure setup, replay, pause and rollback are in the
 [release runbook](RELEASE_RUNBOOK.md).

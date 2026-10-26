@@ -1,12 +1,12 @@
 # finbot-earnings
 
-Status updated 2026-10-26: **Milestones 1–5 are complete; Milestone 6 is in progress.**
-The recovered production worker is deployed with queue consumption disabled.
-A genuine HON smoke test passed: all 35 selected artifacts, accepted EPS, durable
-receipt/event and actual output SQS delivery. Secret access and alarm-topic email
-are verified. Source configuration now prepares consumption=true for the protected
-activation release; live enablement, fresh queue-triggered extraction and duplicate
-verification remain outstanding. See [release evidence](docs/RELEASE_EVIDENCE.md),
+Status updated 2026-10-26: **All six milestones are complete.**
+The production worker is deployed with queue consumption enabled. A genuine TSM
+snapshot passed actual SQS-triggered extraction, persistence, publication and output
+SQS receipt. Duplicate delivery reused the result with no additional provider call
+or publication. The earlier HON smoke covered all 35 selected artifacts, including
+34 images. Secret access and alarm-topic email are verified.
+See [release evidence](docs/RELEASE_EVIDENCE.md),
 [runbook](docs/RELEASE_RUNBOOK.md) and [checkpoint](ROADMAP.md#current-checkpoint).
 
 This package consumes complete stored FilingReady snapshots from `finbot-filings`,
@@ -15,19 +15,18 @@ immutable `earnings.extracted` results. Low discovery-to-reporting latency is a
 priority. Discovery/acquisition belongs to `finbot-filings`; quality experiments
 and golden-data review belong to `finbot-filing-evals`.
 
-## Implemented state and remaining migration
+## Implemented service
 
 | Area | Implemented now | Remaining work |
 | --- | --- | --- |
-| Filing processing | `FiscalConsumer`: frozen direct OpenAI `gpt-6-luna` v6 extractor, schema/business acceptance, complete snapshot provenance; 50-case offline port parity verified | Direct live smoke passed; enabled queue-triggered proof pending |
-| Output | `earnings.extracted` / `1.0`, immutable per snapshot/config/run, EPS arrays directly in event | Direct smoke reached inspection SQS; enabled proof pending |
+| Filing processing | `FiscalConsumer`: frozen direct OpenAI `gpt-6-luna` v6 extractor, schema/business acceptance, complete snapshot provenance; 50-case offline port parity and live queue processing verified | Monitor traffic, latency and provider usage |
+| Output | `earnings.extracted` / `1.0`, immutable per snapshot/config/run, EPS arrays directly in event; actual inspection SQS receipt verified | Consumers deduplicate by event ID |
 | Storage/recovery | SQLite and DynamoDB version-2 adapters, bounded receipt chunks, status queries, fenced writes, durable attempts, identical saved-payload recovery | Live smoke outcome/event inspected; preserve history on updates |
-| AWS source wiring | SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Disabled release deployed and smoke-tested; protected activation pending |
+| AWS source wiring | Enabled SQS Lambda handler builds fiscal consumer; lazy dedicated Secrets Manager credential access | Preserve enabled consumption in normal releases |
 | Operator commands | `earnings-ops` inspect/event/list/retry/reprocess/output | Live inspect/output verified; policies available for selected operator identities |
 | Package scope | Filing consumer and `earnings-ops`; obsolete watcher/evaluator/commands removed | Historical shared-data artifacts and legacy stored records remain preserved |
 
-**Source now selects consumption=true; the deployed mapping remains disabled until
-the next protected release.** Keep enabled consumption in subsequent normal updates.
+**Source and deployed mapping both have consumption enabled.** Keep enabled consumption in subsequent normal updates.
 The worker has no Lambda reservation; its SQS source caps concurrency at two.
 The frozen extractor/configuration and 50-case Linux parity remain unchanged.
 
@@ -45,7 +44,7 @@ verify its exit criteria, update both documents and append the handoff, then sto
 | 3 | Integrate acceptance, filing-specific persistence, publication and CLI | Complete |
 | 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Complete |
 | 5 | Verify production port against existing quality evidence | Complete |
-| 6 | Prepare reviewed release, deploy and activate | In progress |
+| 6 | Prepare reviewed release, deploy and activate | Complete |
 
 ## Processing and limitations
 
@@ -159,7 +158,7 @@ a changed manifest is a new snapshot. Use `reprocess WORK_ID --run-id UNUSED_ID`
 only when the saved complete snapshot is supported; repeating an unchanged
 unsupported snapshot produces review again.
 `output` peeks without deleting, can repeat messages, and increments receive count;
-SQS send time is separate from inspection time. The inspection queue is deployed and the direct smoke receipt is verified.
+SQS send time is separate from inspection time. Direct-smoke and actual queue-triggered output receipts are verified.
 
 The source runtime requires `EARNINGS_TABLE_NAME`, `EARNINGS_SOURCE_BUCKET`,
 `FILING_READY_TOPIC_ARN`, `EARNINGS_QUEUE_ARN`, `EARNINGS_TOPIC_ARN`,
@@ -184,24 +183,26 @@ records 83/83 fiscal targets and 50/50 exact filings for saved v6 Luna run
 sample, not held-out/unseen-filing accuracy. [Milestone 5 parity evidence](docs/PRODUCTION_PARITY.md)
 verifies all 50 production requests and saved outputs, including 189 selected
 members and 83 observations. Thirty-seven requests differ only in equivalent
-fixed-width timestamp spelling. This remains offline compatibility evidence. Initial live provider access
-and direct smoke delivery are now verified; enabled SQS-triggered
-proof remains Milestone 6. No new 20-filing
+fixed-width timestamp spelling. This remains offline compatibility evidence. Live provider access,
+enabled SQS-triggered delivery and duplicate reuse are verified separately in
+Milestone 6. No new 20-filing
 campaign or automatic paid 50-case rerun is required.
 
 Target release: account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`,
 existing producer topic/bucket, new dedicated provider secret, earnings-owned
-14-day output inspection queue and alarm email `ilancooke@gmail.com`. The disabled
-release and secure setup are verified; protected activation and fresh SQS-triggered
-proof remain Milestone 6. Successful CI builds the exact release artifact;
+14-day output inspection queue and alarm email `ilancooke@gmail.com`. Protected
+activation Deploy **40411219737** succeeded for main commit
+`3e1949bf5047862698be7c3650463f498c30993f`; fresh SQS-triggered delivery and duplicate
+reuse passed. Successful CI builds the exact release artifact;
 review its infrastructure diff and use protected GitHub production approval.
 First deployment starts briefly disabled, then backlog checks precede activation.
 Routine updates preserve consumption state. Process all retained queued messages;
 no automatic historical S3 backfill. Completion requires a real enabled
 queue-triggered EPS event received in inspection SQS, beyond SNS acknowledgment.
 
-Scoped API tests share USD 5 cumulatively. The direct live smoke used an estimated
-USD 0.007492175 with complete usage; USD 4.992507825 estimated allowance remains.
+Scoped API tests share USD 5 cumulatively. HON direct and TSM queue tests used an
+estimated **USD 0.008010475** with complete usage; **USD 4.991989525** estimated
+allowance remains. The duplicate added no provider call.
 Ongoing funding is user-managed through OpenAI's UI; no app spend cap or
 spend-alert system is implemented.
 

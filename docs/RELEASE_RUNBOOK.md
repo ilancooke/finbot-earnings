@@ -1,11 +1,12 @@
 # Reviewed release and initial activation
 
-Milestone 6 is **in progress**, updated 2026-10-26. Recovery/import and protected
-disabled deployment succeeded. Credential access, confirmed alarm-topic email,
-genuine HON extraction/persistence/publication and output SQS receipt are verified.
-The source now prepares consumption=true; the deployed queue trigger remains
-Disabled until a new protected release is approved/applied. Next is exact main CI,
-reviewed activation diff, enabled mapping and fresh queue-triggered EPS proof.
+Milestone 6 is **complete**, updated 2026-10-26. Recovery/import, protected disabled
+deployment and protected activation Deploy **40411219737** succeeded. Source and
+deployed queue mapping have consumption enabled. Credential access, confirmed alarm
+email, HON direct smoke and fresh TSM SQS-triggered EPS delivery are verified.
+A second TSM SQS delivery reused the saved result with no additional provider call
+or publication. The initial rollout procedures below are retained for reference;
+ordinary releases preserve the enabled state.
 [RELEASE_EVIDENCE.md](RELEASE_EVIDENCE.md) records exact releases/resources, smoke
 usage/cost/timings, backlog and provider limits. All commands run from this package.
 Keep provider credential values out of commands, chat, Git and release evidence.
@@ -176,8 +177,9 @@ The provider owner verifies project model access, funding and rate limits in the
 OpenAI UI. SQS concurrency starts at two. The user reports 2M TPM, 5,000 RPM and 50,000 IPM
 for gpt-6-luna; the measured direct smoke fits these limits. Monitor actual issuer
 traffic and shared organization/project usage as described in RELEASE_EVIDENCE.
-Funding is user-managed. API tests share **USD 5 cumulatively**; one direct smoke used an estimated
-USD 0.007492175, with USD 4.992507825 estimated allowance remaining and no unknown usage. Before each test reserve a conservative cost estimate including image
+Funding is user-managed. API tests share **USD 5 cumulatively**; the HON direct and
+TSM queue tests used an estimated USD 0.008010475, leaving USD 4.991989525 estimated
+allowance and no unknown usage. Before each test reserve a conservative cost estimate including image
 input/output and any remaining retry attempts. Inspect exact usage and reconcile
 unknown attempts before further dispatch; stop conservatively within the allowance.
 No application spend cap or spend alerts exist.
@@ -251,6 +253,13 @@ SQS SentTimestamp is enqueue time; inspection time is not initial receipt time.
 Resubmit the same wrapper and verify the saved work/event ID is reused without
 another provider attempt. Do not run paid failure experiments to duplicate the
 offline saved-publication-recovery evidence.
+
+This sequence completed on 2026-10-26. TSM input message
+`e589ffd3-5126-43d9-b102-93adb75548cb` produced output message
+`609ffba9-a7a5-4172-b1d0-cacadad94b69` in 12.547 seconds from input enqueue to output
+enqueue. Its duplicate was handled in 49 ms; durable provider/publication counts
+remained one. Exact identities, raw evidence locations, receipt-based cost and
+timing definitions are in [RELEASE_EVIDENCE.md](RELEASE_EVIDENCE.md).
 
 ## Routine operations, pause and rollback
 
