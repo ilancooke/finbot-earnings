@@ -1,7 +1,7 @@
 # finbot-earnings
 
-Status updated 2026-10-25: **migration decisions are complete; implementation of
-the six-milestone migration has not started.** Start with Milestone 1 in
+Status updated 2026-10-25: **Milestone 1 (contracts and documentation) is complete;
+runtime migration has not started.** Next is Milestone 2 in
 [ROADMAP.md](ROADMAP.md). Each milestone is intended for a separate agentic session.
 
 This package is becoming a filing-level EPS extraction service. It will consume
@@ -46,7 +46,7 @@ durable completion record for the next session.
 
 | Order | Milestone | Current status |
 | --- | --- | --- |
-| 1 | Formalize the approved contracts and documentation | Not started |
+| 1 | Formalize the approved contracts and documentation | Complete |
 | 2 | Implement the tested extractor behind a transition boundary | Not started |
 | 3 | Integrate filing-specific acceptance, storage, publication and CLI | Not started |
 | 4 | Remove superseded NVDA POC and earnings-local evaluation paths | Not started |
@@ -55,9 +55,17 @@ durable completion record for the next session.
 
 The roadmap contains all approved decisions, per-milestone inputs, deliverables,
 checks and handoff requirements. Treat it as the source of truth for migration
-intent. Older documents under `docs/` describe the previous Nova/canonical-event
-design until Milestone 1 reconciles them. Updating those documents does not by
-itself mean that their target behavior has been implemented.
+intent. Milestone 1 reconciled scope, acceptance, contracts and architecture with
+D01–D12. Runtime/offline docs label the unchanged Nova implementation separately
+from the approved target. This documentation does not implement target behavior.
+
+The target [contract](docs/CONTRACTS.md) defines `earnings_eps.fiscal.v2`,
+`fiscal-eps-acceptance-v1`, `earnings.extracted` / `1.0` and new versioned work/record
+namespaces. It includes [documentation schemas and synthetic examples](docs/contracts/examples.json)
+for full/partial/empty outputs, fiscal/currency rules, conflicts and identity.
+The response has no period-end date, classification, quote or share-basis field;
+acceptance is distinct from independent per-fact verification. Numeric OpenAI
+bounds/dependency hashes remain Milestone 2 work; no runtime loads these schemas yet.
 
 ## Approved launch behavior and limitations
 
@@ -115,7 +123,7 @@ python3 -m venv .venv
 git diff --check
 ```
 
-The latest documentation-session check passed 171 tests. Normal tests use offline
+The Milestone 1 documentation-session check passed 171 tests. Normal tests use offline
 fixtures/mocks and do not require provider credentials or shared-data writes.
 
 The existing filing-core demo is also offline and does not load `.env`:
@@ -178,6 +186,6 @@ that end state.
 | `cli.py`, `pipeline.py`, `sources/`, `extractors/` under the package | Original NVDA POC; replace/retire after the new core is covered |
 | `infra/cdk/`, `scripts/`, `.github/workflows/` | Infrastructure, bundle/release tools and CI/deployment |
 | [ROADMAP.md](ROADMAP.md) | Approved decisions, sequential implementation plan and durable session checkpoint |
-| [FUNCTIONAL_SCOPE.md](docs/FUNCTIONAL_SCOPE.md), [V0_DECISIONS.md](docs/V0_DECISIONS.md), [CONTRACTS.md](docs/CONTRACTS.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Previous target design; reconcile with approved decisions in Milestone 1 |
+| [FUNCTIONAL_SCOPE.md](docs/FUNCTIONAL_SCOPE.md), [V0_DECISIONS.md](docs/V0_DECISIONS.md), [CONTRACTS.md](docs/CONTRACTS.md), [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Approved launch target, reconciled in Milestone 1; not runtime implementation |
 | [OFFLINE_PROCESSING.md](docs/OFFLINE_PROCESSING.md), [AWS_RUNTIME.md](docs/AWS_RUNTIME.md) | Existing processing/runtime behavior; retain accurate current-versus-planned status as milestones proceed |
 | [Producer FilingReady contract](../finbot-filings/docs/FILING_READY.md) | Authoritative upstream input contract; owned by `finbot-filings` |

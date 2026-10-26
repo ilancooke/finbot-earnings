@@ -1,10 +1,99 @@
 # AWS runtime and release setup
 
-Status: implemented and tested offline, 2026-10-15. No earnings resources have
-been deployed. The committed configuration disables queue consumption and selects
+Updated 2026-10-25 for Milestone 1. This document separates the approved target
+below from the unchanged Nova runtime/build/release tools under **Current runtime**.
+No deployment, secret creation, provider call or cloud inspection occurred here.
+
+## Approved launch target — pending implementation/release
+
+Retain producer SNS → earnings SQS → Python Lambda → earnings SNS, with DynamoDB
+processing storage and SQLite offline tests. Replace Nova inference with direct
+OpenAI `gpt-6-luna`, v6 prompt, fiscal v2 schema, medium reasoning and 4,096 output
+tokens. [CONTRACTS.md](CONTRACTS.md) defines new work/record namespaces, immutable
+`earnings.extracted` 1.0 and `fiscal-eps-acceptance-v1`. No classification,
+company-period revision/merge or independent per-fact evidence gate in the target.
+The raw response/full source manifest remains inspectable through processing refs.
+
+| Selected input | Target handling |
+| --- | --- |
+| HTML plus original JPEG/PNG/GIF supporting images | Tested plain-text preparation and all original images in one request |
+| TXT/PDF/other unsupported member | Whole snapshot `review_required / unsupported_selected_format`, before inference |
+| HTML with selected PDF supplement | Same whole-snapshot review; no partial HTML extraction/event |
+| Oversized complete snapshot | `review_required / snapshot_bound_exceeded`; no truncation, discarded attachment or multi-call split |
+
+Record artifact/filename and bound/actual/limit diagnostics. Numeric OpenAI input,
+image, encoded-request, token and response-storage bounds are **pending Milestone 2**
+and must support the evaluated HON 34-image case. The current Nova 128-KiB/five-doc/
+20-image limits below are not the new launch limits. Invalid/missing objects follow
+the contract's separate review/integrity-failure policy. Completed empty arrays
+produce `no_eps_extracted`, no event and no automatic inference retry. Neither
+empty nor review means definitive non-earnings.
+
+Milestone 2 implements an isolated extractor; Milestone 3 integrates storage,
+consumer/demo and CLI; Milestone 4 removes POC/evaluation commands; Milestone 5
+records parity with the saved checked 50-filing v6 baseline. No automatic paid
+50-filing rerun or new local evaluation framework. Quality work belongs to
+[finbot-filing-evals](../../finbot-filing-evals/README.md). Old evaluation invocations
+below are historical implemented capabilities, not migration verification steps.
+
+Milestone 3 must document real commands to inspect/list review, failed and empty
+runs, inspect source/response/usage/timing, resume failed checkpoints, request a
+fresh run and inspect output SQS. Retry resumes saved response/publication payload;
+fresh extraction uses a new identity, can incur charges and can publish a new
+event. Inspect the offending member/bound before explicitly reprocessing review
+outcomes after a fix; do not discard the PDF/large attachment. CLI syntax is not
+available yet. No target `operation=evaluate` endpoint is required.
+
+### Target release prerequisites (Milestone 6)
+
+- Use account `559007813222`, `us-east-1`, stack `finbot-earnings-prod`; verify the
+  actual `finbot-prod-filing-ready` topic, source bucket
+  `finbot-prod-state-artifacts82dd59a1-8gt63rcgmaua`, stored state and producer
+  contract before release. Preserve stateful logical IDs and old records.
+- Provision a new dedicated Secrets Manager OpenAI project secret with ARN-only
+  configuration and narrowly scoped runtime read permission. Securely populate
+  its value; record only ARN/name/readiness, never credentials. Exact environment
+  variable/physical key choices are Milestone 3/6 engineering work, not existing
+  capabilities in the environment table below.
+- Add an earnings-owned output inspection SQS subscription with 14-day retention
+  and scoped delivery/operator access. Persist history in processing storage;
+  inspection SQS is not an archive. Verify receipt beyond an SNS acknowledgment.
+- Verify operational alerts for processing/delivery failures, dead letters, input
+  delay and worker errors through earnings alarm SNS to `ilancooke@gmail.com`.
+  Recipient confirmation and alert-path verification are required before activation.
+- Retain usage/stage timing and provider quota/billing-failure recovery. User manages
+  ongoing funding through OpenAI's UI; no application spend cap/alerts. Scoped live
+  tests share USD 5 cumulatively across sessions; record unknown usage explicitly.
+- Rebuild Linux Lambda dependencies for OpenAI/preparation; validate imports/Pillow
+  decoder in target runtime, synthesize, verify manifest, and review removal of
+  unused Bedrock permissions. No package assets were changed by Milestone 1.
+- Verify OIDC/bootstrap roles, main CI, protected production environment and exact
+  artifact/diff before required GitHub production approval. Source config is not
+  proof of cloud/GitHub readiness.
+
+First deployment alone starts disabled, then controlled live verification and
+backlog inspection precede enabled release. Record backlog size/age and estimated
+catch-up time/cost; process all retained notifications without silent purge/skip.
+No automatic historical S3 scan. Final completion requires actual **enabled
+SQS-triggered processing of a real complete snapshot and EPS event receipt in the
+inspection queue**, with identities, provenance and stage timings retained. Direct
+invocation or SNS publish acknowledgment alone does not satisfy this criterion.
+
+Routine updates preserve consumption state through one normal release; do not
+unconditionally disable/re-enable. Pausing is deliberate. Rollback checks stored
+schema/configuration and the artifact's consumption setting, retaining prior
+records and avoiding accidental restoration of a disabled setting. CONTRACTS
+separates old `earnings.validated` revisions from new events without migration or
+automatic republication. Release approval remains the protected workflow in D12.
+
+## Current runtime — unchanged Nova implementation
+
+Current-code baseline: implemented and tested offline, 2026-10-15. Historical
+documentation records earnings as undeployed; actual AWS state has not been
+verified in the 2026-10-25 Milestone 1 documentation session. The committed configuration disables queue consumption and selects
 Amazon Nova Lite (`amazon.nova-lite-v1:0`) in `us-east-1`. The artifact POC and local filing demo remain usable.
 
-## Configuration and local checks
+## Current configuration and local checks
 
 From this repository root:
 
@@ -39,7 +128,7 @@ in `bedrock_resource_arns`. Extraction version `eps-nova-lite-images-v1` pins pr
 `eps-nova-tool-v2`. Nova uses constrained tool inputs for structured extraction;
 it does not use Converse `outputConfig.textFormat`. A replacement model needs a
 verified adapter, model/region capabilities and explicit invocation ARNs.
-Keep consumption disabled while evaluating, and bump the extraction version when
+For this pre-activation Nova baseline, consumption remains disabled. Bump the extraction version when
 model, prompt, inference limits or validation settings change. The full
 configuration is saved and checked against work identity to catch accidental reuse.
 
@@ -131,7 +220,7 @@ review/non-earnings outcomes. Less than 240 seconds remaining defers a message.
 Structured outcome logs complement alarms for both failure queues, 15-minute input
 age and Lambda errors. Input-age alarms may fire while consumption is disabled.
 
-## Release setup and activation
+## Existing release tooling and legacy evaluation endpoint
 
 Initial setup is separate from local implementation. Configure a protected GitHub
 `production` environment requiring approval and restricting deployment to `main`.
@@ -163,23 +252,24 @@ Deployments are serialized. No operator digest copying or separate code deployme
 is required. Workflow dispatch and environment approval happen in GitHub; the
 current task has not dispatched either workflow.
 
-Deploy initially with consumption disabled. The deployed alias accepts an explicit
-evaluation request using the configured Nova Lite model:
+The current handler implements an explicit evaluation operation; a deployed alias
+would accept it using configured Nova Lite. This endpoint is legacy and scheduled
+for Milestone 4 removal; do not deploy/invoke it as the new migration verification:
 
 ```json
 {"operation":"evaluate","run_id":"reviewed-corpus-v1","filing":{}}
 ```
 
-For baseline development before deployment, use the
-[local evaluation runner](LOCAL_EVALUATION.md) with saved filing documents and labels.
-It calls the same Nova adapter and validator, persisting only local results.
+The [local evaluation runner](LOCAL_EVALUATION.md) also remains implemented until
+Milestone 4, but its migration instructions are superseded. Use the separate evals
+package for quality work and the approved saved v6 baseline.
 
 Replace `filing` with a complete valid FilingReady payload. Invoking this endpoint
-reads S3 and makes a paid model call; it records evaluation results without canonical
-changes or publication. It is not invoked by normal tests or deployment. Review
-the saved outcomes/evidence before enabling `consumption_enabled` through a new
-commit, successful CI and the same approved release workflow. Disabled consumption
-still permits SNS to enqueue new notifications, retained for 14 days.
+reads S3 and makes a paid model call; it records legacy evaluation results without
+canonical changes or publication. Normal tests/deployment do not invoke it. This
+is not the approved launch-quality or activation procedure; use Milestones 5–6
+and the target prerequisites above. Disabled consumption still permits SNS to
+enqueue new notifications, retained for 14 days.
 
 To pause, release a configuration with consumption disabled. For rollback, dispatch
 a compatible earlier main commit whose CI artifact is retained, review the diff

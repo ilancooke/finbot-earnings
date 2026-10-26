@@ -1,5 +1,46 @@
 # Offline filing processing
 
+Updated 2026-10-25 for Milestone 1. **Everything under “Current implementation”
+below describes the unchanged Nova-era `eps-v0` core**, not the approved launch
+contract. The demo/tests still emit `earnings.validated` company-period revisions.
+The direct OpenAI extractor is Milestone 2; integration/demo/CLI is Milestone 3;
+legacy evaluation removal is Milestone 4. No runtime code changed in Milestone 1.
+
+## Approved transition target — not implemented
+
+[CONTRACTS.md](CONTRACTS.md) and [V0_DECISIONS.md](V0_DECISIONS.md) specify fiscal v2
+EPS arrays, one current fiscal period, `fiscal-eps-acceptance-v1` and immutable
+`earnings.extracted` 1.0 events. Independent per-fact evidence checks, classification,
+period-end dates and canonical merging are removed from the launch path. Do not
+feed fiscal v2 objects through the legacy prose validator or invent evidence fields.
+
+| Member/bound | Target behavior before inference |
+| --- | --- |
+| HTML plus original supported JPEG/PNG/GIF images | One request using tested text/image preparation |
+| TXT, PDF, other unsupported member | Whole-snapshot review, `unsupported_selected_format` |
+| Mixed HTML/PDF snapshot | Whole-snapshot review; no HTML-only extraction/event |
+| Complete snapshot exceeds configured bound | Whole-snapshot review, `snapshot_bound_exceeded`; no truncation/drop/split |
+
+Numeric launch bounds are pending Milestone 2 provider verification, must cover
+HON's 34 images, and must replace the current Nova caps rather than copy them.
+Reasons identify member IDs/filenames or actual/limit/bound; see CONTRACTS.
+
+Target outcomes are `accepted`, `no_eps_extracted`, `review_required` and
+`processing_failed`. Empty/review results complete without automatic inference
+retry. Retry/rearm resumes saved checkpoints; deliberate extraction after inspecting
+review/empty results needs a new run/configuration and can incur charges/publish a
+new event. Milestone 3 supplies concrete CLI commands and status indexing. Until
+then, the repository methods/demo below apply only to legacy records.
+
+Preserve fenced leases, saved responses, atomic outcome/event/publication intent,
+and identical saved-payload publication retries. Different filings/snapshots/runs
+are independent even for equal EPS. New work/record namespaces preserve legacy
+records without migration or automatic republication. A crash before saving the
+response can repeat inference. Schemas/examples under `docs/contracts/` are
+specifications; they are not loaded by this implementation.
+
+## Current implementation
+
 The first implementation lives in `src/finbot_earnings/processing/`, separate from
 the existing artifact POC. It processes a complete selected filing snapshot with
 injected document, model and publication adapters. It has no AWS SDK or live-model
@@ -29,7 +70,7 @@ accepts either raw FilingReady JSON or an SNS Notification containing JSON in
 `Message`. It independently verifies the producer's schema and manifest hash;
 tests include the producer's golden hash vector without importing its package.
 An optional expected topic ARN checks wrapped notifications. This is contract
-validation, not authentication; the future queue policy owns transport access.
+validation, not authentication; the AWS queue policy owns transport access.
 
 `DocumentSource.read` must perform bounded I/O and return the immutable bytes.
 Every manifest document is loaded and checked against its stored size before
@@ -103,10 +144,10 @@ is acknowledged only after required publication acknowledgments are saved.
 An extraction crash before response persistence may require another model call;
 the implementation does not promise exactly-once inference.
 
-`ProcessResult.acknowledge` tells a future queue adapter whether processing is
+`ProcessResult.acknowledge` tells the queue adapter whether processing is
 finished. Non-earnings and review outcomes complete normally. Technical failures
 retry within their stage budget, then remain unacknowledged with `exhausted=True`;
-the future SQS redrive policy must move them to its DLQ. Malformed notifications
+the SQS redrive policy must move them to its DLQ. Malformed notifications
 also remain unacknowledged. No offline code sends directly to a DLQ. Explicit
 `repository.rearm(work_id, now)` resets a terminal retry budget while preserving
 saved model results and publications. It refuses active work. A new model run
@@ -116,6 +157,7 @@ requires a distinct identity rather than rearming the same job.
 
 S3, Bedrock, SNS, DynamoDB and SQS Lambda adapters now exist alongside the offline
 core. Python CDK and GitHub Actions define the disabled initial service and its
-release process. See [AWS_RUNTIME.md](AWS_RUNTIME.md). Nova Lite is configured;
-reviewed filing evaluations, cloud setup and activation remain separate work.
+release process. See [AWS_RUNTIME.md](AWS_RUNTIME.md). Nova Lite is configured in source; the approved v6 baseline lives in the separate
+evals package. Production-port parity, cloud setup and activation remain later milestones.
+Actual live state was not inspected in this documentation session.
 The local demo continues to use only its fixture model and local files.

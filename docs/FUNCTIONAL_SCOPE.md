@@ -1,127 +1,128 @@
 # finbot-earnings functional scope
 
-Status: agreed target scope, recorded 2026-10-14. This document describes the
-intended repurposed package; it does not claim that the existing POC implements
-these capabilities. [ARCHITECTURE.md](ARCHITECTURE.md) records the working cloud
-design and agreed operational behavior; detailed contracts and deployment settings
-remain to be decided.
-
-Implementation status: [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) describes
-the first filing-level core with fake I/O/model boundaries and a SQLite reference
-store. The AWS adapters, CDK and release workflows are implemented as documented in
-[AWS_RUNTIME.md](AWS_RUNTIME.md); Nova Lite is configured, while evaluation and deployment remain pending.
-
-[V0_DECISIONS.md](V0_DECISIONS.md) records the agreed initial EPS schema,
-single-call processing approach, acceptance criteria and event identity/revisions.
-It refines the general scope below.
+Updated 2026-10-25 for Milestone 1. This is the **approved launch target**, not
+implemented runtime behavior. Nova filing processing, the NVDA POC and the local
+evaluator still coexist. [OFFLINE_PROCESSING.md](OFFLINE_PROCESSING.md) and
+[AWS_RUNTIME.md](AWS_RUNTIME.md) distinguish current code from this target.
+[ROADMAP.md](../ROADMAP.md) governs the migration and approved D01–D12 decisions;
+[CONTRACTS.md](CONTRACTS.md) specifies exact fields, schemas and identity.
 
 ## Purpose and ownership
 
-`finbot-earnings` consumes stored filing artifacts, determines whether they report
-earnings, extracts structured facts with source evidence, validates those facts,
-persists canonical `EarningsEvent` records and processing outcomes, and publishes
-validated event revisions. It supports inspection and explicit reprocessing of
-uncertain or failed outcomes.
+Consume complete stored FilingReady snapshots from `finbot-filings`, extract
+reported and adjusted diluted EPS, apply schema/business-rule acceptance, persist
+all outcomes and publish immutable `earnings.extracted` results. Prioritize
+readiness-to-publication latency: process each complete snapshot immediately and
+publish accepted EPS after durable persistence.
 
-Discovery and source-document acquisition have moved to `finbot-filings`, which
-is deployed on AWS. The repurposed `finbot-earnings` owns classification,
-extraction, validation, event reconciliation, persistence and publication.
+`finbot-filings` owns discovery, issuer selection, acquisition and readiness.
+`finbot-filing-evals` owns reviewed datasets, prompt/model experiments and quality
+reports. Earnings owns processing, acceptance, persistence, recovery, publication
+and an operator CLI. No sibling imports. Cross-filing aggregation, portfolio
+construction and trading execution are outside launch scope.
 
-The current NVDA-focused POC and its roadmap describe the earlier use case.
-They are implementation history, not the target scope for this repurposing.
-
-## Input and functional flow
-
-The target system listens for a new `FilingReady` event from `finbot-filings` and
-reads all stored documents in its selected package manifest. It processes the
-complete filing snapshot in one combined classification/extraction call.
-`FilingReady` establishes that the listed selected documents are stored, not that
-the filing has validated earnings. The producer implementation emits filing-level `filing.ready`; production adoption
-requires its normal release. It no longer publishes per-document `ArtifactReady`. See
-ARCHITECTURE.md for readiness and duplicate handling.
+## Input and flow
 
 ```text
-Receive filing snapshot → classify + extract → validate → persist outcome
-                                                       │
-                                             validated event only
-                                                       │
-                                                       ▼
-                                              publish EarningsEvent
+FilingReady → claim work → load/check complete snapshot → prepare text/images
+    → one EPS extraction call → schema/business checks → persist outcome/event
+    → publish saved accepted event → save acknowledgment → acknowledge input
 ```
 
-1. **Classify.** Ask an LLM whether the filing/document reports earnings.
-   Distinguish affirmative classification, no relevant earnings, and uncertainty.
-2. **Extract.** For relevant documents, extract a small structured schema with
-   evidence references for the reported facts. Preserve missing information rather
-   than inventing values. The initial fields are specified in V0_DECISIONS.md.
-3. **Validate.** Check schema compliance, company identity, reporting period,
-   currency, units, GAAP versus adjusted figures, and supporting evidence.
-   Withhold unsupported facts for review. Unresolved company/period evidence or
-   material conflicts affecting accepted facts block candidate publication.
-4. **Persist.** Record the classification, candidate facts, evidence references,
-   validation findings and processing outcome. Persist the canonical event and
-   its revision before publishing it. Retain the extraction version and original
-   source references so results remain inspectable and reproducible.
-5. **Publish.** Publish validated `EarningsEvent` revisions for downstream
-   consumers. Review candidates and processing failures do not enter the
-   validated-event stream.
+The producer's [FilingReady 1.0 contract](../../finbot-filings/docs/FILING_READY.md)
+is authoritative. Read precisely its selected manifest; do not infer readiness
+from S3 listings, add unselected files, or process attachments separately. Preserve
+artifact identity, filenames, original bytes, membership and ordering context.
 
-Document preparation is not a required functional stage. Direct document input
-is the initial baseline to evaluate; preprocessing can be introduced if measured
-quality, cost or document limits justify it. The initial baseline is Nova Lite
-with direct HTML/TXT/PDF document input and schema-defined tool responses.
-PDF-derived facts remain review-only under the initial evidence policy.
+Use direct OpenAI `gpt-6-luna`, prompt v6, tested `earnings_eps.fiscal.v2` schema,
+HTML-derived plain text and original supporting images, medium reasoning and
+4,096 output tokens. No classification field, fallback model, model repair loop
+or second planned inference stage.
 
-## Outcomes and meaning of validation
+## Launch support matrix
 
-| Outcome | Meaning |
+| Selected member | Launch target |
 | --- | --- |
-| No relevant earnings | Classification finds no relevant reported earnings in the document |
-| Review required | Classification is uncertain, or extraction/validation encounters missing required evidence or conflicting facts |
-| Validated | Required facts pass the documented checks against the supplied evidence |
-| Processing failed | A processing error prevents completion; this is distinct from a semantic review outcome |
+| HTML, including XHTML HTML content | Supported through tested HTML-to-text preparation |
+| Original JPEG/PNG/GIF supporting image | Supported after format/decoder checks; preserve bytes/context |
+| TXT or PDF | Deferred; whole snapshot requires review before inference |
+| Other format or invalid/unsupported image encoding | Whole snapshot requires review before inference |
+| Complete snapshot exceeding any configured bound | Whole snapshot requires review before inference |
 
-Record each outcome, including why review or failure occurred. Optional missing
-metrics are omitted from extraction results rather than represented as null.
-Publication requires at least one supported core metric; missing required evidence
-blocks acceptance of the affected fact. Unresolved identity or material conflicts
-block candidate publication.
-Schema compliance and the LLM's own confidence do not establish factual validity.
-A matching evidence quote alone does not prove that the period, units or meaning
-were interpreted correctly. Validation is evidence-backed acceptance under
-documented rules, not an independent guarantee of the issuer's financial accuracy.
+An HTML release with a selected PDF supplement receives
+`review_required / unsupported_selected_format`: no model call or EPS event,
+even if HTML appears sufficient. Never truncate text, resize/re-encode images,
+drop selected files, or split extraction to fit bounds. Missing objects and
+stored-size mismatches are technical failures, not format review.
 
-## Canonical events and revisions
+Numeric source/text/image/request/response bounds are pending provider verification
+in **Milestone 2**, then frozen in configuration and documented here and in runtime
+and operator guidance. Existing Nova limits are not launch bounds. New limits must
+accommodate the evaluated HON 34-image case. [Review reasons](CONTRACTS.md#review-and-failure-reasons)
+identify the affected artifact/bound. Explicit reprocessing follows operator
+inspection and a reviewed fix; completed review outcomes do not retry inference.
 
-A release, supplement and periodic report can describe the same company and
-reporting period. They contribute evidence to one logical `EarningsEvent` rather
-than automatically producing separate events for each artifact. Event association
-must use company and reporting-period identity; the POC's approximate grouping by
-nearby publication dates is not sufficient for this purpose.
+## EPS and fiscal semantics
 
-One filing snapshot can establish an initial validated event, including a package
-with only one selected document. Later filings or explicit new snapshots can
-enrich it when supported, while conflicts require review. Later disclosures,
-amendments and reprocessing must preserve prior event revisions and their evidence
-rather than erase what was previously known. Repeated delivery of the same input
-must not create a new logical event merely because it was received again.
+Keep `reported_diluted_eps` and `adjusted_diluted_eps` as separate arrays. Preserve
+signs, decimal precision/trailing zeroes and all qualifying disclosed currencies.
+Reported EPS uses disclosed total diluted EPS when both total and continuing
+operations appear. Adjusted EPS uses the primary explicitly disclosed adjusted
+measure, including one based on continuing operations. Do not derive values,
+substitute basic EPS, or copy reported EPS into an absent adjusted metric.
 
-## Inspection and reprocessing
+Select one current issuer fiscal period: latest standalone quarter for quarterly
+reporting, Q4 when both Q4 and full year appear, latest complete fiscal year for
+annual-only reporting. Exclude comparisons, guidance and cumulative/YTD amounts.
+Do not infer calendar dates, derive a quarter by subtraction, or relabel partial
+years as annual EPS. See [acceptance policy](V0_DECISIONS.md#acceptance-policy).
 
-Retain review candidates with their available facts, evidence and reasons for
-non-acceptance. Support inspection and explicit reprocessing of uncertain or
-failed outcomes against the stored source documents. New runs remain
-distinguishable from prior runs. A review interface and an automatic correction
-loop are later design choices, not prerequisites for the agreed functional scope.
+Share denomination is **unspecified** in the tested schema. Preserve ordinary-share
+and ADR/ADS values in disclosed currencies; no conversion or assumed equivalence.
+The schema cannot represent every same-currency share-basis ambiguity. Explicit
+share denomination requires a later evaluated prompt/schema change.
 
-## Decisions to make next
+## Outcomes and acceptance meaning
 
-- Detailed evidence verification for the agreed v0 fields.
-- Document reconciliation and remaining revision rules.
-- Detailed conflict handling within the agreed v0 acceptance criteria.
-- Exact input/output envelopes and recovery implementation under ARCHITECTURE.md.
-- Model selection, document handling and concrete storage/deployment settings.
+| Outcome | Meaning and delivery |
+| --- | --- |
+| `accepted` | Valid response/business checks and at least one EPS observation; persist and publish one event |
+| `no_eps_extracted` | Both arrays empty; persist, acknowledge, no publication or automatic inference retry |
+| `review_required` | Unsupported/oversized snapshot or unresolved output business rules; retain reasons, acknowledge, no publication |
+| `processing_failed` | Technical/input-integrity/response-format/delivery failure; bounded recovery, then inspection/redrive |
 
-This scope leaves those implementation details open and does not authorize deployment. Model
-evaluation and a reviewed document corpus should inform the subsequent extraction
-and validation decisions.
+Schema checks structure/types; business checks enforce a single period and unique
+observation identities. Financial interpretation is guided by prompt v6, not
+independently verified against each fact. There are no per-fact quotes or artifact
+fields. **Independent per-fact evidence verification is not required for launch**;
+`earnings.extracted` must not be described as independently fact-verified. Preserve
+complete sources and model-response provenance. Empty output does not establish
+that a filing contains no earnings.
+
+Partial means a valid metric with the other array empty; do not silently prune
+invalid/conflicting rows to manufacture acceptance. Internal conflicts go to review;
+a different filing's EPS never blocks this filing. CONTRACTS includes examples.
+
+## History and operations
+
+One accepted snapshot/configuration/run produces one immutable event. Duplicate
+delivery reuses its saved result/ID. Changed snapshots, amendments, later reports
+and explicit new runs remain separate even when EPS is equal. No company-period
+canonical merge or revision counter. Publication retries reuse identical bytes
+without inference; delivery is at least once and consumers deduplicate event IDs.
+
+Launch CLI requirements: inspect runs/events, sources, saved response, outcomes,
+reasons, usage and timing; list review/failed/empty outcomes; resume failed
+checkpoints; request fresh extraction with a new identity; inspect output-queue
+events. Syntax/indexes are Milestone 3 work. Commands must identify inference and
+publication effects. A web review UI is deferred; preserve prior/shared-data history.
+
+Process new and all retained queued notifications after activation. No automatic
+historical S3 scan/backfill. Measure stage and readiness-to-output latency with
+unavailable timestamps explicit and backlog catch-up separate. No hard numeric SLA
+is required at launch. Funding is user-managed through OpenAI; no application spend
+cap/alert system. Scoped API tests share a cumulative USD 5 allowance.
+
+Deployment/activation is Milestone 6 through the protected reviewed release flow.
+Completion requires real queue-triggered EPS receipt in the earnings inspection
+queue; a disabled deployment/direct invoke/SNS acknowledgment is insufficient.

@@ -1,10 +1,11 @@
 # finbot-earnings roadmap
 
-Updated 2026-10-25. **All migration decisions D01–D12 are approved. Implementation
-of Milestones 1–6 has not started.** This document is the durable plan and checkpoint
-for separate agentic sessions. README describes implemented status; the approved
-decision register below governs the target. Older design documents are reconciled
-in Milestone 1. A decision approval is not a completed implementation milestone.
+Updated 2026-10-25. **All migration decisions D01–D12 are approved. Milestone 1
+is complete; Milestones 2–6 have not started.** This document is the durable plan
+and checkpoint for separate agentic sessions. README describes implemented status; the approved
+decision register below governs the target. Design documents were reconciled
+in Milestone 1; runtime behavior remains unchanged. A decision approval is not a
+completed implementation milestone.
 
 ## Required end state
 
@@ -54,31 +55,35 @@ Suggested new-session instruction:
 ## Current checkpoint
 
 - Date: 2026-10-25.
-- Planning: all 24 decision entries under D01–D12 approved; none unanswered.
-- Current work: README and ROADMAP documentation refresh only, both uncommitted.
-  No migration runtime code, shared data, live inference or AWS resources changed.
-- Implemented baseline: Nova filing core/adapters, legacy NVDA POC and old local
-  evaluator still coexist. Source configuration has consumption disabled.
-  Live AWS state has not been inspected in this documentation session.
-- Verification: compilation, 171 offline tests and diff/link checks passed.
-- Next session: **Milestone 1**. Formalize the approved contracts and reconcile
-  scope/architecture/runtime docs; do not begin extractor implementation yet.
-- API test allowance: USD 5 approved, USD 0 used in this discussion, USD 5 remaining.
-  This allowance is cumulative across milestones/sessions, not renewed per session.
-  Record unknown usage explicitly. Ongoing provider funding is user-managed in
-  OpenAI's UI under D11e.
-- Remaining external setup: deployed-state inspection, GitHub/OIDC environment
-  readiness, dedicated secret/secure credential population, alarm-email confirmation
-  and output subscription verification are Milestone 6 prerequisites.
+- Planning: all 24 entries under D01–D12 approved; none unanswered.
+- Completed: **Milestone 1 — contracts and documentation**. See its
+  [completion record](#milestone-1--complete--2026-10-25) for versions, files,
+  source hashes, checks and compatibility notes.
+- Current work: documentation/schema/example changes are uncommitted. Runtime,
+  dependencies, shared data, live inference and AWS resources are unchanged.
+  Nova core/adapters, legacy NVDA POC and local evaluator still coexist.
+- Source configuration disables consumption; actual cloud/GitHub state has not
+  been inspected. No deployed-state claim follows from source configuration.
+- Verification: compilation, 171 offline tests, schema/example/identity checks
+  and documentation link/diff checks passed; exact commands below.
+- Next session: **Milestone 2**. Read the completion record and finalized contracts,
+  then implement the isolated tested extractor behind a transition boundary.
+  Freeze finite provider-specific bounds, dependencies and preparation hashes;
+  do not integrate the consumer/storage or begin Milestone 3 yet.
+- API test ledger: USD 5 previous balance, USD 0 used in Milestone 1, no unknown
+  usage from this session, **USD 5 remaining** cumulatively. No provider calls.
+  Ongoing production funding is user-managed under D11e.
+- External setup remains Milestone 6: actual deployed-state inspection, GitHub/OIDC
+  readiness, dedicated secret/secure credential population, alarm-email
+  confirmation and output subscription/delivery verification.
 
-Replace this checkpoint with the actual state after each milestone; preserve
-historical evidence in the completion records rather than leaving stale status.
+Replace this checkpoint after each milestone; preserve historical evidence below.
 
 ## Milestone progress
 
 | Milestone | Status | Required starting state | Completion record |
 | --- | --- | --- | --- |
-| 1 — Contracts and documentation | Not started | Approved decisions below | None |
+| 1 — Contracts and documentation | Complete | Approved decisions below | [2026-10-25 completion](#milestone-1--complete--2026-10-25) |
 | 2 — Tested extractor | Not started | Milestone 1 complete | None |
 | 3 — Filing consumer integration | Not started | Milestone 2 complete | None |
 | 4 — Legacy cleanup | Not started | Milestone 3 complete | None |
@@ -104,27 +109,27 @@ behavior. Do not change the runtime or create cloud resources in this milestone.
 
 Goal: make production semantics explicit before changing extraction or storage.
 
-- [ ] Adopt the tested reported/adjusted diluted EPS semantics, including total
+- [x] Adopt the tested reported/adjusted diluted EPS semantics, including total
   diluted EPS versus continuing operations, explicitly disclosed adjusted measures,
   and exclusion of basic EPS, guidance and derived values.
-- [ ] Adopt issuer fiscal year/quarter identity and one current reporting period
+- [x] Adopt issuer fiscal year/quarter identity and one current reporting period
   per filing: select Q4 when both Q4 and full-year results are reported; select an
   annual period for a full-year-only report. Exclude cumulative/YTD observations.
-- [ ] Define versioned filing-snapshot event identity under D04–D05 and preserve
+- [x] Define versioned filing-snapshot event identity under D04–D05 and preserve
   all extracted currencies without cross-filing merging. Document unspecified
   share denomination under D03b; do not infer conversions or calendar dates.
-- [ ] Remove required period-end dates from the launch contract and define the
+- [x] Remove required period-end dates from the launch contract and define the
   separation from existing company/period-end event IDs and stored revisions.
-- [ ] Define schema validity, acceptance and independent evidence verification
+- [x] Define schema validity, acceptance and independent evidence verification
   separately. The tested response has no per-fact quote or source-artifact field;
   the existing prose-only validator cannot accept many table/image results.
-- [ ] Apply D01: independent per-fact evidence verification is not required for
+- [x] Apply D01: independent per-fact evidence verification is not required for
   launch. Preserve source snapshots, model responses and processing provenance;
   publish `earnings.extracted` after the agreed schema/business-rule checks.
-- [ ] Apply D02: no classification field, publication with at least one accepted
+- [x] Apply D02: no classification field, publication with at least one accepted
   observation and completed `no_eps_extracted` for empty arrays. Define separate
   review/technical-failure reasons without claiming a definitive non-earnings result.
-- [ ] Update FUNCTIONAL_SCOPE, V0_DECISIONS, CONTRACTS, ARCHITECTURE and the README
+- [x] Update FUNCTIONAL_SCOPE, V0_DECISIONS, CONTRACTS, ARCHITECTURE and the README
   together, clearly versioning changed semantics and defining compatibility.
   Include D07b's supported-format matrix and whole-snapshot limitations explicitly.
 
@@ -414,8 +419,8 @@ the disabled stage is specific to this first rollout.
 
 ## Milestone completion records
 
-No implementation milestone has been completed yet. Append one durable record at
-each session boundary; preserve earlier records. Link completed milestones from
+Milestone 1 is complete. Append one durable record at each session boundary;
+preserve earlier records. Link completed milestones from
 the progress table. For partial work, record which task is next and why exit
 criteria have not yet been met.
 
@@ -438,6 +443,87 @@ Use this template (include actual paths/values, not just "tests passed"):
 - External actions needed: owner, requested action and how to verify completion.
 - Next session: milestone and first concrete task; record partial work to resume.
 ```
+
+
+### Milestone 1 — complete — 2026-10-25
+
+- Scope delivered: formalized the approved fiscal EPS response, schema/business-rule
+  acceptance and immutable filing-snapshot event contract; reconciled scope,
+  decisions, architecture and current-versus-target runtime guidance. No runtime
+  implementation or later milestone begun.
+- Repository/version: `finbot-earnings`, branch `main`, starting HEAD
+  `163a8a4682a200e2f38b3de2615ca22ad96ad8c0`; initially clean. Changes remain
+  **uncommitted** in `README.md`, `ROADMAP.md`, `docs/FUNCTIONAL_SCOPE.md`,
+  `docs/V0_DECISIONS.md`, `docs/CONTRACTS.md`, `docs/ARCHITECTURE.md`,
+  `docs/OFFLINE_PROCESSING.md`, `docs/AWS_RUNTIME.md`, and new
+  `docs/contracts/README.md`, `docs/contracts/earnings_eps_fiscal_v2.schema.json`,
+  `docs/contracts/earnings_extracted_v1.schema.json`, `docs/contracts/examples.json`.
+  No source, dependency, infrastructure or workflow changes. Sibling filings/evals
+  checkouts were read-only and initially clean; no unrelated user changes found.
+- Exit evidence: CONTRACTS and the documentation schemas specify fields/types,
+  canonical encoding, stable work/event/record references and provenance. Synthetic
+  examples cover full/partial/empty results, Q4 versus annual, YTD exclusion,
+  total versus continuing operations, multiple currencies/unspecified share basis,
+  duplicate/conflicting rows, mixed HTML/PDF and oversized snapshot review,
+  repeated delivery, changed snapshots/amendments/configurations and fresh runs.
+  The complete event validates; empty-result events are explicitly rejected.
+- Engineering choices: response `earnings_eps.fiscal.v2` copied byte-for-byte;
+  prompt `eps-v6`; preparation `filing-html-text-images-v1`; transport
+  `openai-fiscal-v2-union-v1`; policy `fiscal-eps-acceptance-v1`; output
+  `earnings.extracted` / `1.0`; processing record version 2. Identity hashes the
+  new namespace, filing/snapshot, configuration version/content digest and run ID.
+  Work/reference/event prefixes are `earnings-work:v2`, `earnings-processing:v2`,
+  `earnings.extracted:1.0`. Canonical JSON/SHA-256 vector and full example are in
+  CONTRACTS/examples. Reserve `eps-openai-luna-v6-v1` until Milestone 2 freezes its
+  complete manifest; no persistent work uses it yet.
+- Acceptance: both metric arrays required; at least one observation publishes;
+  empty arrays complete `no_eps_extracted`; duplicate observation keys or multiple
+  fiscal periods send the whole response to review. No invalid-row salvage or
+  cross-filing gate. Invalid JSON/schema is a terminal failed result without
+  automatic inference retry. Source semantics are prompt-guided; no independent
+  per-fact verification, classification, calendar dates or share conversions.
+- Compatibility: keep existing `eps-v0`/`explicit-prose-v1`, old company/period-end
+  `earnings.validated` revisions and POC/evaluation behavior accurately labeled as
+  implemented. No legacy record migration, overwrite, merge or republication.
+  New documentation schemas are not loaded by runtime. Milestone 2 preserves the
+  old path through a transition boundary; Milestone 3 switches the consumer.
+- Reference evidence: read the producer-owned FilingReady contract and evals
+  v6 prompt/fiscal schema/configuration, direct adapter/preparation and experiment
+  report at evals commit `d105712812a3daaf0d958c0b9b180f41ca4703ce`.
+  [CONTRACTS reference identity](docs/CONTRACTS.md#reference-identity) records exact
+  file hashes. Baseline L5 run `20261023T145725Z-9ff8c84b`, 83/83 targets, 50/50
+  exact, is development-set evidence. This is not production-port parity proof.
+- Checks on 2026-10-25 using this repo's `.venv` (Python 3.11.17):
+  `.venv/bin/python -m compileall -q src tests infra scripts` passed;
+  `.venv/bin/python -m pytest` passed **171 tests**;
+  `.venv/bin/python -c 'from pathlib import Path; exec(Path("docs/contracts/README.md").read_text().split("```python\n", 1)[1].split("```", 1)[0])'`
+  passed two schema checks, 16 response cases, six identity vectors, one full event,
+  three input-policy examples and **75 local links/fragments across 11 Markdown files**;
+  `git diff --check` passed. The [checker source](docs/contracts/README.md) is
+  durable and offline. It verifies specification consistency, not runtime/provider
+  behavior. Source-diff inspection confirms only the listed documentation files.
+- Documentation: README status/table/map and ROADMAP checkpoint/table/checkboxes
+  now agree; scope/contracts/architecture/acceptance and offline/runtime docs are
+  reconciled. Legacy evaluator/golden instructions remain for Milestone 4 removal,
+  explicitly superseded by README and runtime guidance.
+- Live actions: none. No provider calls, deployed-state inspection, AWS/GitHub
+  mutation or shared-data changes. API ledger: previous USD 5, spent USD 0,
+  no unknown usage introduced, **USD 5 remaining**, cumulative across sessions.
+- Deferred engineering: verified finite input/image/request/token/response bounds,
+  SDK pins/attempt budgets and preparation/adapter hashes are Milestone 2; physical
+  storage/index/CLI/env choices Milestone 3; packaging/secret/inspection queue,
+  confirmed alarm email and reviewed deployment/activation Milestone 6. These are
+  planned milestone deliverables, not unresolved product decisions or Milestone 1
+  blockers. Actual cloud/GitHub/account access remains unverified.
+- External action needed now: none. Milestone 6 will require secure credential
+  population, email confirmation and protected release approval after concrete
+  release preparation; do not request them for this milestone.
+- Next session: **Milestone 2 only**. Read this record, finalized contracts and
+  source references, then implement/test the direct Luna extractor separately from
+  the legacy pipeline, verify complete input bounds including HON 34 images and
+  mixed HTML/PDF review, and freeze traceable configuration/dependencies. Stop
+  before consumer/storage/CLI integration.
+
 
 ## Reference sources and implementation constraints
 
@@ -488,9 +574,10 @@ Current filing-code starting points are `src/finbot_earnings/processing/`
 `infra/cdk/` (stack/settings/configuration), `scripts/` (Lambda build/release
 verification) and `.github/workflows/`. Legacy acquisition/extraction modules and
 the `evaluation/` subtree are removed only after replacement behavior is covered.
-Documentation under this package's `docs/` remains unchanged by this planning
-session and must be reconciled in Milestone 1; this approved roadmap takes
-precedence where it conflicts with the old NVDA/Nova/canonical-event design.
+Milestone 1 reconciled the scope/acceptance/contract/architecture documents and
+labeled current offline/AWS behavior separately from target semantics. The approved
+roadmap still takes precedence; code remains the old NVDA/Nova/canonical-event
+implementation until subsequent milestones.
 
 Operational setup is still required; it is not an unresolved design choice:
 

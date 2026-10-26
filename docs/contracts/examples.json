@@ -1,0 +1,533 @@
+{
+  "note": "Synthetic specification examples, not real filings or a runnable configuration. Repeated-letter snapshot/config digests are intentional test inputs, not claims about hashed real objects.",
+  "response_cases": [
+    {
+      "name": "full",
+      "context": "Both current-quarter metrics disclosed; preserve 1.230 trailing zero.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": [
+          {
+            "value": "1.45",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ]
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "reported_only",
+      "context": "Disclosed loss; adjusted absent, never copied from reported.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "-0.30",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "adjusted_only",
+      "context": "Only primary adjusted diluted EPS can be established.",
+      "response": {
+        "reported_diluted_eps": [],
+        "adjusted_diluted_eps": [
+          {
+            "value": "1.45",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ]
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "empty",
+      "context": "No observations established; not a definitive non-earnings classification.",
+      "response": {
+        "reported_diluted_eps": [],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "no_eps_extracted",
+      "expected_reason": null
+    },
+    {
+      "name": "annual_only",
+      "context": "Full FY2027 only; issuer year may differ from publication/calendar year.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "5.10",
+            "currency": "USD",
+            "period_type": "annual",
+            "fiscal_year": 2027,
+            "fiscal_quarter": null
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "q4_over_annual",
+      "context": "Q4 FY2026 and full FY2026 reported; annual 4.90/5.20 excluded, not emitted alongside Q4.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.20",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 4
+          }
+        ],
+        "adjusted_diluted_eps": [
+          {
+            "value": "1.30",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 4
+          }
+        ]
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "ytd_excluded",
+      "context": "Q3 FY2031 2.15 and multiquarter YTD 6.40: only 2.15. No annual relabel or quarter subtraction.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "2.15",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2031,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "total_over_continuing",
+      "context": "Reported total 1.23, continuing component 1.10, primary adjusted based on continuing operations 1.45: use total reported and primary adjusted.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.23",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": [
+          {
+            "value": "1.45",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ]
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "multiple_currencies",
+      "context": "Disclosed TWD per ordinary share and USD per ADS. Share denomination unspecified in output; retain both without conversion/equivalence.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "10.00",
+            "currency": "TWD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          },
+          {
+            "value": "0.625",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "accepted",
+      "expected_reason": null
+    },
+    {
+      "name": "duplicate_rows",
+      "context": "Exact repeated row is invalid business output, not silently collapsed.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          },
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "review_required",
+      "expected_reason": "duplicate_observation"
+    },
+    {
+      "name": "conflicting_rows",
+      "context": "Same metric/currency/period conflicts; withhold whole response.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          },
+          {
+            "value": "1.24",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "review_required",
+      "expected_reason": "duplicate_observation"
+    },
+    {
+      "name": "same_currency_share_basis",
+      "context": "Two USD share bases cannot be represented as separate same-key rows; do not convert/select a winner.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.00",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          },
+          {
+            "value": "2.00",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "review_required",
+      "expected_reason": "duplicate_observation"
+    },
+    {
+      "name": "multiple_periods",
+      "context": "Metrics disagree on fiscal period; no row salvage.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": [
+          {
+            "value": "1.45",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 4
+          }
+        ]
+      },
+      "expected_outcome": "review_required",
+      "expected_reason": "multiple_fiscal_periods"
+    },
+    {
+      "name": "quarter_plus_annual",
+      "context": "Model violated one-period instruction; no annual pruning after extraction.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          },
+          {
+            "value": "5.00",
+            "currency": "USD",
+            "period_type": "annual",
+            "fiscal_year": 2026,
+            "fiscal_quarter": null
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "review_required",
+      "expected_reason": "multiple_fiscal_periods"
+    },
+    {
+      "name": "invalid_decimal",
+      "context": "Scientific notation is not the tested decimal representation.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1e2",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": 3
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "processing_failed",
+      "expected_reason": "invalid_model_response"
+    },
+    {
+      "name": "invalid_fiscal_boolean",
+      "context": "Boolean is not an integer fiscal identifier.",
+      "response": {
+        "reported_diluted_eps": [
+          {
+            "value": "1.230",
+            "currency": "USD",
+            "period_type": "quarterly",
+            "fiscal_year": 2026,
+            "fiscal_quarter": true
+          }
+        ],
+        "adjusted_diluted_eps": []
+      },
+      "expected_outcome": "processing_failed",
+      "expected_reason": "invalid_model_response"
+    }
+  ],
+  "identity_vectors": {
+    "initial": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000001",
+        "snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_config_version": "eps-openai-luna-v6-v1",
+        "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "run_id": "initial"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"extraction_config_version\":\"eps-openai-luna-v6-v1\",\"filing_id\":\"0000000001-26-000001\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"initial\",\"snapshot_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+      "digest": "0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "work_id": "earnings-work:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "event_id": "earnings.extracted:1.0:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "processing_record_ref": "earnings-processing:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff"
+    },
+    "duplicate_delivery": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000001",
+        "snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_config_version": "eps-openai-luna-v6-v1",
+        "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "run_id": "initial"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"extraction_config_version\":\"eps-openai-luna-v6-v1\",\"filing_id\":\"0000000001-26-000001\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"initial\",\"snapshot_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+      "digest": "0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "work_id": "earnings-work:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "event_id": "earnings.extracted:1.0:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "processing_record_ref": "earnings-processing:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff"
+    },
+    "changed_snapshot": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000001",
+        "snapshot_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "extraction_config_version": "eps-openai-luna-v6-v1",
+        "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "run_id": "initial"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"extraction_config_version\":\"eps-openai-luna-v6-v1\",\"filing_id\":\"0000000001-26-000001\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"initial\",\"snapshot_id\":\"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb\"}",
+      "digest": "459ef80e8424e879e929d4f8af7fca99f83f5baa525397c4aa0886897c3a43c1",
+      "work_id": "earnings-work:v2:459ef80e8424e879e929d4f8af7fca99f83f5baa525397c4aa0886897c3a43c1",
+      "event_id": "earnings.extracted:1.0:459ef80e8424e879e929d4f8af7fca99f83f5baa525397c4aa0886897c3a43c1",
+      "processing_record_ref": "earnings-processing:v2:459ef80e8424e879e929d4f8af7fca99f83f5baa525397c4aa0886897c3a43c1"
+    },
+    "amended_filing": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000002",
+        "snapshot_id": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "extraction_config_version": "eps-openai-luna-v6-v1",
+        "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "run_id": "initial"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"extraction_config_version\":\"eps-openai-luna-v6-v1\",\"filing_id\":\"0000000001-26-000002\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"initial\",\"snapshot_id\":\"dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd\"}",
+      "digest": "e3c2c84a1e4c222a652d81263534925f6891dc5dd2cf9efdd380860ce2bb616f",
+      "work_id": "earnings-work:v2:e3c2c84a1e4c222a652d81263534925f6891dc5dd2cf9efdd380860ce2bb616f",
+      "event_id": "earnings.extracted:1.0:e3c2c84a1e4c222a652d81263534925f6891dc5dd2cf9efdd380860ce2bb616f",
+      "processing_record_ref": "earnings-processing:v2:e3c2c84a1e4c222a652d81263534925f6891dc5dd2cf9efdd380860ce2bb616f"
+    },
+    "new_run": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000001",
+        "snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_config_version": "eps-openai-luna-v6-v1",
+        "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "run_id": "operator-20261025-1"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc\",\"extraction_config_version\":\"eps-openai-luna-v6-v1\",\"filing_id\":\"0000000001-26-000001\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"operator-20261025-1\",\"snapshot_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+      "digest": "a2b866fdb4be0000752687fd36c9d86f8f8f66313b9dd4ca82e7430b98fbc47e",
+      "work_id": "earnings-work:v2:a2b866fdb4be0000752687fd36c9d86f8f8f66313b9dd4ca82e7430b98fbc47e",
+      "event_id": "earnings.extracted:1.0:a2b866fdb4be0000752687fd36c9d86f8f8f66313b9dd4ca82e7430b98fbc47e",
+      "processing_record_ref": "earnings-processing:v2:a2b866fdb4be0000752687fd36c9d86f8f8f66313b9dd4ca82e7430b98fbc47e"
+    },
+    "changed_configuration": {
+      "identity": {
+        "namespace": "earnings.extracted/1.0",
+        "filing_id": "0000000001-26-000001",
+        "snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "extraction_config_version": "eps-openai-luna-v6-v2",
+        "extraction_config_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "run_id": "initial"
+      },
+      "canonical_json": "{\"extraction_config_sha256\":\"eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee\",\"extraction_config_version\":\"eps-openai-luna-v6-v2\",\"filing_id\":\"0000000001-26-000001\",\"namespace\":\"earnings.extracted/1.0\",\"run_id\":\"initial\",\"snapshot_id\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}",
+      "digest": "551d5f017b0187f9498c38d583a12038deb2a95ae2e118632d3a123db7eeab5f",
+      "work_id": "earnings-work:v2:551d5f017b0187f9498c38d583a12038deb2a95ae2e118632d3a123db7eeab5f",
+      "event_id": "earnings.extracted:1.0:551d5f017b0187f9498c38d583a12038deb2a95ae2e118632d3a123db7eeab5f",
+      "processing_record_ref": "earnings-processing:v2:551d5f017b0187f9498c38d583a12038deb2a95ae2e118632d3a123db7eeab5f"
+    }
+  },
+  "accepted_event": {
+    "event_type": "earnings.extracted",
+    "schema_version": "1.0",
+    "event_id": "earnings.extracted:1.0:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+    "issuer": {
+      "cik": "0000000001",
+      "ticker": "EXAMPLE",
+      "company_name": "Example Issuer"
+    },
+    "source": {
+      "filing_id": "0000000001-26-000001",
+      "snapshot_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "form_type": "8-K",
+      "filed_at": "2026-10-25T16:00:00.000000Z",
+      "ready_at": "2026-10-25T16:00:10.000000Z",
+      "primary_artifact_id": "0000000001-26-000001/release.htm",
+      "manifest_ref": "earnings-processing:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff/input"
+    },
+    "extraction": {
+      "reported_diluted_eps": [
+        {
+          "value": "1.230",
+          "currency": "USD",
+          "period_type": "quarterly",
+          "fiscal_year": 2026,
+          "fiscal_quarter": 3
+        }
+      ],
+      "adjusted_diluted_eps": [
+        {
+          "value": "1.45",
+          "currency": "USD",
+          "period_type": "quarterly",
+          "fiscal_year": 2026,
+          "fiscal_quarter": 3
+        }
+      ]
+    },
+    "processing": {
+      "work_id": "earnings-work:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "processing_record_ref": "earnings-processing:v2:0d2d1880a4cf29b45d1922d0972f9fa79dc417732ce7aa2b00058643c12f8fff",
+      "run_id": "initial",
+      "provider": "openai",
+      "model": "gpt-6-luna",
+      "extraction_config_version": "eps-openai-luna-v6-v1",
+      "extraction_config_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "prompt_version": "eps-v6",
+      "response_schema_version": "earnings_eps.fiscal.v2",
+      "preparation_version": "filing-html-text-images-v1",
+      "acceptance_policy": "fiscal-eps-acceptance-v1"
+    },
+    "extraction_started_at": "2026-10-25T16:00:11.000000Z",
+    "extraction_completed_at": "2026-10-25T16:00:14.000000Z",
+    "created_at": "2026-10-25T16:00:14.100000Z"
+  },
+  "input_cases": [
+    {
+      "name": "mixed_html_pdf",
+      "members": [
+        "release.htm",
+        "supplement.pdf"
+      ],
+      "outcome": "review_required",
+      "reason": "unsupported_selected_format",
+      "inference_calls": 0,
+      "events": 0
+    },
+    {
+      "name": "oversized_complete_snapshot",
+      "members": [
+        "release.htm",
+        "page.png"
+      ],
+      "outcome": "review_required",
+      "reason": "snapshot_bound_exceeded",
+      "inference_calls": 0,
+      "events": 0
+    },
+    {
+      "name": "missing_selected_object",
+      "members": [
+        "release.htm"
+      ],
+      "outcome": "processing_failed",
+      "reason": "source_object_missing",
+      "inference_calls": 0,
+      "events": 0
+    }
+  ]
+}
